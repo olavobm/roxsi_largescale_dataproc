@@ -9,8 +9,12 @@ function dirpath = data_dirpath()
 % to point to a different location where the
 % dataset has been saved.
 
-% Setting it relative to the repository direction
-file_fullname = mfilename('fullpath');
 
-%
-dirpath = fileparts(fileparts(file_fullname));
+% % % % % Setting it relative to the repository direction
+% % % % file_fullname = mfilename('fullpath');
+% % % % 
+% % % % % Go up two directory levels
+% % % % dirpath = fileparts(fileparts(file_fullname));
+
+% Or set it mannually
+dirpath = '/Volumes/LaCie/';

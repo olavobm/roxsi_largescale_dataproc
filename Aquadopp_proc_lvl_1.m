@@ -374,7 +374,7 @@ for i = 1:Naquadopps
         %
         str_filename = ['roxsi_aquadopp_L1_' char(aquadoppL1.SN) '_' list_Aquadopp{i}(1:3)];
         %
-        save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'aquadoppL1')
+        save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'aquadoppL1', '-v7.3')
     end
 
     %

@@ -150,10 +150,8 @@ fighandle = figure;
     set(gcf, 'Units', 'normalized', 'Position', [0.3, 0.3, 0.4, 0.35]);
     %
     set(haxs_all(1:(end-2)), 'XTickLabel', [])
-% %     set(haxs_all(2:2:end), 'YTickLabel', [])
    
     %
-%     ylabel(haxs_all(3), 'Cell center [m]', 'Interpreter', 'Latex', 'FontSize', 16)
     ylabel(haxs_all(3), 'Height above the bottom [m]', 'Interpreter', 'Latex', 'FontSize', 16)
     %
     title(haxs_all(1), ['Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' char(aquadoppL1.SN) ': Ue, Vn, and Wup'], 'Interpreter', 'Latex', 'FontSize', 16)

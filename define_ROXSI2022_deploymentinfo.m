@@ -1,3 +1,8 @@
+%% Create and save structure variable with ADCP deployment information
+
+
+%%
+
 %
 mooringID = ["B02at"; ...    % 600 kHz
              "B04apt"; "B06apt"; "B07ap"; ...    % 1 MHz
@@ -166,8 +171,59 @@ time_end_trim = ["2022/07/20 10:50:00"; ...
                  "2022/07/20 11:10:00"];       % X11a removing chunk to avoid swimmers during recovery
 
 
+
+%% Pressure offset -- this is the number that may be
+% set when the ADCP is on air when the ADCP is programmed.
+%
+% Subtract this offset to compute hydrostatic pressure
+% (apart from atmospheric pressure variations relative
+% when the pressure offset was set).
+%
+% The Signature1000 does not have this option (or is the offset always to
+% 0??????).
+% The Aquadopps have this pressure offset option. Ideally,
+% this should be set to 1 (dbar). But in case something else
+% was set, than here is where this value can be written and
+% properly corrected (3 Aquadopps seem to have a different offset).
+%
+% Unfortunately, ADCP pressure sensors after recovery do not give
+% reliable measurements of the atmospheric pressure (thus, without
+% more information, no other corrections can be applied).
+
+%
+pressure_offset = [ones(21, 1); ...   % Aquadopps
+                   zeros(8, 1)];       % Signatures
+
+% The 3 Aquadopps that seem to have a different offset
+% (based on the pressure after recovery) are E12, D01, X13.
+% Both D01 and X13 have clear drop of pressure to 0 (dbar)
+% after recovery, and then they later diverge to whatever
+% values that do not reflect atmospheric pressure (as do
+% all ADCPs). Thus, it seems that the pressure offset for
+% D01 and X13 were set to 0 when they were programmed.
+% E12 drops to 0.28 after recovery. Thus it is unclear
+% what was the pressure offset, or whether something went
+% wrong with the sensor.
+
+%
+l_offset_to_0 = strcmp(mooringID, "D01ap") | strcmp(mooringID, "X13a");
+
+%
+pressure_offset(l_offset_to_0) = 0;
+
+
 %% Create table with deployment information
 
 %
-deploymentInfo_ROXSI2022 = table(mooringID, instrument, SN, time_set_clockdrift, time_end_clockdrift, clockdrift, time_begin_trim, time_end_trim);
+deploymentInfo_ROXSI2022 = ...
+                    table(mooringID, instrument, SN, ...
+                          time_set_clockdrift, time_end_clockdrift, clockdrift, ...
+                          time_begin_trim, time_end_trim, ...
+                          pressure_offset);
 
+
+%% Save the table
+
+%
+save(fullfile(repo_dirpath(), 'deploymentInfo_ROXSI2022.mat'), ...
+     'deploymentInfo_ROXSI2022')

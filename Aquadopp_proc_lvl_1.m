@@ -1,22 +1,43 @@
+%% Script that process Aquadopp data from RAW to level 1.
+
 clear
 close all
 
-
-
-%% Get 
-
-% This creates the table ROXSI2022_deploymentInfo
-run(['/Users/olavobm/Documents/ROXSI_Postdoc/MyResearch/ROXSI' ...
-     '/other_matlab_functions/codebyOBM/obm_ROXSI_toolbox' ...
-     '/instruments_toolbox/define_ROXSI2022_deploymentinfo.m'])
-
+%%
+% --------------------------------------
+% --------- PRELIMINARY STUFF ----------
+% --------------------------------------
 
 %%
 
 %
-dir_data_parent = '/Volumes/LaCie/RAW/Aquadopp/';
+dir_rawdata_parent = fullfile(data_dirpath, 'RAW', 'Aquadopp');
 
-% % %
+
+%%
+
+% %
+% dir_output_data_L1 = fullfile(data_dirpath, 'Level1_Data', 'Aquadopp');
+% dir_output_figs_L1 = fullfile(data_dirpath, 'Level1_Data', 'Aquadopp', 'qc_plots');
+%
+dir_output_data_L1 = '/Volumes/OBM-HD/docs/researchPostdoc/datasets/ROXSI/fieldworks/experiment_2022/Aquadopp/';
+dir_output_figs_L1 = fullfile(dir_output_data_L1, 'qc_plots');
+
+% Logical swithced to save or not save data and figuress
+lsave_file = true;
+lsave_fig = true;
+
+
+%% Load ADCP deployment information
+
+% Just to be clear: file and variable have
+% the same name (though not a requirement)
+load(fullfile(repo_dirpath(), 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROXSI2022')
+
+
+%% List of Aquadopps that will be processed
+
+% % % All Aquadopps
 % % list_Aquadopp = {'A03_5380', ...
 % %                  'B02_12507', 'B04_2147', 'B07_2141', 'B08_13288', 'B11_12280', ...
 % %                  'C03_0709', ...
@@ -25,57 +46,91 @@ dir_data_parent = '/Volumes/LaCie/RAW/Aquadopp/';
 % %                  'F01_9995', 'F02_5838', 'F03_5384', 'F04_5401', 'F05_14032', ...
 % %                  'X06_13290', 'X13_9945'};
 
-%
-list_Aquadopp = {'B02_12507'};
-% list_Aquadopp = {'B07_2141'};
+% A remaining list in case some have been processed
+list_Aquadopp = {'B11_12280', ...
+                 'C03_0709', ...
+                 'D01_12346', 'D02_0653', ...
+                 'E03_13300', 'E04_13172', 'E06_9736', 'E12_11150', ...
+                 'F01_9995', 'F03_5384', 'F04_5401', 'F05_14032', ...
+                 'X06_13290', 'X13_9945'};
+
+
+% A few tests
+list_Aquadopp = {'B02_12507'};   % a little data (averaging)
+% % list_Aquadopp = {'E12_11150'};
+% % list_Aquadopp = {'B07_2141'};
+% % list_Aquadopp = {'F02_5838'};    % lot of data (1 Hz)
 
 %
 Naquadopps = length(list_Aquadopp);
 
-%
-dir_output_Aquadopp = ['/Volumes/OBM-HD/docs/researchPostdoc/datasets' ...
-                       '/ROXSI/fieldworks/experiment_2022/ADCPs/status/Aquadopp/'];
+
+%% Display on the screen:
+
+% Skip a few lines for clarity
+disp(' ')
+disp(' ')
+disp(' ')
+% Print message
+disp(['Processing ' num2str(Naquadopps) ' Aquadopp(s) from RAW to level 1. ' ...
+      'Here are all Aquadopps:'])
+
+list_Aquadopp
+
+
+
+%%
+% ----------------------------------------------------------------
+% ----------------------------------------------------------------
+% ---------------------- DO DATA PROCESSING ----------------------
+% ----------------------------------------------------------------
+% ----------------------------------------------------------------
+
 
 %% Load atmospheric pressure
 
-%
-atm_pressure = load(['/Users/olavobm/Documents/ROXSI_Postdoc/MyResearch' ...
-                     '/figures_bydate/2022_08_17/obm_edited_noaa_mry_barometric_pressure/' ...
-                     'atm_pressure.mat']);
+% % %
+% % atm_pressure = load(['/Users/olavobm/Documents/ROXSI_Postdoc/MyResearch' ...
+% %                      '/figures_bydate/2022_08_17/obm_edited_noaa_mry_barometric_pressure/' ...
+% %                      'atm_pressure.mat']);
 
 
 
 
-%%
-% -----------------------------------------------------------------
-% -----------------------------------------------------------------
-% -----------------------------------------------------------------
-% -----------------------------------------------------------------
-% -----------------------------------------------------------------
-
-
-%%
+%% Process RAW Aquadopp data
 
 %
 list_senfile_vars = ["time", "heading", "pitch", "roll", "pressure", "temperature"];
 
-%
+% Loop over Aquadopps in the list
 for i = 1:Naquadopps
 
     % ----------------------------------------------------
-    % Get header (in particular, cell centers)
-    file_header_aux = dir(fullfile(dir_data_parent, list_Aquadopp{i}, '*.hdr'));
+    %
+    disp(' ')
+    disp(' ')
+    disp(['----- Start processing raw Aquadopp data: ' list_Aquadopp{i} ' -----'])
+
+    % ----------------------------------------------------
+    % Get header
+    file_header_aux = dir(fullfile(dir_rawdata_parent, list_Aquadopp{i}, '*.hdr'));
+
+    % E12 has extra files (E1202.hdr, E1202.PRF, E1202.ssl). From header
+    % file, it seems these belong to this deployment, but these were not
+    % used (some kind of error?). But all the data seems to be in E1203.*
+    if strcmp(list_Aquadopp{i}, 'E12_11150')
+        file_header_aux = dir(fullfile(dir_rawdata_parent, list_Aquadopp{i}, 'E1203.hdr'));
+    end
+
     %
     header_aux = Aquadopp_read_header(fullfile(file_header_aux.folder, file_header_aux.name));
     
     % ----------------------------------------------------
     %
-    file_sen_aux = dir(fullfile(dir_data_parent, list_Aquadopp{i}, '*.sen'));
+    file_sen_aux = dir(fullfile(dir_rawdata_parent, list_Aquadopp{i}, '*.sen'));
 
     %
     senAQDP_aux = Aquadopp_read_senfile(fullfile(file_sen_aux.folder, file_sen_aux.name), list_senfile_vars);
-    
-
     
 % % %     %
 % % %     senAQDP_aux.time = datetime(datenum(senAQDP_aux.time, 'yyyy/mm/dd HH:MM:SS'), ...
@@ -98,11 +153,9 @@ for i = 1:Naquadopps
     file_noextension_aux = file_sen_aux.name(1:(strfind(file_sen_aux.name, '.') - 1));
 
     %
-    beamAQDP_aux = Aquadopp_read_beamdata(fullfile(dir_data_parent, list_Aquadopp{i}, file_noextension_aux), ...
+    beamAQDP_aux = Aquadopp_read_beamdata(fullfile(dir_rawdata_parent, list_Aquadopp{i}, file_noextension_aux), ...
                                           ["a1", "a2", "a3", "v1", "v2", "v3"]);
 
-   
-    
 
     % ----------------------------------------------------
     % Trim for when instrument was in the water
@@ -117,15 +170,8 @@ for i = 1:Naquadopps
     time_2 = datetime(datenum(time_2, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
 
     %
-    lin_water = (senAQDP_aux.time >= time_1) & (senAQDP_aux.time <= time_2);
+    lin_deployment = (senAQDP_aux.time >= time_1) & (senAQDP_aux.time <= time_2);
 
-    %
-    statusAquadopp.all = senAQDP_aux;
-    %
-    for i2 = 1:length(list_senfile_vars)
-        %
-        statusAquadopp.trimmed.(list_senfile_vars(i2)) = statusAquadopp.all.(list_senfile_vars(i2))(lin_water);
-    end
 
     % ----------------------------------------------------
     % Start adding data into level 1 data structure
@@ -139,8 +185,10 @@ for i = 1:Naquadopps
     aquadoppL1.mooringID = deploymentInfo_ROXSI2022.mooringID(lmatch_ontable);
 
     % Latitude/longitude
-
-    % x/y
+    info_mooringtable = ROXSI_mooringlocation(aquadoppL1.mooringID, "ADCP");
+    %
+    aquadoppL1.latitude = info_mooringtable.latitude;
+    aquadoppL1.longitude = info_mooringtable.longitude;
 
     %
     aquadoppL1.header = header_aux.header;
@@ -158,7 +206,7 @@ for i = 1:Naquadopps
     % Height of the transducers above the bottom (in meters)
     if strcmp(aquadoppL1.mooringID, "B02at")
         %
-        aquadoppL1.transducerHAB = 0.5;   % PLACEHOLDER VALUE (0.5 m seems like a reasonable guess)
+        aquadoppL1.transducerHAB = 1;   % PLACEHOLDER VALUE until we take the measurement (1 m seems like a reasonable guess)
     %
     else
         % Based on top and bottom of the transducers
@@ -176,27 +224,25 @@ for i = 1:Naquadopps
     %
     aquadoppL1.timezone = 'PDT';
     %
-    aquadoppL1.dtime = senAQDP_aux.time(lin_water).';
-    aquadoppL1.heading = senAQDP_aux.heading(lin_water).';
-    aquadoppL1.pitch = senAQDP_aux.pitch(lin_water).';
-    aquadoppL1.roll = senAQDP_aux.roll(lin_water).';
+    aquadoppL1.dtime = senAQDP_aux.time(lin_deployment).';
+    aquadoppL1.heading = senAQDP_aux.heading(lin_deployment).';
+    aquadoppL1.pitch = senAQDP_aux.pitch(lin_deployment).';
+    aquadoppL1.roll = senAQDP_aux.roll(lin_deployment).';
 
     %
     aquadoppL1.pressureoffset = deploymentInfo_ROXSI2022.pressure_offset(ind_row_match);
     
     %
-    aquadoppL1.pressure = senAQDP_aux.pressure(lin_water).' - aquadoppL1.pressureoffset;
+    aquadoppL1.pressure = senAQDP_aux.pressure(lin_deployment).' - aquadoppL1.pressureoffset;
 
     % ------------------------------
     % Correct for the atmospheric pressure variability
-    %
-    keyboard
-
+    % not implemented
 
     % ------------------------------
 
     %
-    aquadoppL1.temperature = senAQDP_aux.temperature(lin_water).';
+    aquadoppL1.temperature = senAQDP_aux.temperature(lin_deployment).';
 
     % ----------------------------------------------------
     %
@@ -205,14 +251,22 @@ for i = 1:Naquadopps
     % In clockwise degrees from the true north
     aquadoppL1.magdec = 12.86;
 
-    % At this point, Ue and Vn are relative to the MAGNETIC north
-    aquadoppL1.Ue = beamAQDP_aux.v1(:, lin_water);
-    aquadoppL1.Vn = beamAQDP_aux.v2(:, lin_water);
-    aquadoppL1.Wup = beamAQDP_aux.v3(:, lin_water);
+    % Trim the data in the vertical using maximum pressure
+    aquadoppL1.ptrimTH = max(aquadoppL1.pressure) + (2 * aquadoppL1.binsize);
     %
-    aquadoppL1.a1 = beamAQDP_aux.a1(:, lin_water);
-    aquadoppL1.a2 = beamAQDP_aux.a2(:, lin_water);
-    aquadoppL1.a3 = beamAQDP_aux.a3(:, lin_water);
+    lin_verticalrange = (aquadoppL1.zhab <= aquadoppL1.ptrimTH);
+    %
+    aquadoppL1.zhab = aquadoppL1.zhab(lin_verticalrange);
+
+
+    % At this point, Ue and Vn are relative to the MAGNETIC north
+    aquadoppL1.Ue = beamAQDP_aux.v1(lin_verticalrange, lin_deployment);
+    aquadoppL1.Vn = beamAQDP_aux.v2(lin_verticalrange, lin_deployment);
+    aquadoppL1.Wup = beamAQDP_aux.v3(lin_verticalrange, lin_deployment);
+    %
+    aquadoppL1.a1 = beamAQDP_aux.a1(lin_verticalrange, lin_deployment);
+    aquadoppL1.a2 = beamAQDP_aux.a2(lin_verticalrange, lin_deployment);
+    aquadoppL1.a3 = beamAQDP_aux.a3(lin_verticalrange, lin_deployment);
 
     % ----------------------------------------------------
     % Rotate horizontal velocity from magnetic to true north
@@ -223,7 +277,7 @@ for i = 1:Naquadopps
 
 % %     % Check the rotation (i.e. velocity aligned with magnetic north
 % %     % should have a small zonal component and large meridional
-% %     % component)
+% %     % component in a geographical north coordinate system)
 % %     rotMatrix * [0; 1]
 
     %
@@ -239,6 +293,15 @@ for i = 1:Naquadopps
     end
     
     % ----------------------------------------------------
+% % %     % Filter out velocity where amplitude is below a threshold value
+% %     aquadoppL1.backscatterTH = 30;
+% % 
+% %    THAT'S NOT REALLY A GOOD THING TO DO IN THE FIRST STEP OF DATA PROC.
+
+% %     %
+% %     l_abelowTH = (aquadoppL1.a1 <= aquadoppL1.backscatterTH) || 
+
+    % ----------------------------------------------------
     % Compute averaged fields (compute 10 and 20 min averages
     % are whole number choices because B02 gives data
     % every 10 min).
@@ -249,7 +312,7 @@ for i = 1:Naquadopps
     %
     npts_avg = aquadoppL1.averaged.dt / aquadoppL1.samplingtime;
 
-    % First average time (also to get its length)
+    % First average time
     aquadoppL1.averaged.dtime = regRunMean(npts_avg, datenum(aquadoppL1.dtime), npts_avg, @rectwin);
     aquadoppL1.averaged.dtime = datetime(aquadoppL1.averaged.dtime, 'ConvertFrom', 'datenum');
     aquadoppL1.averaged.dtime.TimeZone = aquadoppL1.dtime.TimeZone;
@@ -266,7 +329,7 @@ for i = 1:Naquadopps
     aquadoppL1.averaged.a3 = prealloc_aux;
 
     % Loop over rows
-    for i2 = 1:length(aquadoppL1.cellcenter)
+    for i2 = 1:length(aquadoppL1.zhab)
         %
         aquadoppL1.averaged.Ue(i2, :) = regRunMean(npts_avg, aquadoppL1.Ue(i2, :), npts_avg, @rectwin);
         aquadoppL1.averaged.Vn(i2, :) = regRunMean(npts_avg, aquadoppL1.Vn(i2, :), npts_avg, @rectwin);
@@ -277,8 +340,13 @@ for i = 1:Naquadopps
         aquadoppL1.averaged.a3(i2, :) = regRunMean(npts_avg, aquadoppL1.a3(i2, :), npts_avg, @rectwin);
     end
 
+
     % ----------------------------------------------------
     % Make a diagnostic plot
+
+    %
+    disp('Done with processing. Making QC plot.')
+    %
     fig_L1_QC = Aquadopp_pcolor_lvl_1(aquadoppL1);
 
 
@@ -296,18 +364,36 @@ for i = 1:Naquadopps
     % ----------------------------------------------------
     % Save level 1 data
 
-% % %     %
-% % %     str_filename = ['roxsi_aquadopp_L1_' char(aquadoppL1.SN) '_' list_Aquadopp{i}(1:3)];
-% % % 
-% % %     %
-% % %     save(fullfile(dir_output_Aquadopp, [str_filename '.mat']), 'aquadopplvl1')
-% % % 
-% % %     % Save figure as *.png
-% % %     exportgraphics(fig_L1_QC, fullfile(dir_output_Aquadopp, [str_filename '.png']), 'Resolution', 300)
-% % % 
-% % %     % Save figure as *.fig -- may not work
-% % %     % % savefig(fig_L1_QC, fullfile(dir_output_Aquadopp, [str_filename '.fig']), 'compact')
+    %
+    if lsave_file
+        %
+        disp('Saving level 1 data.')
 
+        %
+        str_filename = ['roxsi_aquadopp_L1_' char(aquadoppL1.SN) '_' list_Aquadopp{i}(1:3)];
+        %
+        save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'aquadoppL1')
+    end
 
+    %
+    if lsave_fig
+        %
+        disp('Saving level 1 QC plot figure.')
 
+        %
+        str_filename = ['roxsi_aquadopp_L1_' char(aquadoppL1.SN) '_' list_Aquadopp{i}(1:3)];
+
+        % Save figure as *.png
+        exportgraphics(fig_L1_QC, fullfile(dir_output_figs_L1, [str_filename '.png']), 'Resolution', 300)
+    
+        % Save figure as *.fig -- may not work
+        % % savefig(fig_L1_QC, fullfile(dir_output_Aquadopp, [str_filename '.fig']), 'compact')
+    end
+
+    %
+    disp(['----- DONE with raw Aquadopp data proc: ' list_Aquadopp{i} ' -----'])
+
+    % Clear some variables to avoid issues in the next loop iteration
+    close(fig_L1_QC)
+    clear aquadoppL1 header_aux beamAQDP_aux senAQDP_aux
 end

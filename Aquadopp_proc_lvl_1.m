@@ -17,11 +17,11 @@ dir_rawdata_parent = fullfile(data_dirpath, 'RAW', 'Aquadopp');
 %%
 
 % %
-% dir_output_data_L1 = fullfile(data_dirpath, 'Level1_Data', 'Aquadopp');
-% dir_output_figs_L1 = fullfile(data_dirpath, 'Level1_Data', 'Aquadopp', 'qc_plots');
+dir_output_data_L1 = fullfile(data_dirpath, 'Level1_Data', 'Aquadopp_Level1');
+dir_output_figs_L1 = fullfile(data_dirpath, 'Level1_Data', 'Aquadopp_Level1', 'qc_plots');
 %
-dir_output_data_L1 = '/Volumes/OBM-HD/docs/researchPostdoc/datasets/ROXSI/fieldworks/experiment_2022/Aquadopp/';
-dir_output_figs_L1 = fullfile(dir_output_data_L1, 'qc_plots');
+% dir_output_data_L1 = '/Volumes/OBM-HD/docs/researchPostdoc/datasets/ROXSI/fieldworks/experiment_2022/Aquadopp/';
+% dir_output_figs_L1 = fullfile(dir_output_data_L1, 'qc_p lots');
 
 % Logical swithced to save or not save data and figuress
 lsave_file = true;
@@ -37,26 +37,18 @@ load(fullfile(repo_dirpath(), 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_R
 
 %% List of Aquadopps that will be processed
 
-% % % All Aquadopps
-% % list_Aquadopp = {'A03_5380', ...
-% %                  'B02_12507', 'B04_2147', 'B07_2141', 'B08_13288', 'B11_12280', ...
-% %                  'C03_0709', ...
-% %                  'D01_12346', 'D02_0653', ...
-% %                  'E03_13300', 'E04_13172', 'E06_9736', 'E12_11150', ...
-% %                  'F01_9995', 'F02_5838', 'F03_5384', 'F04_5401', 'F05_14032', ...
-% %                  'X06_13290', 'X13_9945'};
-
-% A remaining list in case some have been processed
-list_Aquadopp = {'B11_12280', ...
+% All Aquadopps
+list_Aquadopp = {'A03_5380', ...
+                 'B02_12507', 'B04_2147', 'B07_2141', 'B08_13288', 'B11_12280', ...
                  'C03_0709', ...
                  'D01_12346', 'D02_0653', ...
                  'E03_13300', 'E04_13172', 'E06_9736', 'E12_11150', ...
-                 'F01_9995', 'F03_5384', 'F04_5401', 'F05_14032', ...
+                 'F01_9995', 'F02_5838', 'F03_5384', 'F04_5401', 'F05_14032', ...
                  'X06_13290', 'X13_9945'};
 
 
 % A few tests
-list_Aquadopp = {'B02_12507'};   % a little data (averaging)
+% % list_Aquadopp = {'B02_12507'};   % a little data (averaging)
 % % list_Aquadopp = {'E12_11150'};
 % % list_Aquadopp = {'B07_2141'};
 % % list_Aquadopp = {'F02_5838'};    % lot of data (1 Hz)

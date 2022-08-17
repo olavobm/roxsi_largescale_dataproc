@@ -18,6 +18,12 @@ function fighandle = Aquadopp_pcolor_lvl_1(aquadoppL1, strplt)
 % Olavo Badaro Marques, 16/Aug/2022.
 
 
+%% Add cmocean in the Matlab path
+
+%
+addpath(genpath(fullfile(repo_dirpath(), 'cmocean')))
+
+
 %% If second input not given, set default to plot averaged quantities
 
 if ~exist('strplt', 'var')
@@ -140,9 +146,22 @@ fighandle = figure;
     %
     set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
                   'XGrid', 'on', 'YGrid', 'on', ...
+                  'YLim', [0, ceil(aquadoppL1.zhab(end))], ...
                   'Color', 0.7.*[1, 1, 1])
-    set([haxs_v1, haxs_v2], 'CLim', 0.2.*[-1, 1])
+
+    % Simple fixed color limits
+% %     set([haxs_v1, haxs_v2], 'CLim', 0.2.*[-1, 1])
+    % Something that might look better
+    lbelowmeanp = aquadoppL1.zhab < mean(aquadoppL1.pressure, 'omitnan');
+    %
+    U_ref_Clim = max([mean(std(aquadoppL1.averaged.Ue(lbelowmeanp, :), 0, 2, 'omitnan'), 'omitnan'), ...
+                      mean(std(aquadoppL1.averaged.Vn(lbelowmeanp, :), 0, 2, 'omitnan'), 'omitnan')]);
+    set([haxs_v1, haxs_v2], 'CLim', 1.25*U_ref_Clim .*[-1, 1])
+
+    %
     set(haxs_v3, 'CLim', 0.05.*[-1, 1])
+    
+
     %
     set([haxs_a1, haxs_a2, haxs_a3], 'CLim', [0, 200])
 

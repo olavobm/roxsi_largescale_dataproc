@@ -102,6 +102,8 @@ list_Aquadopp
 %
 list_senfile_vars = ["time", "heading", "pitch", "roll", "pressure", "temperature"];
 
+%
+tic
 % Loop over Aquadopps in the list
 for i = 1:Naquadopps
 
@@ -392,7 +394,9 @@ for i = 1:Naquadopps
 
     %
     disp(['----- DONE with raw Aquadopp data proc: ' list_Aquadopp{i} ' -----'])
-
+    %
+    toc
+    
     % Clear some variables to avoid issues in the next loop iteration
     close(fig_L1_QC)
     clear aquadoppL1 header_aux beamAQDP_aux senAQDP_aux

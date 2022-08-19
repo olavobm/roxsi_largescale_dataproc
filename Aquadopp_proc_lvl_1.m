@@ -23,7 +23,7 @@ dir_output_figs_L1 = fullfile(data_dirpath, 'Level1_Data', 'Aquadopp_Level1', 'q
 % dir_output_data_L1 = '/Volumes/OBM-HD/docs/researchPostdoc/datasets/ROXSI/fieldworks/experiment_2022/Aquadopp/';
 % dir_output_figs_L1 = fullfile(dir_output_data_L1, 'qc_p lots');
 
-% Logical swithced to save or not save data and figuress
+% Logical switches to save or not save data and figures
 lsave_file = true;
 lsave_fig = true;
 

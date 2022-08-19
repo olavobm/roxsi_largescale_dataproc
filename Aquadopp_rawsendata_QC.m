@@ -26,10 +26,9 @@ dir_rawdata_parent = fullfile(data_dirpath(), 'RAW', 'Aquadopp');
 %%
 
 %
-% % dir_output_figs = fullfile(data_dirpath(), 'Level1_Data', 'Aquadopp_Level1', 'qc_plots');
-dir_output_figs = pwd;
+dir_output_figs = fullfile(data_dirpath(), 'Level1_Data', 'Aquadopp_Level1', 'qc_plots');
 
-% Logical switch to save or not save data and figuress
+% Logical switch to save or not save figures
 lsave_fig = true;
 
 
@@ -42,21 +41,21 @@ load(fullfile(repo_dirpath(), 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_R
 
 %% List of Aquadopps that will be processed
 
-% % % All Aquadopps
-% % list_Aquadopp = {'A03_5380', ...
-% %                  'B02_12507', 'B04_2147', 'B07_2141', 'B08_13288', 'B11_12280', ...
-% %                  'C03_0709', ...
-% %                  'D01_12346', 'D02_0653', ...
-% %                  'E03_13300', 'E04_13172', 'E06_9736', 'E12_11150', ...
-% %                  'F01_9995', 'F02_5838', 'F03_5384', 'F04_5401', 'F05_14032', ...
-% %                  'X06_13290', 'X13_9945'};
+% All Aquadopps
+list_Aquadopp = {'A03_5380', ...
+                 'B02_12507', 'B04_2147', 'B07_2141', 'B08_13288', 'B11_12280', ...
+                 'C03_0709', ...
+                 'D01_12346', 'D02_0653', ...
+                 'E03_13300', 'E04_13172', 'E06_9736', 'E12_11150', ...
+                 'F01_9995', 'F02_5838', 'F03_5384', 'F04_5401', 'F05_14032', ...
+                 'X06_13290', 'X13_9945'};
 
 
-% A few tests
-list_Aquadopp = {'B02_12507'};   % a little data (averaging)
-% % list_Aquadopp = {'E12_11150'};
-% list_Aquadopp = {'B07_2141'};
-% % list_Aquadopp = {'F02_5838'};    % lot of data (1 Hz)
+% % % A few tests
+% % list_Aquadopp = {'B02_12507'};   % a little data (averaging)
+% % % % list_Aquadopp = {'E12_11150'};
+% % % list_Aquadopp = {'B07_2141'};
+% % % % list_Aquadopp = {'F02_5838'};    % lot of data (1 Hz)
 
 %
 Naquadopps = length(list_Aquadopp);

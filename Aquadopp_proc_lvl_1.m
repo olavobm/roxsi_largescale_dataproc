@@ -11,14 +11,14 @@ close all
 %%
 
 %
-dir_rawdata_parent = fullfile(data_dirpath, 'RAW', 'Aquadopp');
+dir_rawdata_parent = fullfile(data_dirpath(), 'RAW', 'Aquadopp');
 
 
 %%
 
 % %
-dir_output_data_L1 = fullfile(data_dirpath, 'Level1_Data', 'Aquadopp_Level1');
-dir_output_figs_L1 = fullfile(data_dirpath, 'Level1_Data', 'Aquadopp_Level1', 'qc_plots');
+dir_output_data_L1 = fullfile(data_dirpath(), 'Level1_Data', 'Aquadopp_Level1');
+dir_output_figs_L1 = fullfile(data_dirpath(), 'Level1_Data', 'Aquadopp_Level1', 'qc_plots');
 %
 % dir_output_data_L1 = '/Volumes/OBM-HD/docs/researchPostdoc/datasets/ROXSI/fieldworks/experiment_2022/Aquadopp/';
 % dir_output_figs_L1 = fullfile(dir_output_data_L1, 'qc_p lots');

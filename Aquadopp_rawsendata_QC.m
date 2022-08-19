@@ -79,9 +79,7 @@ time_limits_format.TimeZone = 'America/Los_Angeles';
 %% Load NOAA's atmospheric pressure
 
 %
-atm_pressure = load(['/Users/olavobm/Documents/ROXSI_Postdoc/MyResearch' ...
-                     '/figures_bydate/2022_08_17/obm_edited_noaa_mry_barometric_pressure/' ...
-                     'atm_pressure.mat']);
+atm_pressure = load(fullfile(data_dirpath(), 'RAW', 'noaa_mry_barometric_pressure', 'atm_pressure.mat'));
 
 
 %% Variables that will be read from the *.sen file

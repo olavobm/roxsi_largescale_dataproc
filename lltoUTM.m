@@ -8,7 +8,8 @@ function [UTMEasting, UTMNorthing, UTMZone] = lltoUTM(latitude, longitude)
 %   outputs
 %       - UTMEasting: easting coordinate.
 %       - UTMNorthing: northing coordinate.
-%       - UTMZone: string with UTM zone.
+%       - UTMZone: character variable with with the UTM zone
+%                  of ONLY THE FIRST coordinate in the inputs.
 %
 %
 %

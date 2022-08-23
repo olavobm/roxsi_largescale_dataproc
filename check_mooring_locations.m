@@ -36,8 +36,8 @@ mooringsLocs.GPSinfo = loaded_vars{8};
 mooringsLocs.planned.latitude(mooringsLocs.planned.latitude==9999999999) = NaN;
 mooringsLocs.planned.longitude(mooringsLocs.planned.latitude==9999999999) = NaN;
 %
-mooringsLocs.actual.latitude(mooringsLocs.planned.latitude==9999999999) = NaN;
-mooringsLocs.actual.longitude(mooringsLocs.planned.latitude==9999999999) = NaN;
+mooringsLocs.actual.latitude(mooringsLocs.actual.latitude==9999999999) = NaN;
+mooringsLocs.actual.longitude(mooringsLocs.actual.latitude==9999999999) = NaN;
 
 
 %% Select whether to look at planned or actual locations

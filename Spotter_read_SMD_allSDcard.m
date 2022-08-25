@@ -36,7 +36,6 @@ for i = 1:Nfiles
     %
     dataAll.eachfile(i) = Spotter_read_SMD(fullfile(list_files(i).folder, list_files(i).name));
 
-
 end
 
 
@@ -53,7 +52,7 @@ list_fields = fieldnames(dataAll.eachfile(1));
 % % list_fields = list_fields(~strcmp(list_fields, "nobservations"));
 list_fields = setdiff(list_fields, {'filename', 'nobservations'}, 'stable');
 
-% Pre-allocate variables
+% Preallocate variables
 dataAll.allfiles.nobservations = NaN(1, Nfiles);
 dataAll.allfiles.filename = strings(1, Nfiles);
 % Create variables as empty arrays

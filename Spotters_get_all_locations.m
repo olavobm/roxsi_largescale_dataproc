@@ -106,7 +106,7 @@ for i1 = 1:length(list_fields_type)
     
         % Parse the time and location data    
         spotdata.dtime = datenum(double(alldata{1}), double(alldata{2}), double(alldata{3}), ...
-                                 double(alldata{4}), double(alldata{5}), double(alldata{6} + (alldata{7}./1000)));
+                                 double(alldata{4}), double(alldata{5}), double(alldata{6}) + (double(alldata{7})./1000));
         %
         spotdata.latitude = alldata{8};
         spotdata.longitude = alldata{9};

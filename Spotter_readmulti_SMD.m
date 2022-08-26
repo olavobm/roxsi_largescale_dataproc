@@ -2,13 +2,18 @@ function dataAll = Spotter_readmulti_SMD(dir_SDcard, list_files)
 %% dataAll = SPOTTER_READMULTI_SMD(dir_SDcard, list_files)
 %
 %   inputs
-%       - dir_SDcard:
+%       - dir_SDcard: directory where the content of the Spotter SD card
+%                     has been saved.
+%       - list_files (optional): a cell or string array with the filenames
+%                                in the order that they will be read. If
+%                                this input is not given, then read all
+%                                SMD files in the folder.
 %
 %   outputs
-%       - spotter_pres
+%       - dataAll: data structure with the data in the SMD files.
 %
 %
-% SPOTTER_READ_SMD_ALLSDCARD.m is a higher level function reading
+% SPOTTER_READMULTI_SMD.m is a higher level function reading
 % pressure data from *_SMD.CSV files recorded in the Spotter
 % (Smart Mooring) SD card. The data are concatenated together
 % in the order of the output of dir.m (alphabetical/ascending

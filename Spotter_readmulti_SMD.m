@@ -5,9 +5,9 @@ function dataAll = Spotter_readmulti_SMD(dir_SDcard, list_files)
 %       - dir_SDcard: directory where the content of the Spotter SD card
 %                     has been saved.
 %       - list_files (optional): a cell or string array with the filenames
-%                                in the order that they will be read. If
-%                                this input is not given, then read all
-%                                SMD files in the folder.
+%                                (with extension) in the order that they
+%                                will be read. If this input is not given,
+%                                then read all SMD files in the folder.
 %
 %   outputs
 %       - dataAll: data structure with the data in the SMD files.
@@ -28,7 +28,20 @@ function dataAll = Spotter_readmulti_SMD(dir_SDcard, list_files)
 %% Get the list of all *_SMD.CSV files in the target directory
 
 %
-list_files = dir(fullfile(dir_SDcard, "*_SMD.CSV"));
+if ~exist('list_files', 'var')
+    %
+    list_dir_files = dir(fullfile(dir_SDcard, "*_SMD.CSV"));
+
+    % Cell array to carry just the file names
+    list_files = cell(1, length(list_dir_files));
+    %
+    for i = 1:length(list_dir_files)
+        %
+        list_files{i} = list_dir_files(i).name;
+    end
+
+end
+
 %
 Nfiles = length(list_files);
 
@@ -39,7 +52,7 @@ Nfiles = length(list_files);
 for i = 1:Nfiles
 
     %
-    dataAll.eachfile(i) = Spotter_read_SMD(fullfile(list_files(i).folder, list_files(i).name));
+    dataAll.eachfile(i) = Spotter_read_SMD(fullfile(dir_SDcard, list_files{i}));
 
 end
 

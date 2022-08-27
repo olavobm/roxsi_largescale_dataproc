@@ -87,7 +87,7 @@ for i1 = 1:Nfiles
 
     %
     dataAll.allfiles.nobservations(i1) = ndata_points;
-    dataAll.allfiles.filename = dataAll.eachfile(i1).filename;
+    dataAll.allfiles.filename(i1) = dataAll.eachfile(i1).filename;
 
     %
     for i2 = 1:length(list_fields)

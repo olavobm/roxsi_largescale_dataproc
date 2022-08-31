@@ -1,9 +1,9 @@
-function [Lat, Long] = UTMtoll(UTMNorthing, UTMEasting, ZoneNumber)
+function [Lat, Long] = UTMtoll(UTMEasting, UTMNorthing, ZoneNumber)
 %% [Lat, Long] = UTMTOLL(UTMNorthing, UTMEasting, ZoneNumber)
 %
 %   inputs
-%       - UTMNorthing: UTM northing coordinate.
 %       - UTMEasting: UTM easting coordinate.
+%       - UTMNorthing: UTM northing coordinate.
 %       - ZoneNumber: character referencing a single UTM zone number.
 %
 %   outputs
@@ -15,6 +15,9 @@ function [Lat, Long] = UTMtoll(UTMNorthing, UTMEasting, ZoneNumber)
 % "NorthernHemisphere = 1". So I don't know if there something
 % in this function restricts it to the Northern Hemisphere.
 %
+
+%
+warning(['ORDER OF INPUTS WAS RECENTLY CHANGED (08/26/2002). MAKE SURE YOU ARE CALLING THIS FUNCTION IN THE RIGHT WAY!!!!'])
 
 
 %% Define constanst

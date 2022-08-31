@@ -1,5 +1,20 @@
 %% Script that process Smart Mooring/Spotter pressure data only
 % from RAW to level 1.
+%
+% This script can make ??? figures per Spotter that:
+%       -
+%       -
+%       -
+%       -
+%       -
+%
+% Some of the figures are already commented out. Feel
+% free to comment/comment out the figures you do or
+% don't want to see.
+% 
+%
+%
+
 
 clear
 close all
@@ -82,9 +97,11 @@ deployment_timelimits = [datenum(2022, 06, 16, 0, 0, 0), ...
                          datenum(2022, 07, 23, 0, 0, 0)];
 
 
-%%
+%% Do data processing: first with a section of QC
+% plots from the data that is read, and then a
+% second section where the data is processed to level 1
 
-%
+% Loop over Smart Moorings
 for i = 1:length(list_SmartMoorings)
 
     %
@@ -94,8 +111,110 @@ for i = 1:length(list_SmartMoorings)
     % In datenum, convert from UTC to local time (PDT)
     raw_readdata.allfiles.dtime = raw_readdata.allfiles.dtime - (7/24);
 
+    % ------------------------------------------
+    % Plot full timeseries QC
+    SpotterSmart_QC_plot_pressure(raw_readdata.allfiles.dtime, ...
+                                  raw_readdata.allfiles.pressure, ...
+                                  deployment_timelimits, ...
+                                  list_SmartMoorings{i}(1:3), list_SmartMoorings{i}(end-3:end));
 
     % ------------------------------------------
+    % Plot QC of gap due to changing Spotter mode
+    %
+    % For Spotter E02, the gap is between 17-Jun-2022 16:48:53 and 17-Jun-2022 17:11:51
+    %
+    time_lims_gap = [datenum(2022, 06, 17, 17, 1, 0), datenum(2022, 06, 17, 17, 04, 30)];
+    %
+    SpotterSmart_QC_plot_pressure(raw_readdata.allfiles.dtime, ...
+                                  raw_readdata.allfiles.pressure, ...
+                                  time_lims_gap, ...
+                                  list_SmartMoorings{i}(1:3), list_SmartMoorings{i}(end-3:end));
+
+    % ------------------------------------------
+    % Plot QC of clock stopping
+    %
+    timediff_vec = 24*3600*diff(raw_readdata.allfiles.dtime);
+    %
+    inds_stopped = find((timediff_vec > -0.1) & (timediff_vec < 0.1));
+    %
+    inds_break_periods = find(inds_stopped > 6000);    % what's this 6000?????
+    % Remove those earlier on
+    inds_break_periods = inds_break_periods(inds_break_periods > 1500);
+
+    % Select about 10 of them (about because depends on index stepping):
+    inds_break_selec = 1 : round(length(inds_break_periods)/10) : length(inds_break_periods);
+
+    % Now select corresponding indices in the data
+    inds_plt_segments = inds_stopped(inds_break_periods(inds_break_selec));
+%     %
+%     for i2 = 1:length(inds_plt_segments)
+%         %
+%         inds_segment_aux = (inds_plt_segments(i2) - 70):1:(inds_plt_segments(i2) + 70);
+%         %
+%         SpotterSmart_QC_plot_pressure(raw_readdata.allfiles.dtime(inds_segment_aux), ...
+%                                       raw_readdata.allfiles.pressure(inds_segment_aux), ...
+%                                       raw_readdata.allfiles.dtime(inds_segment_aux([1, end])), ...
+%                                       list_SmartMoorings{i}(1:3), list_SmartMoorings{i}(end-3:end));
+%     end
+
+
+    % ------------------------------------------
+    % Plot QC of clock going back in time
+    %
+    timediff_vec = 24*3600*diff(raw_readdata.allfiles.dtime);
+    %
+    inds_timereversal = find(timediff_vec < -0.1);
+    % 
+    inds_break_periods = find(inds_timereversal > 6000);    % what's this 6000?????
+    % Remove those earlier on
+    inds_break_periods = inds_break_periods(inds_break_periods > 40);
+
+    % Select about 10 of them (about because depends on index stepping):
+    inds_break_selec = 1 : round(length(inds_break_periods)/10) : length(inds_break_periods);
+
+    % Now select corresponding indices in the data
+    inds_plt_segments = inds_timereversal(inds_break_periods(inds_break_selec));
+
+%     %
+%     for i2 = 1:length(inds_plt_segments)
+%         %
+%         inds_segment_aux = (inds_plt_segments(i2) - 70):1:(inds_plt_segments(i2) + 70);
+%         %
+%         SpotterSmart_QC_plot_pressure(raw_readdata.allfiles.dtime(inds_segment_aux), ...
+%                                       raw_readdata.allfiles.pressure(inds_segment_aux), ...
+%                                       raw_readdata.allfiles.dtime(inds_segment_aux([1, end])), ...
+%                                       list_SmartMoorings{i}(1:3), list_SmartMoorings{i}(end-3:end));
+%     end
+
+    % ------------------------------------------
+    % Plot the unique values of clock finite difference
+    hclockfig = figure;
+        %
+        time_diff_unique = unique(24*3600*diff(raw_readdata.allfiles.dtime));
+        %
+        lskipstodealwith = abs(time_diff_unique) < 100; 
+        
+        %
+        plot(time_diff_unique(lskipstodealwith), '.-')
+
+        %
+        grid on
+        set(gca, 'FontSize', 16)
+
+        %
+        xlabel('Indice of unique time difference', 'Interpreter', 'Latex', 'FontSize', 16)
+        ylabel('Time difference [s]', 'Interpreter', 'Latex', 'FontSize', 16)
+        %
+        title(['ROXSI 2022: ' list_SmartMoorings{i}(1:3) ' SN ' ...
+               list_SmartMoorings{i}(end-3:end) ': unique ' ...
+               '(short) time differences'], 'Interpreter', 'Latex', 'FontSize', 16)
+
+    
+    %%
+    % ----------------------------------------------------------
+    % --------------- DO LEVEL 1 DATA PROCESSING ---------------
+    % ----------------------------------------------------------
+
     % Variable to only get data that has the correct
     % flag (link) from the Spotter saying that it
     % is indeed data (it seems more appropriate
@@ -131,7 +250,7 @@ for i = 1:length(list_SmartMoorings)
     % Fix times when clock goes backwards -- UNLESS THERE IS AN EXTRA
     % PIECE OF INFORMATION ON HOW THIS ERROR HAPPENS, THEN I HAVE TO
     % MAKE AN ASSUMPTION ABOUT THE TIME DIFFERENCE BETWEEN THE NORMAL
-    % TIMESERIES AND THE SEGMENT WITH THE PROBLEM
+    % PART OF THE TIMESERIES AND THE SEGMENT WITH THE PROBLEM
 
     %
     timediff_aux = 24*3600*diff(spotterSmartdata.dtime);
@@ -178,15 +297,17 @@ for i = 1:length(list_SmartMoorings)
         % want to save all of them
 
         %
-        lmakeplot = true;
-        if integer_division_aux < 1
-            lmakeplot = true;
-        end
+        lmakeplot = false;
+% %         if integer_division_aux < 1
+% %             lmakeplot = true;
+% %         end
 
         %
         if lmakeplot
 
-            % Indices to plot
+            % Indices to plot -- you may want to plot a shorter
+            % ir longer range around the segment that it's being
+            % fixed
             indsplt = (ind_seg_tofix(1)-10):(ind_seg_tofix(end)+10);
     % %         indsplt = (ind_seg_tofix(1)-200):(ind_seg_tofix(end)+400);
     
@@ -247,335 +368,61 @@ for i = 1:length(list_SmartMoorings)
     
             %
             linkaxes([haxs_1, haxs_2, haxs_3], 'x')
-    
-            %
-            keyboard
-        end
 
+        end
     end
 
 
+    % ------------------------------------------
+    % Plot the unique values of clock finite difference
+    % (to check my processing has removed all
+    % instances of clock going backwards)
+    hclockfig = figure;
+        %
+        time_diff_unique = unique(24*3600*diff(spotterSmartdata.dtime));
+        %
+        lskipstodealwith = abs(time_diff_unique) < 100; 
+        
+        %
+        plot(time_diff_unique(lskipstodealwith), '.-')
+
+        %
+        grid on
+        set(gca, 'FontSize', 16)
+
+        %
+        xlabel('Indice of unique time difference', 'Interpreter', 'Latex', 'FontSize', 16)
+        ylabel('Time difference [s]', 'Interpreter', 'Latex', 'FontSize', 16)
+        %
+        title({['ROXSI 2022: ' list_SmartMoorings{i}(1:3) ' SN ' ...
+               list_SmartMoorings{i}(end-3:end) ': unique ' ...
+               '(short) time'];'differences in processed data'}, 'Interpreter', 'Latex', 'FontSize', 20)
 
 
     keyboard
-
-
-    % ------------------------------------------
-    % Plot timeseries of the clock and pressure
-    hfig_basic = figure;
-        %
-        set(hfig_basic, 'Units', 'normalized')
-        set(hfig_basic, 'Position', [0.2, 0.1722, 0.3387, 0.3368])
-        %
-        haxs_1 = axes('Position', [0.1, 0.75, 0.35, 0.2]);
-        haxs_2 = axes('Position', [0.1, 0.425, 0.35, 0.2]);
-        haxs_3 = axes('Position', [0.1, 0.1, 0.35, 0.2]);
-        %
-        haxs_4 = axes('Position', [0.525, 0.2, 0.45, 0.5]);
-        %
-        hold(haxs_1, 'on')
-        hold(haxs_2, 'on')
-        hold(haxs_3, 'on')
-        hold(haxs_4, 'on')
-
-            %
-            plot(haxs_1, raw_readdata.allfiles.dtime, '.-k')
-            plot(haxs_2, 24*3600*diff(raw_readdata.allfiles.dtime), '.-k')
-            plot(haxs_3, raw_readdata.allfiles.pressure, '.-k')
-            %
-            plot(haxs_4, raw_readdata.allfiles.dtime, raw_readdata.allfiles.pressure, '.-k')
-
-
-        %
-        set([haxs_1, haxs_2, haxs_3, haxs_4], ...
-                            'FontSize', 16, 'Box', 'on', ...
-                            'XGrid', 'on', 'YGrid', 'on')
-        %
-        set(haxs_1, 'YLim', deployment_timelimits)
-        set(haxs_2, 'YLim', [-2, 4])
-        set(haxs_3, 'YLim', [0, 3e6])
-        set([haxs_1, haxs_2, haxs_3], 'XLim', [-0.05*length(raw_readdata.allfiles.dtime), ...
-                                              1.05.*length(raw_readdata.allfiles.dtime)])
-        %
-        set(haxs_4, 'XLim', deployment_timelimits, 'YLim', [0.7e6, 2.8e6])
-        %
-% %         set([haxs_1, haxs_2], 'XTickLabel', [])
-
-        %
-        xlabel(haxs_3, 'Indices of each Spotter', 'Interpreter', 'Latex', 'FontSize', 16)
-        xlabel(haxs_4, 'Time [PDT]', 'Interpreter', 'Latex', 'FontSize', 16)
-        %
-        ylabel(haxs_1, 'Time [PDT]', 'Interpreter', 'Latex', 'FontSize', 16)
-        ylabel(haxs_2, 'diff(time) [s]', 'Interpreter', 'Latex', 'FontSize', 16)
-        ylabel(haxs_3, 'pressure', 'Interpreter', 'Latex', 'FontSize', 16)
-        ylabel(haxs_4, 'pressure', 'Interpreter', 'Latex', 'FontSize', 16)
-        %
-        title(haxs_1, 'Timestamps', 'Interpreter', 'Latex', 'FontSize', 16)
-        title(haxs_2, 'diff(time)', 'Interpreter', 'Latex', 'FontSize', 16)
-        title(haxs_3, 'pressure', 'Interpreter', 'Latex', 'FontSize', 16)
-        %
-        title(haxs_4, {['ROXSI 2022: ' list_SmartMoorings{i}(1:3) ' - SN ' ...
-                       list_SmartMoorings{i}(end-3:end)];'pressure timeseries'}, ...
-                       'Interpreter', 'Latex', 'FontSize', 24)
-
-        %
-        linkaxes([haxs_1, haxs_2, haxs_3], 'x')
-
-    % ------------------------------------------
-    % Similar as above, but plot loaded variables and processed data
-    % on top of each other.
-
-
-
-return
-    % ------------------------------------------
-    % Plot gap associated with chaging Spotter mode on the dashboard
-    
-    % For Spotter E02, the gap is between 17-Jun-2022 16:48:53 and 17-Jun-2022 17:11:51
-    %
-    time_lims_gap = [datenum(2022, 06, 17, 17, 1, 0), datenum(2022, 06, 17, 17, 04, 30)];
-    %
-    ind_first_aux = find(raw_readdata.allfiles.dtime > time_lims_gap(1), 1, 'first');
-    ind_last_aux = find(raw_readdata.allfiles.dtime < time_lims_gap(2), 1, 'last');
-    %
-    hfig_gap = figure;
-        %
-        set(hfig_gap, 'Units', 'normalized')
-        set(hfig_gap, 'Position', [0.2, 0.1722, 0.3387, 0.3368])
-        %
-        haxs_1 = axes('Position', [0.1, 0.75, 0.35, 0.2]);
-        haxs_2 = axes('Position', [0.1, 0.425, 0.35, 0.2]);
-        haxs_3 = axes('Position', [0.1, 0.1, 0.35, 0.2]);
-        %
-        haxs_4 = axes('Position', [0.525, 0.2, 0.45, 0.5]);
-        %
-        hold(haxs_1, 'on')
-        hold(haxs_2, 'on')
-        hold(haxs_3, 'on')
-        hold(haxs_4, 'on')
-
-            %
-            plot(haxs_1, raw_readdata.allfiles.dtime(ind_first_aux:ind_last_aux), '.-k')
-            plot(haxs_2, 24*3600*diff(raw_readdata.allfiles.dtime(ind_first_aux:ind_last_aux)), '.-k')
-            plot(haxs_3, raw_readdata.allfiles.pressure(ind_first_aux:ind_last_aux), '.-k')
-            %
-            plot(haxs_4, raw_readdata.allfiles.dtime(ind_first_aux:ind_last_aux), ...
-                         raw_readdata.allfiles.pressure(ind_first_aux:ind_last_aux), '.-k')
-
-
-        %
-        set([haxs_1, haxs_2, haxs_3, haxs_4], ...
-                            'FontSize', 16, 'Box', 'on', ...
-                            'XGrid', 'on', 'YGrid', 'on')
-
-        %
-        pres_aux = raw_readdata.allfiles.pressure(ind_first_aux:ind_last_aux);
-
-% %         %
-        set(haxs_1, 'YLim', time_lims_gap)
-        set(haxs_2, 'YLim', [-2, 4])
-        set(haxs_3, 'YLim', [min(pres_aux), max(pres_aux)])
-        set([haxs_1, haxs_2, haxs_3], 'XLim', [0, length(ind_first_aux:ind_last_aux)])
-        %
-        set(haxs_4, 'XLim', time_lims_gap, 'YLim', [min(pres_aux), max(pres_aux)])
-
-        %
-        xticks_aux = linspace(raw_readdata.allfiles.dtime(ind_first_aux), ...
-                              raw_readdata.allfiles.dtime(ind_last_aux), ...
-                              7);
-        set(haxs_4, 'XTick', xticks_aux)
-        %
-        cell_xticklabel = cell(1, 7);
-        %
-        for i3 = 1:7
-            cell_xticklabel{i3} = num2str(24*3600*(xticks_aux(i3) - xticks_aux(1)), '%.1f');
-        end
-        set(haxs_4, 'XTickLabel', cell_xticklabel)
-
-
-        %
-        xlabel(haxs_3, 'Indices of each Spotter', 'Interpreter', 'Latex', 'FontSize', 16)
-        xlabel(haxs_4, ['Time, seconds since ' datestr(xticks_aux(1)) ' [PDT]'], 'Interpreter', 'Latex', 'FontSize', 16)
-        %
-        ylabel(haxs_1, 'Time [PDT]', 'Interpreter', 'Latex', 'FontSize', 16)
-        ylabel(haxs_2, 'diff(time) [s]', 'Interpreter', 'Latex', 'FontSize', 16)
-        ylabel(haxs_3, 'pressure', 'Interpreter', 'Latex', 'FontSize', 16)
-        ylabel(haxs_4, 'pressure', 'Interpreter', 'Latex', 'FontSize', 16)
-        %
-        title(haxs_1, 'Timestamps', 'Interpreter', 'Latex', 'FontSize', 16)
-        title(haxs_2, 'diff(time)', 'Interpreter', 'Latex', 'FontSize', 16)
-        title(haxs_3, 'pressure', 'Interpreter', 'Latex', 'FontSize', 16)
-        %
-        title(haxs_4, {['ROXSI 2022: ' list_SmartMoorings{i}(1:3) ' - SN ' ...
-                       list_SmartMoorings{i}(end-3:end)];'pressure timeseries'}, ...
-                       'Interpreter', 'Latex', 'FontSize', 24)
-
-        %
-        linkaxes([haxs_1, haxs_2, haxs_3], 'x')
+    %%
+    % ----------------------------------------------------------
+    % ------- ORGANIZE LEVEL 1 DATA STRUCTURE AND SAVE IT ------
+    % ----------------------------------------------------------
 
     %
-    exportgraphics(gcf, 'smartmooring_E02_gapmode.png', 'Resolution', 300);
+    spotsmart_L1.mooringID = [list_SmartMoorings{i}(1:3) 'sp'];
+    %
+    spotsmart_L1.SN = list_SmartMoorings{i}(end-3:end);
 
     %
-    return
-
-    % ------------------------------------------
-    % Plot unique values of clock finite difference
-% % %     hclockfig = figure;
-% % %         %
-% % %         time_diff_unique = unique(24*3600*diff(bla.allfiles.dtime));
-% % %         %
-% % %         lskipstodealwith = abs(time_diff_unique) < 100; 
-% % %         
-% % %         %
-% % %         plot(time_diff_unique(lskipstodealwith), '.-')
-% % % 
-% % %         %
-% % %         grid on
-% % %         set(gca, 'FontSize', 16)
-% % % 
-% % %     %
-% % %     time_diff_ok = time_diff_unique(lskipstodealwith);
-% % %     %
-% % %     time_diff_ok_wrapped = time_diff_ok;
-% % %     time_diff_ok_wrapped(time_diff_ok<0) = abs(time_diff_ok_wrapped(time_diff_ok<0));
-% % %     time_diff_ok_wrapped(time_diff_ok<0) = time_diff_ok_wrapped(time_diff_ok<0) + 0;
-% % % 
-% % %     %
-% % %     figure
-% % %         %
-% % %         plot(time_diff_ok_wrapped, '.-')
-% % %         %
-% % %         grid on
-% % %         set(gca, 'FontSize', 16)
-
-
-    % ------------------------------------------
-% %     % Plot diagnostic plot for several examples when clock stopped
-% %     %
-    timediff_vec = 24*3600*diff(raw_readdata.allfiles.dtime);
-% %     %
-% %     inds_stopped = find((timediff_vec > -0.1) & (timediff_vec < 0.1));
-% %     %
-% %     inds_break_periods = find(inds_stopped > 6000);    % what's this 6000?????
-% %     % Remove those earlier on
-% %     inds_break_periods = inds_break_periods(inds_break_periods > 1500);
-% % 
-% %     % Select about 10 of them (about because depends on index stepping):
-% %     inds_break_selec = 1 : round(length(inds_break_periods)/10) : length(inds_break_periods);
-% % 
-% %     % Now select corresponding indices in the data
-% %     inds_plt_segments = inds_stopped(inds_break_periods(inds_break_selec));
-
-    % ---------------------
-    % For clock going backwards
+    spotsmart_L1.dtime = datetime(spotterSmartdata.dtime, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
     %
-    inds_stopped = find(timediff_vec < -0.1);
-    %
-    inds_break_periods = find(inds_stopped > 6000);
-    % Remove those earlier on
-    inds_break_periods = inds_break_periods(inds_break_periods > 40);
-
-    % Select about 10 of them (about because depends on index stepping):
-    inds_break_selec = 1 : round(length(inds_break_periods)/10) : length(inds_break_periods);
-
-    % Now select corresponding indices in the data
-%     inds_plt_segments = inds_stopped(inds_break_periods(inds_break_selec));
-    inds_plt_segments = inds_stopped(inds_break_periods(1));
-
-
+    spotsmart_L1.pressure = spotterSmartdata.pressure;
 
     %
-    for i2 = 1:length(inds_plt_segments)
-        %
-        inds_segment_aux = (inds_plt_segments(i2) - 70):1:(inds_plt_segments(i2) + 70);
-        %
-% %         inds_segment_aux = (inds_plt_segments(i2) - 30):1:(inds_plt_segments(i2) + 60);
-    
-        %
-        hfig_diag_aux = figure;
-            %
-            set(hfig_diag_aux, 'Units', 'normalized')
-            set(hfig_diag_aux, 'Position', [0.37, 0.17, 0.47, 0.38])
-            %
-            haxs_1 = axes('Position', [0.1, 0.75, 0.35, 0.2]);
-            haxs_2 = axes('Position', [0.1, 0.425, 0.35, 0.2]);
-            haxs_3 = axes('Position', [0.1, 0.1, 0.35, 0.2]);
-            %
-            haxs_4 = axes('Position', [0.525, 0.2, 0.45, 0.5]);
-            %
-            hold(haxs_1, 'on')
-            hold(haxs_2, 'on')
-            hold(haxs_3, 'on')
-            hold(haxs_4, 'on')
-    
-                %
-                plot(haxs_1, raw_readdata.allfiles.dtime(inds_segment_aux), '.-k')
-                plot(haxs_2, 24*3600*diff(raw_readdata.allfiles.dtime(inds_segment_aux)), '.-k')
-                plot(haxs_3, raw_readdata.allfiles.pressure(inds_segment_aux), '.-k')
-                %
-                plot(haxs_4, raw_readdata.allfiles.dtime(inds_segment_aux), raw_readdata.allfiles.pressure(inds_segment_aux), '.-k')
-    
-    
-    
-            %
-            set([haxs_1, haxs_2, haxs_3, haxs_4], ...
-                                'FontSize', 16, 'Box', 'on', ...
-                                'XGrid', 'on', 'YGrid', 'on')
+% %     spotsmart_L1.REAMDE = '';
 
-            %
-            minmax_p_aux = [min(raw_readdata.allfiles.pressure(inds_segment_aux)), ...
-                            max(raw_readdata.allfiles.pressure(inds_segment_aux))];
-
-            %
-            set(haxs_1, 'YLim', raw_readdata.allfiles.dtime(inds_segment_aux([1, end])))
-%             set(haxs_2, 'YLim', [-0.2, 0.7])
-            %
-            ytimediff_aux = 24*3600*diff(raw_readdata.allfiles.dtime(inds_segment_aux));
-            %
-            set(haxs_2, 'YLim', [min(ytimediff_aux), max(ytimediff_aux)])
-            set(haxs_3, 'YLim', minmax_p_aux)
-            set([haxs_1, haxs_2, haxs_3], 'XLim', [0, length(inds_segment_aux)])
-            %
-            set(haxs_4, 'XLim', raw_readdata.allfiles.dtime(inds_segment_aux([1, end])), 'YLim', minmax_p_aux)
-            %
-            xticks_aux = linspace(raw_readdata.allfiles.dtime(inds_segment_aux(1)), ...
-                                  raw_readdata.allfiles.dtime(inds_segment_aux(end)), ...
-                                  7);
-            set(haxs_4, 'XTick', xticks_aux)
-            %
-            cell_xticklabel = cell(1, 7);
-            %
-            for i3 = 1:7
-                cell_xticklabel{i3} = num2str(24*3600*(xticks_aux(i3) - xticks_aux(1)), '%.1f');
-            end
-            set(haxs_4, 'XTickLabel', cell_xticklabel)
-    
-            %
-            xlabel(haxs_3, 'Indices along this data segment', 'Interpreter', 'Latex', 'FontSize', 16)
-            xlabel(haxs_4, ['Time, seconds since ' datestr(xticks_aux(1)) ' [PDT]'], 'Interpreter', 'Latex', 'FontSize', 16)
-            %
-            ylabel(haxs_1, 'Time [PDT]', 'Interpreter', 'Latex', 'FontSize', 16)
-            ylabel(haxs_2, 'diff(time) [s]', 'Interpreter', 'Latex', 'FontSize', 16)
-            ylabel(haxs_3, 'pressure', 'Interpreter', 'Latex', 'FontSize', 16)
-            ylabel(haxs_4, 'pressure', 'Interpreter', 'Latex', 'FontSize', 16)
-            %
-            title(haxs_1, 'Timestamps', 'Interpreter', 'Latex', 'FontSize', 16)
-            title(haxs_2, 'diff(time)', 'Interpreter', 'Latex', 'FontSize', 16)
-            title(haxs_3, 'pressure', 'Interpreter', 'Latex', 'FontSize', 16)
-            %
-            title(haxs_4, {['ROXSI 2022: ' list_SmartMoorings{i}(1:3) ' - SN ' ...
-                           list_SmartMoorings{i}(end-3:end)];'pressure timeseries'}, ...
-                           'Interpreter', 'Latex', 'FontSize', 24)
-    
-            %
-            linkaxes([haxs_1, haxs_2, haxs_3], 'x')
-
-            %
-% %             exportgraphics(gcf, ['smartmooring_clockQC_timestops_' num2str(i2, '%.02d') '.png'], 'Resolution', 300);
-% % % %             exportgraphics(gcf, ['smartmooring_clockQC_timeinversion_' num2str(i2, '%.02d') '.png'], 'Resolution', 300);
-    end
-    
-        %
-        return
 end
+
+
+% If you want to save a figure, do something like this
+% right after the code section that plots the figure
+% exportgraphics(gcf, ['smartmooring_clockQC_timestops_' num2str(i2, '%.02d') '.png'], 'Resolution', 300);
+
+

@@ -178,7 +178,7 @@ for i = 1:length(list_SmartMoorings)
         % want to save all of them
 
         %
-        lmakeplot = false;
+        lmakeplot = true;
         if integer_division_aux < 1
             lmakeplot = true;
         end
@@ -258,23 +258,7 @@ for i = 1:length(list_SmartMoorings)
 
 
     keyboard
-    %
-    inds_break_periods = find(inds_gobacks > 6000);   % ????????
-    % Remove those earlier on
-    inds_break_periods = inds_break_periods(inds_break_periods > 40);
 
-    % Select about 10 of them (about because depends on index stepping):
-    inds_break_selec = 1 : round(length(inds_break_periods)/10) : length(inds_break_periods);
-
-    % Now select corresponding indices in the data
-    inds_plt_segments = inds_gobacks(inds_break_periods(inds_break_selec));
-
-
-
-
-    
-    %
-%     diff(spotterSmartdata.dtime) < 0
 
     % ------------------------------------------
     % Plot timeseries of the clock and pressure

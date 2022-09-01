@@ -17,8 +17,8 @@
 % that takes several minutes to disperse???). SST can take several minutes
 % after Spotter is in the water to be "good"/trustworthy.
 
-clear
-close all
+% % clear
+% % close all
 
 
 %%
@@ -48,7 +48,7 @@ dataInfo.smartmoorings.list_spotters = {'E01_spot1851', 'E02_spot1859', 'E05_spo
                                         'E09_spot1850', 'E09_spot1856', ...
                                         'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
-return
+
 %% DAYS (with only a reference time) of when each Spotter
 % was deployed and recovered
 %
@@ -86,178 +86,180 @@ deplySpot.E13_spot1849 = [datenum(2022, 06, 17, 15, 00, 0), datenum(2022, 07, 20
 
 
 
-
 %%
 % -------------------------------------------------------
 % ------- FOR STANDARD SPOTTERS, LOOK AT COORDINATES, ---
 % ------------------ SST, DISPLACEMENT ------------------
 % -------------------------------------------------------
 
-% % %
-% % Nspotters = length(dataInfo.standardspotters.list_spotters);
-% % 
-% % 
-% % % Loop over Spotters in either Standard or Smart Mooring
-% % tic
-% % for i1 = 6%3:Nspotters
-% % 
-% %     % ----------------------------------------------------
-% %     %
-% %     locationfile_aux = fullfile(dataInfo.standardspotters.parentdir, ...
-% %                                 dataInfo.standardspotters.list_spotters{i1}, ...
-% %                                 'parsed', 'location.csv');
-% % 
-% %     %
-% %     fid = fopen(locationfile_aux);
-% % 
-% %     %
-% %     alldata = textscan(fid, '%d%d%d %d%d%d %d %f %f', ...
-% %                             'Delimiter', ',', 'HeaderLines', 1);
-% % 
-% % 
-% %     % Parse the time and location data -- MAKE SURE THAT EACH
-% %     % ARE INVIDIVIDUALLY CONVERTED TO DOUBLE!!!  
-% %     spotdata.dtime = datenum(double(alldata{1}), double(alldata{2}), double(alldata{3}), ...
-% %                              double(alldata{4}), double(alldata{5}), double(alldata{6}) + (double(alldata{7})./1000));
-% %     %
-% %     spotdata.latitude = alldata{8};
-% %     spotdata.longitude = alldata{9};
-% % 
-% %     % Convert time from UTC to PDT
-% %     spotdata.dtime = spotdata.dtime - (7/24);
-% % 
-% %     %
-% %     fclose(fid);
-% % 
-% % 
-% %     % ----------------------------------------------------
-% %     % Load different variable
-% %     % 
-% %     % Displacement can also be done for Smart mooring
-% % 
-% %     %
-% %     displacementfile_aux = fullfile(dataInfo.standardspotters.parentdir, ...
-% %                                     dataInfo.standardspotters.list_spotters{i1}, ...
-% %                                     'parsed', 'displacement.csv');
-% %     %
-% %     fid = fopen(displacementfile_aux);
-% % 
-% %     %
-% %     alldata = textscan(fid, '%d%d%d %d%d%d %d %f%f%f', ...
-% %                             'Delimiter', ',', 'HeaderLines', 1);
-% % 
-% % 
-% %     % Parse the time and location data -- MAKE SURE THAT EACH
-% %     % ARE INVIDIVIDUALLY CONVERTED TO DOUBLE!!!
-% %     spotdata.displacement.dtime = datenum(double(alldata{1}), double(alldata{2}), double(alldata{3}), ...
-% %                                           double(alldata{4}), double(alldata{5}), double(alldata{6}) + (double(alldata{7})./1000));
-% % 
-% %     %
-% %     spotdata.displacement.x = alldata{8};
-% %     spotdata.displacement.y = alldata{9};
-% %     spotdata.displacement.z = alldata{10};
-% %     
-% %     % Convert time from UTC to PDT
-% %     spotdata.displacement.dtime = spotdata.displacement.dtime - (7/24);
-% %     %
-% %     fclose(fid);
-% % 
-% % 
-% %     % ------------
-% %     % Now SST
-% %     %
-% %     sstfile_aux = fullfile(dataInfo.standardspotters.parentdir, ...
-% %                            dataInfo.standardspotters.list_spotters{i1}, ...
-% %                            'parsed', 'sst.csv');
-% %     %
-% %     fid = fopen(sstfile_aux);
-% % 
-% %     %
-% %     alldata = textscan(fid, '%d%d%d %d%d%d %d %f', ...
-% %                             'Delimiter', ',', 'HeaderLines', 1);
-% % 
-% % 
-% %     % Parse the time and location data -- MAKE SURE THAT EACH
-% %     % ARE INVIDIVIDUALLY CONVERTED TO DOUBLE!!!    
-% %     spotdata.sst.dtime = datenum(double(alldata{1}), double(alldata{2}), double(alldata{3}), ...
-% %                                  double(alldata{4}), double(alldata{5}), double(alldata{6}) + (double(alldata{7})./1000));
-% %     %
-% %     spotdata.sst.SST = alldata{8};
-% %     
-% %     % Convert time from UTC to PDT
-% %     spotdata.sst.dtime = spotdata.sst.dtime - (7/24);
-% % 
-% %     %
-% %     fclose(fid);
-% % 
-% % 
-% %     % ----------------------------------------------------
-% %     % Plot variables to identify deployment/recovery
-% % 
-% %     %
-% %     time_pltlims_deployment = [(deplySpot.(dataInfo.standardspotters.list_spotters{i1})(1) - 1), ...
-% %                                deplySpot.(dataInfo.standardspotters.list_spotters{i1})(1)];
-% %     %
-% %     time_pltlims_recovery = [deplySpot.(dataInfo.standardspotters.list_spotters{i1})(2), ...
-% %                              (deplySpot.(dataInfo.standardspotters.list_spotters{i1})(2) + (5/24))];
-% % 
-% %     %
-% %     figure
-% %         %
-% %         set(gcf, 'units', 'normalized')
-% %         set(gcf, 'Position', [0.25, 0.25, 0.5, 0.4])
-% %         %
-% %         haxs_1 = axes('Position', [0.1, 0.6, 0.35, 0.33]);
-% %         haxs_2 = axes('Position', [0.55, 0.6, 0.35, 0.35]);
-% %         haxs_3 = axes('Position', [0.1, 0.1, 0.35, 0.35]);
-% %         haxs_4 = axes('Position', [0.55, 0.1, 0.35, 0.35]);
-% % 
-% %         %
-% %         plot(haxs_1, datetime(spotdata.displacement.dtime, 'ConvertFrom', 'datenum'), spotdata.displacement.z, '.-')
-% %         plot(haxs_2, datetime(spotdata.displacement.dtime, 'ConvertFrom', 'datenum'), spotdata.displacement.z, '.-')
-% %         %
-% %         plot(haxs_3, datetime(spotdata.sst.dtime, 'ConvertFrom', 'datenum'), spotdata.sst.SST, '.-')
-% %         plot(haxs_4, datetime(spotdata.sst.dtime, 'ConvertFrom', 'datenum'), spotdata.sst.SST, '.-')
-% % 
-% %     %
-% %     set([haxs_1, haxs_2, haxs_3, haxs_4], 'FontSize', 16, 'Box', 'on', ...
-% %                                           'XGrid', 'on', 'YGrid', 'on')
-% %     set([haxs_1, haxs_3], 'XLim', datetime(time_pltlims_deployment, 'ConvertFrom', 'datenum'))
-% %     set([haxs_2, haxs_4], 'XLim', datetime(time_pltlims_recovery, 'ConvertFrom', 'datenum'))
-% % 
-% %     %
-% %     xlabel(haxs_3, 'Time [local/PDT]', 'Interpreter', 'Latex', 'FontSize', 20)
-% %     xlabel(haxs_4, 'Time [local/PDT]', 'Interpreter', 'Latex', 'FontSize', 20)
-% %     %
-% %     ylabel(haxs_1, '[m]', 'Interpreter', 'Latex', 'FontSize', 20)
-% %     ylabel(haxs_3, '[$^\circ$C]', 'Interpreter', 'Latex', 'FontSize', 20)
-% % 
-% %     %
-% %     title(haxs_1, ['Spotter: ' dataInfo.standardspotters.list_spotters{i1}(1:3) ' ' ...
-% %                    '- SN ' dataInfo.standardspotters.list_spotters{i1}(9:end) ' at deployment, z displacement (m)'], ...
-% %                    'Interpreter', 'Latex', 'FontSize', 20)
-% %     title(haxs_2, ['Spotter: ' dataInfo.standardspotters.list_spotters{i1}(1:3) ' ' ...
-% %                    '- SN ' dataInfo.standardspotters.list_spotters{i1}(9:end) ' at recovery, z displacement (m)'], ...
-% %                    'Interpreter', 'Latex', 'FontSize', 18)
-% %     %
-% %     title(haxs_3, ['Spotter: ' dataInfo.standardspotters.list_spotters{i1}(1:3) ' ' ...
-% %                    '- SN ' dataInfo.standardspotters.list_spotters{i1}(9:end) ' at deployment, SST ($^\circ$C)'], ...
-% %                    'Interpreter', 'Latex', 'FontSize', 20)
-% %     title(haxs_4, ['Spotter: ' dataInfo.standardspotters.list_spotters{i1}(1:3) ' ' ...
-% %                    '- SN ' dataInfo.standardspotters.list_spotters{i1}(9:end) ' at recovery, SST ($^\circ$C)'], ...
-% %                    'Interpreter', 'Latex', 'FontSize', 18)
-% % 
-% % 
-% %     %
-% %     linkaxes([haxs_1, haxs_3], 'x')
-% %     linkaxes([haxs_2, haxs_4], 'x')
-% % 
-% %     %
-% %     toc
-% %     %
-% %     
-% % end
+%
+Nspotters = length(dataInfo.standardspotters.list_spotters);
 
+
+% Loop over Spotters in either Standard or Smart Mooring
+tic
+for i1 = [1:5, 7]% 6%3:Nspotters
+
+    % ----------------------------------------------------
+    %
+    locationfile_aux = fullfile(dataInfo.standardspotters.parentdir, ...
+                                dataInfo.standardspotters.list_spotters{i1}, ...
+                                'parsed', 'location.csv');
+
+    %
+    fid = fopen(locationfile_aux);
+
+    %
+    alldata = textscan(fid, '%d%d%d %d%d%d %d %f %f', ...
+                            'Delimiter', ',', 'HeaderLines', 1);
+
+
+    % Parse the time and location data -- MAKE SURE THAT EACH
+    % ARE INVIDIVIDUALLY CONVERTED TO DOUBLE!!!  
+    spotdata.dtime = datenum(double(alldata{1}), double(alldata{2}), double(alldata{3}), ...
+                             double(alldata{4}), double(alldata{5}), double(alldata{6}) + (double(alldata{7})./1000));
+    %
+    spotdata.latitude = alldata{8};
+    spotdata.longitude = alldata{9};
+
+    % Convert time from UTC to PDT
+    spotdata.dtime = spotdata.dtime - (7/24);
+
+    %
+    fclose(fid);
+
+
+    % ----------------------------------------------------
+    % Load different variable
+    % 
+    % Displacement can also be done for Smart mooring
+
+    %
+    displacementfile_aux = fullfile(dataInfo.standardspotters.parentdir, ...
+                                    dataInfo.standardspotters.list_spotters{i1}, ...
+                                    'parsed', 'displacement.csv');
+    %
+    fid = fopen(displacementfile_aux);
+
+    %
+    alldata = textscan(fid, '%d%d%d %d%d%d %d %f%f%f', ...
+                            'Delimiter', ',', 'HeaderLines', 1);
+
+
+    % Parse the time and location data -- MAKE SURE THAT EACH
+    % ARE INVIDIVIDUALLY CONVERTED TO DOUBLE!!!
+    spotdata.displacement.dtime = datenum(double(alldata{1}), double(alldata{2}), double(alldata{3}), ...
+                                          double(alldata{4}), double(alldata{5}), double(alldata{6}) + (double(alldata{7})./1000));
+
+    %
+    spotdata.displacement.x = alldata{8};
+    spotdata.displacement.y = alldata{9};
+    spotdata.displacement.z = alldata{10};
+    
+    % Convert time from UTC to PDT
+    spotdata.displacement.dtime = spotdata.displacement.dtime - (7/24);
+    %
+    fclose(fid);
+
+
+    % ------------
+    % Now SST
+    %
+    sstfile_aux = fullfile(dataInfo.standardspotters.parentdir, ...
+                           dataInfo.standardspotters.list_spotters{i1}, ...
+                           'parsed', 'sst.csv');
+    %
+    fid = fopen(sstfile_aux);
+
+    %
+    alldata = textscan(fid, '%d%d%d %d%d%d %d %f', ...
+                            'Delimiter', ',', 'HeaderLines', 1);
+
+
+    % Parse the time and location data -- MAKE SURE THAT EACH
+    % ARE INVIDIVIDUALLY CONVERTED TO DOUBLE!!!    
+    spotdata.sst.dtime = datenum(double(alldata{1}), double(alldata{2}), double(alldata{3}), ...
+                                 double(alldata{4}), double(alldata{5}), double(alldata{6}) + (double(alldata{7})./1000));
+    %
+    spotdata.sst.SST = alldata{8};
+    
+    % Convert time from UTC to PDT
+    spotdata.sst.dtime = spotdata.sst.dtime - (7/24);
+
+    %
+    fclose(fid);
+
+
+    % ----------------------------------------------------
+    % Plot variables to identify deployment/recovery
+
+    %
+    time_pltlims_deployment = [(deplySpot.(dataInfo.standardspotters.list_spotters{i1})(1) - 1), ...
+                               deplySpot.(dataInfo.standardspotters.list_spotters{i1})(1)];
+    %
+    time_pltlims_recovery = [deplySpot.(dataInfo.standardspotters.list_spotters{i1})(2), ...
+                             (deplySpot.(dataInfo.standardspotters.list_spotters{i1})(2) + (5/24))];
+
+    %
+    figure
+        %
+        set(gcf, 'units', 'normalized')
+        set(gcf, 'Position', [0.25, 0.25, 0.5, 0.4])
+        %
+        haxs_1 = axes('Position', [0.1, 0.6, 0.35, 0.33]);
+        haxs_2 = axes('Position', [0.55, 0.6, 0.35, 0.35]);
+        haxs_3 = axes('Position', [0.1, 0.1, 0.35, 0.35]);
+        haxs_4 = axes('Position', [0.55, 0.1, 0.35, 0.35]);
+
+        %
+        plot(haxs_1, datetime(spotdata.displacement.dtime, 'ConvertFrom', 'datenum'), spotdata.displacement.z, '.-')
+        plot(haxs_2, datetime(spotdata.displacement.dtime, 'ConvertFrom', 'datenum'), spotdata.displacement.z, '.-')
+        %
+        plot(haxs_3, datetime(spotdata.sst.dtime, 'ConvertFrom', 'datenum'), spotdata.sst.SST, '.-')
+        plot(haxs_4, datetime(spotdata.sst.dtime, 'ConvertFrom', 'datenum'), spotdata.sst.SST, '.-')
+
+    %
+    set([haxs_1, haxs_2, haxs_3, haxs_4], 'FontSize', 16, 'Box', 'on', ...
+                                          'XGrid', 'on', 'YGrid', 'on')
+    set([haxs_1, haxs_3], 'XLim', datetime(time_pltlims_deployment, 'ConvertFrom', 'datenum'))
+    set([haxs_2, haxs_4], 'XLim', datetime(time_pltlims_recovery, 'ConvertFrom', 'datenum'))
+
+    %
+    xlabel(haxs_3, 'Time [local/PDT]', 'Interpreter', 'Latex', 'FontSize', 20)
+    xlabel(haxs_4, 'Time [local/PDT]', 'Interpreter', 'Latex', 'FontSize', 20)
+    %
+    ylabel(haxs_1, '[m]', 'Interpreter', 'Latex', 'FontSize', 20)
+    ylabel(haxs_3, '[$^\circ$C]', 'Interpreter', 'Latex', 'FontSize', 20)
+
+    %
+    title(haxs_1, ['Spotter: ' dataInfo.standardspotters.list_spotters{i1}(1:3) ' ' ...
+                   '- SN ' dataInfo.standardspotters.list_spotters{i1}(9:end) ' at deployment, z displacement (m)'], ...
+                   'Interpreter', 'Latex', 'FontSize', 20)
+    title(haxs_2, ['Spotter: ' dataInfo.standardspotters.list_spotters{i1}(1:3) ' ' ...
+                   '- SN ' dataInfo.standardspotters.list_spotters{i1}(9:end) ' at recovery, z displacement (m)'], ...
+                   'Interpreter', 'Latex', 'FontSize', 18)
+    %
+    title(haxs_3, ['Spotter: ' dataInfo.standardspotters.list_spotters{i1}(1:3) ' ' ...
+                   '- SN ' dataInfo.standardspotters.list_spotters{i1}(9:end) ' at deployment, SST ($^\circ$C)'], ...
+                   'Interpreter', 'Latex', 'FontSize', 20)
+    title(haxs_4, ['Spotter: ' dataInfo.standardspotters.list_spotters{i1}(1:3) ' ' ...
+                   '- SN ' dataInfo.standardspotters.list_spotters{i1}(9:end) ' at recovery, SST ($^\circ$C)'], ...
+                   'Interpreter', 'Latex', 'FontSize', 18)
+
+
+    %
+    linkaxes([haxs_1, haxs_3], 'x')
+    linkaxes([haxs_2, haxs_4], 'x')
+
+    %
+    toc
+    %
+    
+end
+
+
+%%
+return
 
 %%
 % ------------------------------------------------------
@@ -428,13 +430,13 @@ return
 
 
 %
-mooringID = ["B01"; "B01"; ...
-                  "B03"; "B05"; "X01"; "X03"; "X04"; ...
-                  "E01"; "E02"; "E05"; ...
-                  "E07"; "E07"; ...
-                  "E08"; ...
-                  "E09"; "E09"; ...
-                  "E10"; "E11"; "E13"];
+mooringID = ["B01s"; "B01s"; ...
+             "B03s"; "B05s"; "X01s"; "X03s"; "X04s"; ...
+             "E01sp"; "E02sp"; "E05sp"; ...
+             "E07sp"; "E07sp"; ...
+             "E08sp"; ...
+             "E09sp"; "E09sp"; ...
+             "E10sp"; "E11sp"; "E13sp"];
 %
 SN = ["1158"; "1150"; ...
                   "1152"; "1153"; "1151"; "1157"; "1155"; ...
@@ -444,80 +446,27 @@ SN = ["1158"; "1150"; ...
                   "1850"; "1856"; ...
                   "1848"; "1860"; "1849"];
 
-% As in the mooring table to be consistent
+% String name as in the mooring table to be consistent
 spottertype = [repmat("spotter", 7, 1); ...
                repmat("smartspotter", 11, 1)];
 
-%%
+
+
+%% Define being/end deployment and trim times
+
+
+% For the standard spotters neither displacement nor SST give
+% a clear signal of when it was pulled out of the water.
+% Lat/long can be used (and maybe that's what I should have done)
+% but a few Spotters or Smart moorings do not have measurements
+% after recovery.
 %
-% First I thought of only one start and end times.
-% Then I thought it was better to have deployment/recovery times
-% and also trimming times.
+% Message on WhatsApp from Charlotte said that they were coming back with
+% all 6 standard spotters at 09:53am. 6 standard Spotters were recovered
+% between 07:30 and 09:53 (where 07:30 is about the time when the NPS
+% boat arrived at the dock to offload instruments before departing to
+% get the Spotters). I'll set trimming time at 07:30 on 07/20.
 
-
-% % %
-% % list_timestart = [datetime(2022, 06, , , , 0); ...    % Standard spotter
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...    % Smart mooring
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0); ...
-% %                   datetime(2022, 06, , , , 0)];
-% % %
-% % list_timeend = [datetime(2022, 07, , , , 0); ...    % Standard spotter
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...    % Smart mooring
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0); ...
-% %                 datetime(2022, 07, , , , 0)];]
-% % 
-% % %
-% % list_timestart.TimeZone = 'America/Los_Angeles';
-% % list_timeend.TimeZone = 'America/Los_Angeles';
-
-
-
-
-
-%%
-%
-% AND NEED TO REVISE STANDARD SPOTTERS!!!! because displacement does not
-% give a clear signal for when it's out of the water.
-
-% Message on WhatsApp from Charlotte was that they were coming back with
-% all 6 standard spotters at 09:53am -- SO I DEFINITELY NEED TO FIX SOME OF
-% THE END TRIMMING TIMES!!!
-
-%
-% It's not always obvious from z displacement and SST where the
-% deployment and recoveries happened exactly.
-%
-% - The data from X03 does NOT show any sign of Spotter being pulled
-%   out of the water. And at deployment there is only a few data
-%   points where SST goes from atmosphere to ocean values.
 %
 % - E01 1851: weird problem at the beginning, with a 4.5-hour gap in
 %             pressure data. In the SMD file, the character RBRD, turned
@@ -547,12 +496,12 @@ time_begin_deployment = ["2022/06/15 08:41:00"; ...    % Standard spotter / B01 
                          "2022/06/17 08:05:00"];    % E13 1849
 
 time_end_deployment = ["2022/07/06 09:00:00"; ...    % Standard spotter / B01 1158 -- issues needed to be recovered. Time based on the deployment of the other one because 1158 stopped recording (solar power/chargin failed)
-                       "2022/07/20 10:45:00"; ...    % B01 1150
-                       "2022/07/20 10:40:00"; ...    % B03 1152
-                       "2022/07/20 10:30:00"; ...    % B05 1153
-                       "2022/07/20 11:00:00"; ...    % X01 1151
-                       "2022/07/20 09:44:00"; ...    % X03 1157
-                       "2022/07/20 10:30:00"; ...    % X04 1155
+                       "2022/07/20 10:00:00"; ...    % B01 1150
+                       "2022/07/20 10:00:00"; ...    % B03 1152
+                       "2022/07/20 10:00:00"; ...    % B05 1153
+                       "2022/07/20 10:00:00"; ...    % X01 1151
+                       "2022/07/20 10:00:00"; ...    % X03 1157
+                       "2022/07/20 10:00:00"; ...    % X04 1155
                        "2022/07/20 06:12:00"; ...    % Smart mooring / E01 1851
                        "2022/07/20 06:15:00"; ...     % E02 1859
                        "2022/07/17 07:10:00"; ...    % E05 1853 -- this one stopped working at once. deployment uncertain, unless there is location data
@@ -588,12 +537,12 @@ time_begin_trim = ["2022/06/15 09:00:00"; ...    % Standard spotter / B01 1158 -
 
 %
 time_end_trim = ["2022/07/02 01:22:00"; ...    % Standard spotter / B01 1158 -- issues needed to be recovered. This end trim time may be refined after looking at data and issues that happened towards the end.
-                 "2022/07/20 09:59:00"; ...    % B01 1150
-                 "2022/07/20 09:50:00"; ...    % B03 1152
-                 "2022/07/20 09:30:00"; ...    % B05 1153
-                 "2022/07/20 09:35:00"; ...    % X01 1151
-                 "2022/07/20 09:30:00"; ...    % X03 1157
-                 "2022/07/20 09:45:00"; ...    % X04 1155
+                 "2022/07/20 07:30:00"; ...    % B01 1150
+                 "2022/07/20 07:30:00"; ...    % B03 1152
+                 "2022/07/20 07:30:00"; ...    % B05 1153
+                 "2022/07/20 07:30:00"; ...    % X01 1151
+                 "2022/07/20 07:30:00"; ...    % X03 1157
+                 "2022/07/20 07:30:00"; ...    % X04 1155
                  "2022/07/20 06:00:00"; ...    % Smart mooring / E01 1851
                  "2022/07/20 06:05:00"; ...     % E02 1859
                  "2022/07/17 10:13:00"; ...    % E05 1853 -- this one stopped getting pressure at once at ~10:20:30. Trimming a few minutes before the data is visibly bad. Spotter buoy itself is getting measurements all the way too the end, so trimming for that can be done a couple hours before time_end_deployment.
@@ -611,15 +560,15 @@ time_end_trim = ["2022/07/02 01:22:00"; ...    % Standard spotter / B01 1158 -- 
 
 
 %
-deploymentInfo_Spotters_ROXSI2022 = ...
-                    table(mooringID, SN, spottertype, ...
-                          time_begin_deployment, time_end_deployment, ...
-                          time_begin_trim, time_end_trim);
+dployInfo_Spotters = table(mooringID, SN, spottertype, ...
+                           time_begin_deployment, time_end_deployment, ...
+                           time_begin_trim, time_end_trim);
 
 
 %% Save the table
 
-% % %
-% % save(fullfile(repo_dirpath(), 'deploymentInfo_Spotters_ROXSI2022.mat'), ...
-% %      'deploymentInfo_ROXSI2022')
+% %
+% save(fullfile(repo_dirpath(), ...
+%               'deploymentInfo_Spotters_ROXSI2022.mat'), ...
+%               'dployInfo_Spotters'))
 

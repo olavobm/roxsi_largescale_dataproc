@@ -53,8 +53,11 @@ lsave_fig = false;
 % %                      'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
 % %                      'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
-% Look at just one that we didn't have problems with
-list_SmartMoorings = {'E02_spot1859'};
+% % Look at just one that we didn't have problems with
+% list_SmartMoorings = {'E02_spot1859'};
+
+% All good Smart Moorings
+list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
 
 %
 Nspotters = length(list_SmartMoorings);
@@ -81,6 +84,20 @@ list_SmartMoorings
 % ----------------------------------------------------------------
 
 
+%% Load mooring locations
+%
+% Here we load locations of all moorings. The deployed locations of the
+% Spotter moorings are calculated in Spotters_get_all_locations.m. For
+% the Spotters, these locations are calculated by fitting a watch
+% circle to the locations reported by the Spotter. For the Smart Moorings,
+% this location should correspond to the location of bottom mount/pressure
+% sensor.
+
+%
+mooringtable = load(fullfile(repo_dirpath(), 'ROXSI2022_mooringtable.mat'));
+mooringtable = mooringtable.mooringtable;
+
+
 %% Load atmospheric pressure
 
 % % %
@@ -102,10 +119,13 @@ deployment_timelimits = [datenum(2022, 06, 16, 0, 0, 0), ...
 % second section where the data is processed to level 1
 
 % Loop over Smart Moorings
-for i = 1:length(list_SmartMoorings)
+for i1 = 1:length(list_SmartMoorings)
 
     %
-    raw_readdata = Spotter_readmulti_SMD(fullfile(dir_rawdata_parent, list_SmartMoorings{i}));
+    disp(['-------------- Starting level 1 data processing of smart mooring ' list_SmartMoorings{i1}(1:3) ' - SN: ' list_SmartMoorings{i1}(end-3:end) ' --------------'])
+
+    %
+    raw_readdata = Spotter_readmulti_SMD(fullfile(dir_rawdata_parent, list_SmartMoorings{i1}));
 
     % ------------------------------------------
     % In datenum, convert from UTC to local time (PDT)
@@ -116,7 +136,7 @@ for i = 1:length(list_SmartMoorings)
     SpotterSmart_QC_plot_pressure(raw_readdata.allfiles.dtime, ...
                                   raw_readdata.allfiles.pressure, ...
                                   deployment_timelimits, ...
-                                  list_SmartMoorings{i}(1:3), list_SmartMoorings{i}(end-3:end));
+                                  list_SmartMoorings{i1}(1:3), list_SmartMoorings{i1}(end-3:end));
 
     % ------------------------------------------
     % Plot QC of gap due to changing Spotter mode
@@ -128,7 +148,7 @@ for i = 1:length(list_SmartMoorings)
     SpotterSmart_QC_plot_pressure(raw_readdata.allfiles.dtime, ...
                                   raw_readdata.allfiles.pressure, ...
                                   time_lims_gap, ...
-                                  list_SmartMoorings{i}(1:3), list_SmartMoorings{i}(end-3:end));
+                                  list_SmartMoorings{i1}(1:3), list_SmartMoorings{i1}(end-3:end));
 
     % ------------------------------------------
     % Plot QC of clock stopping
@@ -205,8 +225,8 @@ for i = 1:length(list_SmartMoorings)
         xlabel('Indice of unique time difference', 'Interpreter', 'Latex', 'FontSize', 16)
         ylabel('Time difference [s]', 'Interpreter', 'Latex', 'FontSize', 16)
         %
-        title(['ROXSI 2022: ' list_SmartMoorings{i}(1:3) ' SN ' ...
-               list_SmartMoorings{i}(end-3:end) ': unique ' ...
+        title(['ROXSI 2022: ' list_SmartMoorings{i1}(1:3) ' SN ' ...
+               list_SmartMoorings{i1}(end-3:end) ': unique ' ...
                '(short) time differences'], 'Interpreter', 'Latex', 'FontSize', 16)
 
     
@@ -226,6 +246,18 @@ for i = 1:length(list_SmartMoorings)
     spotterSmartdata.pressure = raw_readdata.allfiles.pressure(l_gooddata);
     %
     spotterSmartdata.unixEpoch = raw_readdata.allfiles.unixEpoch(l_gooddata);
+
+    % ------------------------------------------
+    % *****
+    % AT LEAST IN 2022, THE SMART MOORINGS
+    % HAD A BUG/FEATURE WHERE ALL PRESSURE VALUES
+    % ARE RECORDED WITH AN EXTRA ZERO AS THE LAST
+    % DIGIT. THAT IS, THE PRESSURE IN PASCAL IS
+    % THE VALUE STORED IN THE SD CARD DIVIDED BY 10.
+    % *****
+
+    %
+    spotterSmartdata.pressure = spotterSmartdata.pressure./10;
 
 
     % ------------------------------------------
@@ -360,8 +392,8 @@ for i = 1:length(list_SmartMoorings)
             ylabel(haxs_3, '[s]', 'Interpreter', 'Latex', 'FontSize', 22)
             
             %
-            title(haxs_1, {['ROXSI 2022: ' list_SmartMoorings{i}(1:3) ' - SN ' ...
-                           list_SmartMoorings{i}(end-3:end) ':'];'sequential timestamps'}, ...
+            title(haxs_1, {['ROXSI 2022: ' list_SmartMoorings{i1}(1:3) ' - SN ' ...
+                           list_SmartMoorings{i1}(end-3:end) ':'];'sequential timestamps'}, ...
                            'Interpreter', 'Latex', 'FontSize', 18)
             title(haxs_2, 'Time difference between timestamps', 'Interpreter', 'Latex', 'FontSize', 18)
             title(haxs_3, 'Same as above, but zoomed in the $y$ axis', 'Interpreter', 'Latex', 'FontSize', 18)
@@ -394,35 +426,104 @@ for i = 1:length(list_SmartMoorings)
         xlabel('Indice of unique time difference', 'Interpreter', 'Latex', 'FontSize', 16)
         ylabel('Time difference [s]', 'Interpreter', 'Latex', 'FontSize', 16)
         %
-        title({['ROXSI 2022: ' list_SmartMoorings{i}(1:3) ' SN ' ...
-               list_SmartMoorings{i}(end-3:end) ': unique ' ...
+        title({['ROXSI 2022: ' list_SmartMoorings{i1}(1:3) ' SN ' ...
+               list_SmartMoorings{i1}(end-3:end) ': unique ' ...
                '(short) time'];'differences in processed data'}, 'Interpreter', 'Latex', 'FontSize', 20)
 
 
-    keyboard
+    
+    %% Compute average pressure in 30 min intervals
+    % so that it gives a diagnostic view of the data
+    
+    %
+    dtavg = 30/(24*60);
+
+    %
+    timeavg_vec = spotterSmartdata.dtime(1) : dtavg : spotterSmartdata.dtime(end);
+    timeavg_vec = timeavg_vec(2:end-1);    % remove edges
+    Pavg_vec = NaN(1, length(timeavg_vec));
+
+    %
+    tic
+    for i2 = 1:length(timeavg_vec)
+        %
+        lin_time_avg = (spotterSmartdata.dtime >= (timeavg_vec(i2) - (dtavg/2))) & ...
+                       (spotterSmartdata.dtime <= (timeavg_vec(i2) + (dtavg/2)));
+        %
+        pressure_inlims = spotterSmartdata.pressure(lin_time_avg);
+
+        % Only compute average if there is enough data
+        if length(pressure_inlims) > (0.9 * 30*60*2)
+            %
+            Pavg_vec(i2) = mean(pressure_inlims, 'omitnan');
+        end
+    end
+    toc
+
+% %     %
+% %     figure
+% %         plot(datetime(timeavg_vec, 'ConvertFrom', 'datenum'), Pavg_vec, '.-')
+
+
     %%
     % ----------------------------------------------------------
     % ------- ORGANIZE LEVEL 1 DATA STRUCTURE AND SAVE IT ------
     % ----------------------------------------------------------
 
     %
-    spotsmart_L1.mooringID = [list_SmartMoorings{i}(1:3) 'sp'];
+    spotsmart.mooringID = [list_SmartMoorings{i1}(1:3) 'sp'];
     %
-    spotsmart_L1.SN = list_SmartMoorings{i}(end-3:end);
+    spotsmart.SN = list_SmartMoorings{i1}(end-3:end);
 
     %
-    spotsmart_L1.dtime = datetime(spotterSmartdata.dtime, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
+    lmatch = strncmp(mooringtable.mooringID, list_SmartMoorings{i1}(1:3), 3);
     %
-    spotsmart_L1.pressure = spotterSmartdata.pressure;
+    spotsmart.latitude = mooringtable(lmatch, :).latitude;
+    spotsmart.longitude = mooringtable(lmatch, :).longitude;
+
+    % Height of the sensor above the bottom (this was
+    % first measured in inches, = 5 inches).
+    spotsmart.zhab = 12.7 * 1e-2;    % in meters
 
     %
-% %     spotsmart_L1.REAMDE = '';
+    spotsmart.dtime = datetime(spotterSmartdata.dtime, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
+    %
+    spotsmart.pressure = spotterSmartdata.pressure;
+% %     spotsmart.Pwater = ;
+
+
+    %
+    spotsmart.dtime_avg = datetime(timeavg_vec, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
+    %
+    spotsmart.pressure_avg = Pavg_vec;
+
+% %     spotsmart.time_zone = 'PDT';
+% % 
+% %     %
+% %     %
+% % % %     spotsmart.REAMDE = 'ROXSI 2022.';
+
+
+    % Save Level 1 data
+    save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1.mat']), 'spotsmart');
+
+    %
+    disp(['-------------- Level 1 smart mooring (' spotsmart.mooringID ' - SN: ' spotsmart.SN ') data processing done --------------'])
+
+
+    %% Clear variables/close figures as needed before
+    % going to the next loop iteration
+
+    %
+    close all
+
 
 end
 
 
 % If you want to save a figure, do something like this
-% right after the code section that plots the figure
+% right after the code section that plots the figure:
+% 
 % exportgraphics(gcf, ['smartmooring_clockQC_timestops_' num2str(i2, '%.02d') '.png'], 'Resolution', 300);
 
 

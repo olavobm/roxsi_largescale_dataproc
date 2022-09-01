@@ -130,7 +130,8 @@ deployment_timelimits = [datenum(2022, 06, 16, 0, 0, 0), ...
 % Loop over Smart Moorings
 for i1 = 1:length(list_SmartMoorings)
 
-    %
+    % ------------------------------------------
+    % Load raw data
     disp(' ')
     disp(' ')
     %
@@ -168,7 +169,10 @@ for i1 = 1:length(list_SmartMoorings)
                                   list_SmartMoorings{i1}(1:3), list_SmartMoorings{i1}(end-3:end));
 
     % ------------------------------------------
-    % Plot QC of clock stopping
+    % Plot QC of clock stopping -- this is associated
+    % with times when there is actually no pressure data
+    % and the flag (link) is 0. So this "clock stopping"
+    % thing is not really part of the data processing.
     %
     timediff_vec = 24*3600*diff(raw_readdata.allfiles.dtime);
     %
@@ -307,15 +311,23 @@ for i1 = 1:length(list_SmartMoorings)
     % PIECE OF INFORMATION ON HOW THIS ERROR HAPPENS, THEN I HAVE TO
     % MAKE AN ASSUMPTION ABOUT THE TIME DIFFERENCE BETWEEN THE NORMAL
     % PART OF THE TIMESERIES AND THE SEGMENT WITH THE PROBLEM
+    %
+    % Actually, the same thing also happens with the clock slowing
+    % down (i.e. the diff(time) is positive, but closer to 0 than
+    % 0.5, and plots of examples convincinly show the problem is
+    % in the clock). But in this case, I really need to check if
+    % this conclusion from a few examples is valid for all cases
+    % of diff(time) below a positive threshold.
 
     %
     timediff_aux = 24*3600*diff(spotterSmartdata.dtime);
-    % THESE TIME DIFFERENCES ARE NOT AS EXACT AS IN UNIXEPOCH!!!
+    % THESE TIME DIFFERENCES ARE NOT AS EXACT AS IN UNIXEPOCH.
     % (e.g. a -1 becomes -0.999994575977325).
     % Maybe because of chainging time zone through 7/24????
 
     %
-    inds_gobacks = find(timediff_aux < 0);
+%     inds_gobacks = find(timediff_aux < 0);
+    inds_gobacks = find(timediff_aux < 0.2);
 
     % Threshold of the maximum length (in number of points) of
     % the segment to be fixed -- MAYBE NOT THE BEST APPROACH, BUT
@@ -326,104 +338,197 @@ for i1 = 1:length(list_SmartMoorings)
     for i2 = 1:length(inds_gobacks)
 
         %
+        lfix_segment_aux = true;
+
+        %
         [~, ind_back_normaltime_aux] = max(timediff_aux(inds_gobacks(i2):(inds_gobacks(i2) + NsegTH)));
 
         % Indices of the segment when the timestamps have gone back in time
         ind_seg_tofix = inds_gobacks(i2) + (1 : (ind_back_normaltime_aux - 1));
 
-        % Make a simple correction in terms of multiples
-        % of the sampling period (0.5 s)
+        % Check the time differences before and after the segment
+        % are DEFINITELY CONSISTENT with an error in the clock.
+        % (one counter example, which I don't if ever happens would
+        % be a real clock delay in the middle of the segment)
+        time_diff_before_aux = spotterSmartdata.dtime(ind_seg_tofix(1)) - spotterSmartdata.dtime((ind_seg_tofix(1)-1));
+        time_diff_after_aux = spotterSmartdata.dtime((ind_seg_tofix(end)+1)) - spotterSmartdata.dtime(ind_seg_tofix(end));
         %
-        integer_division_aux = floor(10*abs(timediff_aux(inds_gobacks(i2))))/5;
+        time_diff_before_aux = time_diff_before_aux*24*3600;
+        time_diff_after_aux = time_diff_after_aux*24*3600;
+        
         %
-        if integer_division_aux < 1
-            integer_division_aux = 0;
+        time_diff_inseg_aux = 24*3600*diff(spotterSmartdata.dtime(ind_seg_tofix));
+
+        %
+        if time_diff_before_aux > 0
+            %
+            if abs(time_diff_after_aux - 0.5) < 0.8*abs(time_diff_before_aux - 0.5)
+% %                 %
+% %                 warning('error 1!!!!!!!!')
+% %                 
+% %                 % From a couple of Spotters error 2 always happens
+% %                 % when error 1 happens
+% %                 if any(abs(time_diff_inseg_aux - 0.5) > abs(time_diff_after_aux - 0.5))
+% %                     warning('error 2!!!!!!!!')
+% % 
+% %                 %
+% %                 figure
+% %                     plot((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+54), ...
+% %                          24*3600*diff(spotterSmartdata.dtime((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+55))), '.-')
+% %                     hold on
+% %                     plot(ind_seg_tofix(1:end-1), ...
+% %                          24*3600*diff(spotterSmartdata.dtime(ind_seg_tofix)), '.-')
+% %                     grid on
+% %                     %
+% %                     set(gca, 'FontSize', 16)
+% %                 
+% %                 end
+
+                % Remove the segment in this iteration from
+                % those that need to be corrected
+                lfix_segment_aux = false;
+
+            end
+
+        %
+        else 
+        % Throw a warning if there is a clock problem within the segment
+        % that it's getting fixed -- nice to check, but so far I haven't
+        % seen an example of where this goes wrong
+
+% %             %
+% %             if abs(time_diff_inseg_aux - 0.5) >= 0.1
+% %                 warning('error 3!!!!!!!!')
+% %             end
+% % 
+% %             %
+% %             vec_diffaux = timediff_aux(inds_gobacks(i2):(inds_gobacks(i2) + NsegTH));
+% %             %
+% %             max_timediff = max(vec_diffaux);
+% %             %
+% %             new_vec_diffaux = setdiff(vec_diffaux, max_timediff, 'stable');
+% %             
+% %             %
+% %             second_max_timediff = max(new_vec_diffaux);
+% % 
+% %             %
+% %             if abs(second_max_timediff - 0.5) >= 0.1
+% %                 warning('error 4!!!!!!!!')
+% %                 %
+% %                 figure
+% %                     plot((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+24), ...
+% %                          24*3600*diff(spotterSmartdata.dtime((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+25))), '.-')
+% %                     hold on
+% %                     plot(ind_seg_tofix(1:end-1), ...
+% %                          24*3600*diff(spotterSmartdata.dtime(ind_seg_tofix)), '.-')
+% %                     grid on
+% %                     %
+% %                     set(gca, 'FontSize', 16)
+% % 
+% %             end
         end
-        %
-        time_factor_fix_aux = 0.5*(integer_division_aux + 1);    % in seconds
 
+        % Only apply correction if it's not identified as
+        % an exception by the if block just above
+        if lfix_segment_aux
 
-        % Add the time factor to correct the timestamps of the segment
-        spotterSmartdata.dtime(ind_seg_tofix) = spotterSmartdata.dtime(ind_seg_tofix) + (time_factor_fix_aux ./ (24*3600));
+            % Make a simple correction in terms of multiples
+            % of the sampling period (0.5 s)
+            %
+            integer_division_aux = floor(10*abs(timediff_aux(inds_gobacks(i2))))/5;
+            %
+            if integer_division_aux < 1
+                integer_division_aux = 0;
+            end
+            %
+            time_factor_fix_aux = 0.5*(integer_division_aux + 1);    % in seconds
+    
+    
+            % Add the time factor to correct the timestamps of the segment
+            spotterSmartdata.dtime(ind_seg_tofix) = spotterSmartdata.dtime(ind_seg_tofix) + (time_factor_fix_aux ./ (24*3600));
+        
         
        
-        % ------------------------
-        % Make diagnostic plot -- there are hundreds of
-        % instances per spotter, so it's unlikely you
-        % want to save all of them
-
-        %
-        lmakeplot = false;
-% %         if integer_division_aux < 1
-% %             lmakeplot = true;
-% %         end
-
-        %
-        if lmakeplot
-
-            % Indices to plot -- you may want to plot a shorter
-            % ir longer range around the segment that it's being
-            % fixed
-            indsplt = (ind_seg_tofix(1)-10):(ind_seg_tofix(end)+10);
-    % %         indsplt = (ind_seg_tofix(1)-200):(ind_seg_tofix(end)+400);
+            % ------------------------
+            % Make diagnostic plot -- there are hundreds of
+            % instances per spotter, so it's unlikely you
+            % want to save all of them
     
             %
-            hfig = figure;
-                set(hfig, 'units', 'normalized')
-                set(hfig, 'Position', [0.39, 0.49, 0.26, 0.43])
-
+            lmakeplot = false;
+    % %         if integer_division_aux < 1
+    % %             lmakeplot = true;
+    % %         end
+    
             %
-            newFigDims([9.25, 8.6389])
+            if lmakeplot
+    
+                % Indices to plot -- you may want to plot a shorter
+                % ir longer range around the segment that it's being
+                % fixed
+                indsplt = (ind_seg_tofix(1)-10):(ind_seg_tofix(end)+10);
+        % %         indsplt = (ind_seg_tofix(1)-200):(ind_seg_tofix(end)+400);
+        
                 %
-                haxs_1 = axes('Position', [0.15, 0.7, 0.75, 0.18]);
-                haxs_2 = axes('Position', [0.15, 0.4, 0.75, 0.18]);
-                haxs_3 = axes('Position', [0.15, 0.1, 0.75, 0.18]);
+                hfig = figure;
+                    set(hfig, 'units', 'normalized')
+                    set(hfig, 'Position', [0.39, 0.49, 0.26, 0.43])
+    
                 %
-                hold(haxs_1, 'on')
-                hold(haxs_2, 'on')
-                hold(haxs_3, 'on')
+                newFigDims([9.25, 8.6389])
+                    %
+                    haxs_1 = axes('Position', [0.15, 0.7, 0.75, 0.18]);
+                    haxs_2 = axes('Position', [0.15, 0.4, 0.75, 0.18]);
+                    haxs_3 = axes('Position', [0.15, 0.1, 0.75, 0.18]);
+                    %
+                    hold(haxs_1, 'on')
+                    hold(haxs_2, 'on')
+                    hold(haxs_3, 'on')
+        
+                        % Uncorrected
+                        plot(haxs_1, indsplt, datetime((719529 + (spotterSmartdata.unixEpoch(indsplt)./86400) - (7/24)), 'ConvertFrom', 'datenum'), '.-', 'MarkerSize', 20)
+                        % Corrected
+                        plot(haxs_1, indsplt, datetime(spotterSmartdata.dtime(indsplt), 'ConvertFrom', 'datenum'), '.-', 'MarkerSize', 20)
+        
+                        % Plot the time difference in subplots 2 and 3
+                        for indhaxs = [haxs_2, haxs_3]
+                            plot(indhaxs, (indsplt(1:end-1)+indsplt(2:end))./2, 24*3600*diff((719529 + (spotterSmartdata.unixEpoch(indsplt)./86400) - (7/24))), '.-', 'MarkerSize', 20)
+                            plot(indhaxs, (indsplt(1:end-1)+indsplt(2:end))./2, 24*3600*diff(spotterSmartdata.dtime(indsplt)), '.-', 'MarkerSize', 20)
+                        end    
     
-                    % Uncorrected
-                    plot(haxs_1, indsplt, datetime((719529 + (spotterSmartdata.unixEpoch(indsplt)./86400) - (7/24)), 'ConvertFrom', 'datenum'), '.-', 'MarkerSize', 20)
-                    % Corrected
-                    plot(haxs_1, indsplt, datetime(spotterSmartdata.dtime(indsplt), 'ConvertFrom', 'datenum'), '.-', 'MarkerSize', 20)
+                %
+                hleg = legend(haxs_1, 'uncorrected', 'corrected', 'Location', 'NorthWest', 'FontSize', 14);
+        
+        
+                %
+                set([haxs_1, haxs_2, haxs_3], 'FontSize', 16, 'Box', 'on', ...
+                                              'XGrid', 'on', 'YGrid', 'on')
+                set([haxs_1, haxs_2, haxs_3], 'XLim', indsplt([1, end]) + [-2, 2])
+                set(haxs_3, 'YLim', [0.42, 0.58])
+        
+                %
+                plot(haxs_2, get(haxs_2, 'XLim'), [0, 0], 'k')
+                plot(haxs_3, get(haxs_2, 'XLim'), [0, 0], 'k')
+        
+                %
+                xlabel(haxs_3, 'Indices of data points', 'Interpreter', 'Latex', 'FontSize', 22)
+                %
+                ylabel(haxs_1, 'Local time', 'Interpreter', 'Latex', 'FontSize', 22)
+                ylabel(haxs_2, '[s]', 'Interpreter', 'Latex', 'FontSize', 22)
+                ylabel(haxs_3, '[s]', 'Interpreter', 'Latex', 'FontSize', 22)
+                
+                %
+                title(haxs_1, {['ROXSI 2022: ' list_SmartMoorings{i1}(1:3) ' - SN ' ...
+                               list_SmartMoorings{i1}(end-3:end) ':'];'sequential timestamps'}, ...
+                               'Interpreter', 'Latex', 'FontSize', 18)
+                title(haxs_2, 'Time difference between timestamps', 'Interpreter', 'Latex', 'FontSize', 18)
+                title(haxs_3, 'Same as above, but zoomed in the $y$ axis', 'Interpreter', 'Latex', 'FontSize', 18)
+        
+                %
+                linkaxes([haxs_1, haxs_2, haxs_3], 'x')
     
-                    % Plot the time difference in subplots 2 and 3
-                    for indhaxs = [haxs_2, haxs_3]
-                        plot(indhaxs, (indsplt(1:end-1)+indsplt(2:end))./2, 24*3600*diff((719529 + (spotterSmartdata.unixEpoch(indsplt)./86400) - (7/24))), '.-', 'MarkerSize', 20)
-                        plot(indhaxs, (indsplt(1:end-1)+indsplt(2:end))./2, 24*3600*diff(spotterSmartdata.dtime(indsplt)), '.-', 'MarkerSize', 20)
-                    end    
+            end
 
-            %
-            hleg = legend(haxs_1, 'uncorrected', 'corrected', 'Location', 'NorthWest', 'FontSize', 14);
-    
-    
-            %
-            set([haxs_1, haxs_2, haxs_3], 'FontSize', 16, 'Box', 'on', ...
-                                          'XGrid', 'on', 'YGrid', 'on')
-            set([haxs_1, haxs_2, haxs_3], 'XLim', indsplt([1, end]) + [-2, 2])
-            set(haxs_3, 'YLim', [0.42, 0.58])
-    
-            %
-            plot(haxs_2, get(haxs_2, 'XLim'), [0, 0], 'k')
-            plot(haxs_3, get(haxs_2, 'XLim'), [0, 0], 'k')
-    
-            %
-            xlabel(haxs_3, 'Indices of data points', 'Interpreter', 'Latex', 'FontSize', 22)
-            %
-            ylabel(haxs_1, 'Local time', 'Interpreter', 'Latex', 'FontSize', 22)
-            ylabel(haxs_2, '[s]', 'Interpreter', 'Latex', 'FontSize', 22)
-            ylabel(haxs_3, '[s]', 'Interpreter', 'Latex', 'FontSize', 22)
-            
-            %
-            title(haxs_1, {['ROXSI 2022: ' list_SmartMoorings{i1}(1:3) ' - SN ' ...
-                           list_SmartMoorings{i1}(end-3:end) ':'];'sequential timestamps'}, ...
-                           'Interpreter', 'Latex', 'FontSize', 18)
-            title(haxs_2, 'Time difference between timestamps', 'Interpreter', 'Latex', 'FontSize', 18)
-            title(haxs_3, 'Same as above, but zoomed in the $y$ axis', 'Interpreter', 'Latex', 'FontSize', 18)
-    
-            %
-            linkaxes([haxs_1, haxs_2, haxs_3], 'x')
 
         end
     end
@@ -542,19 +647,27 @@ for i1 = 1:length(list_SmartMoorings)
     spotsmart.dtime = datetime(spotterSmartdata.dtime, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
     %
     spotsmart.pressure = spotterSmartdata.pressure;
-% %     spotsmart.Pwater = ;
 
-
+    %
+    spotsmart.dtime_dt_avg = dtavg;
     %
     spotsmart.dtime_avg = datetime(timeavg_vec, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
     %
     spotsmart.pressure_avg = Pavg_vec;
 
-% %     spotsmart.time_zone = 'PDT';
-% % 
-% %     %
-% %     %
-% % % %     spotsmart.REAMDE = 'ROXSI 2022.';
+    %
+    spotsmart.time_zone = 'PDT';
+
+    %
+    time_dataproc = datestr(datetime('now', 'TimeZone', 'America/Los_Angeles'), 'yyyy/mm/dd HH:MM:SS');
+    %
+    spotsmart.REAMDE = ['Level 1 smart mooring data from ROXSI 2022. Data processed by script ' ...
+                        mfilename() '.m on ' time_dataproc ' (PDT). ' ...
+                        'Pressure is in decibar and atmospheric pressure was subtracted from ' ...
+                        'the data. Longitude and latitude (for the pressure measurement) ' ...
+                        'were computed from the mean watch circle obtained ' ...
+                        'from Spotter coordinates over the whole deployment. ' ...
+                        'zhab is the the height in meters of the pressure sensor above the bottom.'];
 
     %
     disp('---- Saving smart mooring level 1 data ---- ')
@@ -569,8 +682,8 @@ for i1 = 1:length(list_SmartMoorings)
     %% Clear variables/close figures as needed before
     % going to the next loop iteration
 
-    %
-    close all
+% %     %
+% %     close all
 
 
 end

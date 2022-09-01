@@ -56,11 +56,11 @@ lsave_fig = false;
 % % Look at just one that we didn't have problems with
 % list_SmartMoorings = {'E02_spot1859'};
 
-% All good Smart Moorings
-% list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
+% % % All good Smart Moorings
+% % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
 
-list_SmartMoorings = {'E01_spot1851'};
-% list_SmartMoorings = {'E02_spot1859'};
+% All seemingly great, apart from not extending the whole deployment
+list_SmartMoorings = {'E05_spot1853', 'E07_spot1857', 'E09_spot1856'};
 
 %
 Nspotters = length(list_SmartMoorings);
@@ -158,15 +158,18 @@ for i1 = 1:length(list_SmartMoorings)
 
     % ------------------------------------------
     % Plot QC of gap due to changing Spotter mode
-    %
+    
+
     % For Spotter E02, the gap is between 17-Jun-2022 16:48:53 and 17-Jun-2022 17:11:51
-    %
-    time_lims_gap = [datenum(2022, 06, 17, 17, 1, 0), datenum(2022, 06, 17, 17, 04, 30)];
-    %
-    SpotterSmart_QC_plot_pressure(raw_readdata.allfiles.dtime, ...
-                                  raw_readdata.allfiles.pressure, ...
-                                  time_lims_gap, ...
-                                  list_SmartMoorings{i1}(1:3), list_SmartMoorings{i1}(end-3:end));
+    if strcmp(list_SmartMoorings{i1}(1:3), 'E02')
+        %
+        time_lims_gap = [datenum(2022, 06, 17, 17, 1, 0), datenum(2022, 06, 17, 17, 04, 30)];
+        %
+        SpotterSmart_QC_plot_pressure(raw_readdata.allfiles.dtime, ...
+                                      raw_readdata.allfiles.pressure, ...
+                                      time_lims_gap, ...
+                                      list_SmartMoorings{i1}(1:3), list_SmartMoorings{i1}(end-3:end));
+    end
 
     % ------------------------------------------
     % Plot QC of clock stopping -- this is associated

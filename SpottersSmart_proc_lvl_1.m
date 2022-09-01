@@ -57,7 +57,10 @@ lsave_fig = false;
 % list_SmartMoorings = {'E02_spot1859'};
 
 % All good Smart Moorings
-list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
+% list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
+
+list_SmartMoorings = {'E01_spot1851'};
+% list_SmartMoorings = {'E02_spot1859'};
 
 %
 Nspotters = length(list_SmartMoorings);
@@ -98,12 +101,18 @@ mooringtable = load(fullfile(repo_dirpath(), 'ROXSI2022_mooringtable.mat'));
 mooringtable = mooringtable.mooringtable;
 
 
+%% Load deploymente info to trim the data during deployment
+
+%
+dplySpotters = load(fullfile(repo_dirpath(), 'deploymentInfo_Spotters_ROXSI2022'));
+dplySpotters = dplySpotters.dployInfo_Spotters;
+
+
 %% Load atmospheric pressure
 
-% % %
-% % atm_pressure = load(['/Users/olavobm/Documents/ROXSI_Postdoc/MyResearch' ...
-% %                      '/figures_bydate/2022_08_17/obm_edited_noaa_mry_barometric_pressure/' ...
-% %                      'atm_pressure.mat']);
+%
+% % atmpres_NOAA = load(fullfile(data_dirpath(), 'noaa_mry_barometric_pressure', 'atm_pressure.mat'));
+atmpres_NOAA = load('atm_pressure.mat');
 
 
 %% Datenum limits of the full deployment (from before the first
@@ -122,10 +131,18 @@ deployment_timelimits = [datenum(2022, 06, 16, 0, 0, 0), ...
 for i1 = 1:length(list_SmartMoorings)
 
     %
-    disp(['-------------- Starting level 1 data processing of smart mooring ' list_SmartMoorings{i1}(1:3) ' - SN: ' list_SmartMoorings{i1}(end-3:end) ' --------------'])
+    disp(' ')
+    disp(' ')
+    %
+    disp(['-------------- Starting level 1 data processing of smart mooring ' list_SmartMoorings{i1}(1:3) ' - SN ' list_SmartMoorings{i1}(end-3:end) ' --------------'])
+    %
+    disp('---- Reading data ---- ')
 
     %
     raw_readdata = Spotter_readmulti_SMD(fullfile(dir_rawdata_parent, list_SmartMoorings{i1}));
+
+    %
+    disp('---- Done with reading data ---- ')
 
     % ------------------------------------------
     % In datenum, convert from UTC to local time (PDT)
@@ -265,8 +282,15 @@ for i1 = 1:length(list_SmartMoorings)
     % the water (which also removes timestamps at
     % 31-Dec-1969 17:00:00, thrown by the GPS when????)
 
-    % JUST A PLACEHOLDER!!!!
-    time_lims_aux = [datenum(2022, 06, 17, 07, 0, 0), datenum(2022, 07, 19, 0, 0, 0)];
+    % Find the Smart Mooring in the deployment table
+    lmatch = strncmp(dplySpotters.mooringID, list_SmartMoorings{i1}(1:3), 3);
+
+    %
+    time_lims_aux = [datenum(dplySpotters(lmatch, :).time_begin_trim, "yyyy/mm/dd HH:MM:SS"), ...
+                     datenum(dplySpotters(lmatch, :).time_end_trim, "yyyy/mm/dd HH:MM:SS")];
+
+% %     % JUST A PLACEHOLDER!!!!
+% %     time_lims_aux = [datenum(2022, 06, 17, 07, 0, 0), datenum(2022, 07, 19, 0, 0, 0)];
 
     %
     lintime_lims_aux = (spotterSmartdata.dtime >= time_lims_aux(1)) & ...
@@ -275,8 +299,8 @@ for i1 = 1:length(list_SmartMoorings)
     %
     spotterSmartdata.dtime = spotterSmartdata.dtime(lintime_lims_aux);
     spotterSmartdata.pressure = spotterSmartdata.pressure(lintime_lims_aux);
-    spotterSmartdata.unixEpoch = spotterSmartdata.unixEpoch(lintime_lims_aux);
-
+    spotterSmartdata.unixEpoch = spotterSmartdata.unixEpoch(lintime_lims_aux);    % this unixEpoch is only used below to have a copy of
+                                                                                  % uncorrected time, so that it's compared to corrected time.
 
     % ------------------------------------------
     % Fix times when clock goes backwards -- UNLESS THERE IS AN EXTRA
@@ -431,10 +455,36 @@ for i1 = 1:length(list_SmartMoorings)
                '(short) time'];'differences in processed data'}, 'Interpreter', 'Latex', 'FontSize', 20)
 
 
-    
+    %% Convert pressure from Pascal to decibar
+
+    %
+    spotterSmartdata.pressure = (spotterSmartdata.pressure ./ 1e4);
+
+
+    %% Remove atmospheric pressure
+
+    % From milibar to decibar
+    atm_pressure = (atmpres_NOAA.atm_pres./100);
+
+    % Based on SoloD at B18p (at China Rock, SN 77272) that was exposed
+    % at low tide, there is a spatial variability in atmospheric pressure,
+    % where the pressure at China Rock is slightly smaller than at the
+    % Monterey harbor. Apply this correction for the spatial variability:
+    atm_pressure = atm_pressure - 0.032;    % all in dbar
+
+    % Interpolate atmospheric pressure to Smart mooring timestamps
+    atm_pressure_interp = interp1(datenum(atmpres_NOAA.time_vec), atm_pressure, spotterSmartdata.dtime);
+
+    % Remove atmospheric pressure from observations
+    spotterSmartdata.pressure = spotterSmartdata.pressure - atm_pressure_interp;
+
+
     %% Compute average pressure in 30 min intervals
     % so that it gives a diagnostic view of the data
     
+    %
+    disp('---- Computing low-passed pressure data ---- ')
+
     %
     dtavg = 30/(24*60);
 
@@ -460,6 +510,9 @@ for i1 = 1:length(list_SmartMoorings)
     end
     toc
 
+    %
+    disp('---- Done with computing low-passed pressure data ---- ')
+
 % %     %
 % %     figure
 % %         plot(datetime(timeavg_vec, 'ConvertFrom', 'datenum'), Pavg_vec, '.-')
@@ -481,8 +534,8 @@ for i1 = 1:length(list_SmartMoorings)
     spotsmart.latitude = mooringtable(lmatch, :).latitude;
     spotsmart.longitude = mooringtable(lmatch, :).longitude;
 
-    % Height of the sensor above the bottom (this was
-    % first measured in inches, = 5 inches).
+    % Height of the sensor above the bottom
+    % (this was measured in inches, = 5 inches).
     spotsmart.zhab = 12.7 * 1e-2;    % in meters
 
     %
@@ -503,12 +556,14 @@ for i1 = 1:length(list_SmartMoorings)
 % %     %
 % % % %     spotsmart.REAMDE = 'ROXSI 2022.';
 
+    %
+    disp('---- Saving smart mooring level 1 data ---- ')
 
     % Save Level 1 data
     save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1.mat']), 'spotsmart');
 
     %
-    disp(['-------------- Level 1 smart mooring (' spotsmart.mooringID ' - SN: ' spotsmart.SN ') data processing done --------------'])
+    disp(['-------------- Done with level 1 data processing of smart mooring ' spotsmart.mooringID ' - SN ' spotsmart.SN ' --------------'])
 
 
     %% Clear variables/close figures as needed before

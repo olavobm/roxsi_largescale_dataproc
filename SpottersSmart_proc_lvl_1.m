@@ -200,7 +200,7 @@ for i1 = 1:length(list_SmartMoorings)
     %
     timediff_vec = 24*3600*diff(raw_readdata.allfiles.dtime);
     %
-    inds_timereversal = find(timediff_vec < -0.1);
+    inds_timereversal = find(timediff_vec < 0);
     % 
     inds_break_periods = find(inds_timereversal > 6000);    % what's this 6000?????
     % Remove those earlier on
@@ -315,7 +315,7 @@ for i1 = 1:length(list_SmartMoorings)
     % Maybe because of chainging time zone through 7/24????
 
     %
-    inds_gobacks = find(timediff_aux < -0.1);
+    inds_gobacks = find(timediff_aux < 0);
 
     % Threshold of the maximum length (in number of points) of
     % the segment to be fixed -- MAYBE NOT THE BEST APPROACH, BUT

@@ -60,7 +60,8 @@ lsave_fig = false;
 % % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
 
 % All seemingly great, apart from not extending the whole deployment
-list_SmartMoorings = {'E05_spot1853', 'E07_spot1857', 'E09_spot1856'};
+% list_SmartMoorings = {'E05_spot1853', 'E07_spot1857', 'E09_spot1856'};
+list_SmartMoorings = {'E07_spot1857', 'E09_spot1856'};
 
 %
 Nspotters = length(list_SmartMoorings);
@@ -159,7 +160,6 @@ for i1 = 1:length(list_SmartMoorings)
     % ------------------------------------------
     % Plot QC of gap due to changing Spotter mode
     
-
     % For Spotter E02, the gap is between 17-Jun-2022 16:48:53 and 17-Jun-2022 17:11:51
     if strcmp(list_SmartMoorings{i1}(1:3), 'E02')
         %
@@ -290,7 +290,7 @@ for i1 = 1:length(list_SmartMoorings)
     % 31-Dec-1969 17:00:00, thrown by the GPS when????)
 
     % Find the Smart Mooring in the deployment table
-    lmatch = strncmp(dplySpotters.mooringID, list_SmartMoorings{i1}(1:3), 3);
+    lmatch = strcmp(dplySpotters.SN, list_SmartMoorings{i1}(end-3:end));
 
     %
     time_lims_aux = [datenum(dplySpotters(lmatch, :).time_begin_trim, "yyyy/mm/dd HH:MM:SS"), ...
@@ -637,7 +637,7 @@ for i1 = 1:length(list_SmartMoorings)
     spotsmart.SN = list_SmartMoorings{i1}(end-3:end);
 
     %
-    lmatch = strncmp(mooringtable.mooringID, list_SmartMoorings{i1}(1:3), 3);
+    lmatch = strcmp(dplySpotters.SN, list_SmartMoorings{i1}(end-3:end));
     %
     spotsmart.latitude = mooringtable(lmatch, :).latitude;
     spotsmart.longitude = mooringtable(lmatch, :).longitude;

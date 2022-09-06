@@ -50,7 +50,7 @@ while 1
 
         %
         if contains(tline, 'RESPONSE: id model = RBRsolo,') && contains(tline, SN)
-
+            
             % Print message to the screen that log information
             % has been found for the specific RBR instrument
             disp(['--- log info from RBR SN ' SN ' has been found ---'])

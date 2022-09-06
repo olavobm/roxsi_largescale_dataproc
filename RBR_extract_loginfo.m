@@ -73,6 +73,9 @@ while 1
 % %             lfound_SN = true;
 % %             keyboard
 
+            % Get the first line because it might be helpful
+            loginfo = string(tline);
+
             %
             while lfound_SN
 
@@ -85,7 +88,8 @@ while 1
 % % %                         tline
 % %                         keyboard
 
-                    % First iteration/line
+                    % First iteration/line (this was created before I saved
+                    % the first line just above the while loop)
                     if isempty(loginfo)
                         %
                         loginfo = string(tline);

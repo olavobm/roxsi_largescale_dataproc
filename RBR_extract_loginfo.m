@@ -123,7 +123,10 @@ while 1
                 % If the instrument SN is the last one in the
                 % file, then the inner loop needs to be told
                 % that then end of the file has been reached
-                if ~ischar(tline), break, end
+                if ~ischar(tline)
+                    disp(['--- Done with getting log info from RBR SN ' SN ' ---'])
+                    break
+                end
             end
 
         end

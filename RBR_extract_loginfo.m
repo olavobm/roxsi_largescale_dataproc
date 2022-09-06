@@ -28,15 +28,13 @@ lfound_SN = false;
 %
 loginfo = [];
 
-tic
 %
 % while 1 && (~lfound_SN)    % this assumes that after finding one instance
                              % of instrument SN and reaching the following instrument with a different
                              % serial number, there is no more informatio about the first instrument
 
-% %      %
-% % disp(' ')
-% % disp(' ')
+% Skip a few lines
+disp(' ')
 
 % Read the full file
 while 1
@@ -129,13 +127,19 @@ while 1
 
 
 end
+
 %
 fclose(fid);
-toc
 
 %
 if isempty(loginfo)
     %
     warning(['--- NO log on RBR SN ' SN ' was found!!! ---'])
 end
+
+
+% Skip a few lines
+disp(' ')
+
+
 

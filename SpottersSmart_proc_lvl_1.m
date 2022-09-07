@@ -352,6 +352,7 @@ for i1 = 1:length(list_SmartMoorings)
     % MAYBE GOOD ENOUGH
     NsegTH = 20;
 
+%     fjgfkjg
     %
     for i2 = 1:length(inds_gobacks)
 

@@ -56,12 +56,24 @@ lsave_fig = false;
 % % Look at just one that we didn't have problems with
 % list_SmartMoorings = {'E02_spot1859'};
 
-% % % All good Smart Moorings
-% % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
+% All good Smart Moorings
+% list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
 
 % All seemingly great, apart from not extending the whole deployment
 % list_SmartMoorings = {'E05_spot1853', 'E07_spot1857', 'E09_spot1856'};
-list_SmartMoorings = {'E07_spot1857', 'E09_spot1856'};
+% list_SmartMoorings = {'E07_spot1857', 'E09_spot1856'};
+
+%
+list_SmartMoorings = {'E08_spot1852'};
+
+
+% %
+% list_SmartMoorings = {'E05_spot1853'};    % ONE ANNOYING PROBLEM
+
+% % list_SmartMoorings = {'E09_spot1850'};    % one annoying problem
+
+%
+list_SmartMoorings = {'E11_spot1860'};
 
 %
 Nspotters = length(list_SmartMoorings);
@@ -309,7 +321,10 @@ for i1 = 1:length(list_SmartMoorings)
     spotterSmartdata.unixEpoch = spotterSmartdata.unixEpoch(lintime_lims_aux);    % this unixEpoch is only used below to have a copy of
                                                                                   % uncorrected time, so that it's compared to corrected time.
 
-    % ------------------------------------------
+    %%
+    % -------------------------------------------------
+    % -------------------------------------------------
+    % -------------------------------------------------
     % Fix times when clock goes backwards -- UNLESS THERE IS AN EXTRA
     % PIECE OF INFORMATION ON HOW THIS ERROR HAPPENS, THEN I HAVE TO
     % MAKE AN ASSUMPTION ABOUT THE TIME DIFFERENCE BETWEEN THE NORMAL
@@ -343,11 +358,18 @@ for i1 = 1:length(list_SmartMoorings)
         %
         lfix_segment_aux = true;
 
-        %
+        % Finds what is likely the corresponding time difference when
+        % the clock resets (HOWEVER, there are some underlying assumptions
+        % here).
         [~, ind_back_normaltime_aux] = max(timediff_aux(inds_gobacks(i2):(inds_gobacks(i2) + NsegTH)));
 
         % Indices of the segment when the timestamps have gone back in time
         ind_seg_tofix = inds_gobacks(i2) + (1 : (ind_back_normaltime_aux - 1));
+
+% %         if (spotterSmartdata.dtime(ind_seg_tofix(1))>datenum(2022, 07, 01, 18, 12, 00)) && ...
+% %            (spotterSmartdata.dtime(ind_seg_tofix(1))<datenum(2022, 07, 01, 18, 13, 30))
+% %             keyboard
+% %         end
 
         % Check the time differences before and after the segment
         % are DEFINITELY CONSISTENT with an error in the clock.
@@ -361,6 +383,11 @@ for i1 = 1:length(list_SmartMoorings)
         
         %
         time_diff_inseg_aux = 24*3600*diff(spotterSmartdata.dtime(ind_seg_tofix));
+
+% %         if (spotterSmartdata.dtime(ind_seg_tofix(1))>datenum(2022, 07, 01, 18, 12, 00)) && ...
+% %            (spotterSmartdata.dtime(ind_seg_tofix(1))<datenum(2022, 07, 01, 18, 13, 30))
+% %             keyboard
+% %         end
 
         %
         if time_diff_before_aux > 0
@@ -395,6 +422,7 @@ for i1 = 1:length(list_SmartMoorings)
 
         %
         else 
+            
         % Throw a warning if there is a clock problem within the segment
         % that it's getting fixed -- nice to check, but so far I haven't
         % seen an example of where this goes wrong
@@ -450,7 +478,10 @@ for i1 = 1:length(list_SmartMoorings)
             % Add the time factor to correct the timestamps of the segment
             spotterSmartdata.dtime(ind_seg_tofix) = spotterSmartdata.dtime(ind_seg_tofix) + (time_factor_fix_aux ./ (24*3600));
         
-        
+% %             if (spotterSmartdata.dtime(ind_seg_tofix(1))>datenum(2022, 07, 01, 18, 12, 00)) && ...
+% %                (spotterSmartdata.dtime(ind_seg_tofix(1))<datenum(2022, 07, 01, 18, 13, 30))
+% %                 keyboard
+% %             end
        
             % ------------------------
             % Make diagnostic plot -- there are hundreds of
@@ -535,8 +566,12 @@ for i1 = 1:length(list_SmartMoorings)
 
         end
     end
+    % -------------------------------------------------
+    % -------------------------------------------------
+    % -------------------------------------------------
 
-
+    %%
+    keyboard
     % ------------------------------------------
     % Plot the unique values of clock finite difference
     % (to check my processing has removed all
@@ -561,7 +596,6 @@ for i1 = 1:length(list_SmartMoorings)
         title({['ROXSI 2022: ' list_SmartMoorings{i1}(1:3) ' SN ' ...
                list_SmartMoorings{i1}(end-3:end) ': unique ' ...
                '(short) time'];'differences in processed data'}, 'Interpreter', 'Latex', 'FontSize', 20)
-
 
     %% Convert pressure from Pascal to decibar
 

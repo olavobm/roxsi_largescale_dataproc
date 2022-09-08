@@ -54,7 +54,7 @@ lsave_fig = false;
 % %                      'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
 % % Look at just one that we didn't have problems with
-% list_SmartMoorings = {'E02_spot1859'};
+list_SmartMoorings = {'E02_spot1859'};
 
 % All good Smart Moorings
 % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
@@ -63,8 +63,8 @@ lsave_fig = false;
 % list_SmartMoorings = {'E05_spot1853', 'E07_spot1857', 'E09_spot1856'};
 % list_SmartMoorings = {'E07_spot1857', 'E09_spot1856'};
 
-%
-list_SmartMoorings = {'E08_spot1852'};
+% %
+% list_SmartMoorings = {'E08_spot1852'};
 
 
 % %
@@ -352,121 +352,294 @@ for i1 = 1:length(list_SmartMoorings)
     % MAYBE GOOD ENOUGH
     NsegTH = 20;
 
-%     fjgfkjg
     %
     for i2 = 1:length(inds_gobacks)
 
         %
         lfix_segment_aux = true;
+% % % 
+% % %         % Finds what is likely the corresponding time difference when
+% % %         % the clock resets (HOWEVER, there are some underlying assumptions
+% % %         % here).
+% % %         [~, ind_back_normaltime_aux] = max(timediff_aux(inds_gobacks(i2):(inds_gobacks(i2) + NsegTH)));
+% % % 
+% % %         % Indices of the segment when the timestamps have gone back in time
+% % %         ind_seg_tofix = inds_gobacks(i2) + (1 : (ind_back_normaltime_aux - 1));
 
-        % Finds what is likely the corresponding time difference when
-        % the clock resets (HOWEVER, there are some underlying assumptions
-        % here).
-        [~, ind_back_normaltime_aux] = max(timediff_aux(inds_gobacks(i2):(inds_gobacks(i2) + NsegTH)));
 
-        % Indices of the segment when the timestamps have gone back in time
-        ind_seg_tofix = inds_gobacks(i2) + (1 : (ind_back_normaltime_aux - 1));
 
-% %         if (spotterSmartdata.dtime(ind_seg_tofix(1))>datenum(2022, 07, 01, 18, 12, 00)) && ...
-% %            (spotterSmartdata.dtime(ind_seg_tofix(1))<datenum(2022, 07, 01, 18, 13, 30))
+        % ------------------------------------------
+        %
+        ind_seg_lookatdiff = inds_gobacks(i2): 1 : (inds_gobacks(i2) + NsegTH);
+        %
+        time_diff_lookat = 24*3600*diff(spotterSmartdata.dtime(ind_seg_lookatdiff));
+
+        %
+        time_diff_anomaly = time_diff_lookat - 0.5;
+
+        %
+        big_timediff_anomaly = time_diff_anomaly(abs(time_diff_anomaly) > 0.2);
+
+        %
+        big_timediff_anomaly_relative = time_diff_anomaly(abs(time_diff_anomaly) > 0.2);
+
+
+        %
+        lbig_enough = big_timediff_anomaly(2:end) > (0.3*abs(big_timediff_anomaly(1)));
+        lbig_enough = [true; lbig_enough];
+
+        %
+        big_enough_timediff_anomaly_relative = big_timediff_anomaly_relative(lbig_enough);
+
+% %         %
+% %         if (inds_gobacks(i2) > 2492600) && (inds_gobacks(i2) < 2492680)
 % %             keyboard
 % %         end
 
-        % Check the time differences before and after the segment
-        % are DEFINITELY CONSISTENT with an error in the clock.
-        % (one counter example, which I don't if ever happens would
-        % be a real clock delay in the middle of the segment)
-        time_diff_before_aux = spotterSmartdata.dtime(ind_seg_tofix(1)) - spotterSmartdata.dtime((ind_seg_tofix(1)-1));
-        time_diff_after_aux = spotterSmartdata.dtime((ind_seg_tofix(end)+1)) - spotterSmartdata.dtime(ind_seg_tofix(end));
         %
-        time_diff_before_aux = time_diff_before_aux*24*3600;
-        time_diff_after_aux = time_diff_after_aux*24*3600;
-        
-        %
-        time_diff_inseg_aux = 24*3600*diff(spotterSmartdata.dtime(ind_seg_tofix));
-
-% %         if (spotterSmartdata.dtime(ind_seg_tofix(1))>datenum(2022, 07, 01, 18, 12, 00)) && ...
-% %            (spotterSmartdata.dtime(ind_seg_tofix(1))<datenum(2022, 07, 01, 18, 13, 30))
-% %             keyboard
-% %         end
+        if (length(big_enough_timediff_anomaly_relative) == 1) && (big_enough_timediff_anomaly_relative > -0.5)
+% %             disp('------- CLOCK SLOWED DOWN, BUT IT IS LIKELY REAL AND NO CORRECTION IS NECESSARY -------')
+            lfix_segment_aux = false;
 
         %
-        if time_diff_before_aux > 0
+        elseif length(big_enough_timediff_anomaly_relative) == 2
+% %             disp('------- SIMPLE CLOCK INVERSION -------')
+
             %
-            if abs(time_diff_after_aux - 0.5) < 0.8*abs(time_diff_before_aux - 0.5)
-% %                 %
-% %                 warning('error 1!!!!!!!!')
-% %                 
-% %                 % From a couple of Spotters error 2 always happens
-% %                 % when error 1 happens
-% %                 if any(abs(time_diff_inseg_aux - 0.5) > abs(time_diff_after_aux - 0.5))
-% %                     warning('error 2!!!!!!!!')
-% % 
-% %                 %
-% %                 figure
-% %                     plot((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+54), ...
-% %                          24*3600*diff(spotterSmartdata.dtime((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+55))), '.-')
-% %                     hold on
-% %                     plot(ind_seg_tofix(1:end-1), ...
-% %                          24*3600*diff(spotterSmartdata.dtime(ind_seg_tofix)), '.-')
-% %                     grid on
-% %                     %
-% %                     set(gca, 'FontSize', 16)
-% %                 
-% %                 end
+            [~, ind_backtonormal_relative] = min(abs(time_diff_anomaly(2:end) + time_diff_anomaly(1)));
+            ind_backtonormal = inds_gobacks(i2) + (ind_backtonormal_relative);
+            %
+            ind_seg_tofix = (inds_gobacks(i2)+1) : 1 : ind_backtonormal;
 
-                % Remove the segment in this iteration from
-                % those that need to be corrected
-                lfix_segment_aux = false;
+            % Plot to check that the identification of data points that
+            % need to be adjusted is correct
+            figure
+                grid on
+                hold on
+                inds_plt = (inds_gobacks(i2)-10):(ind_seg_tofix(end)+10);
+                plot(inds_plt, spotterSmartdata.dtime(inds_plt), '.-', 'MarkerSize', 20)
+                plot(ind_seg_tofix, spotterSmartdata.dtime(ind_seg_tofix), '.-', 'MarkerSize', 20)
+
+        %
+        elseif length(big_enough_timediff_anomaly_relative) == 3
+
+            % Check if a 2-point correction may be good enough
+            balance_between_anomalies = big_enough_timediff_anomaly_relative(2:end) + big_enough_timediff_anomaly_relative(1);
+            %
+            [min_balance, ind_balance] = min(abs(balance_between_anomalies));
+
+            % Test whether 2 points make a reasonable (ad-hoc) correction,
+            % i.e. balance each other/add up to something close to 0 (such
+            % that we only have a simple clock inversion to correct)
+            if min_balance < 0.2
+                % Then only make a 2-point correction
+% %                 disp('------- 3 TIMESTAMP ANOMALIES, BUT ONLY A SIMPLE CLOCK INVERSION -------')
+
+                % Get the indices of data points that need to be fixed.
+                % This is the same as for the simple inversion in the
+                % elseif above, and it does (or should do) something
+                % analogous to the min_balance calculated above
+                [~, ind_backtonormal_relative] = min(abs(time_diff_anomaly(2:end) + time_diff_anomaly(1)));
+                ind_backtonormal = inds_gobacks(i2) + (ind_backtonormal_relative);
+                %
+                ind_seg_tofix = (inds_gobacks(i2)+1) : 1 : ind_backtonormal;
+    
+% %                 % Plot to check that the identification of data points that
+% %                 % need to be adjusted is correct
+% %                 figure
+% %                     grid on
+% %                     hold on
+% %                     inds_plt = (inds_gobacks(i2)-10):(ind_seg_tofix(end)+10);
+% %                     plot(inds_plt, spotterSmartdata.dtime(inds_plt), '.-', 'MarkerSize', 20)
+% %                     plot(ind_seg_tofix, spotterSmartdata.dtime(ind_seg_tofix), '.-', 'MarkerSize', 20)
+    
+            else
+                % Or instead make a 3-point correction
+% %                 disp('------- NEEDS 2-step CLOCK CORRECTION -------')
+
+                % Here I'll just the second part of the segment
+                % that needs to be corrected, turning into a
+                % simple clock inversion that will be addressed
+                % below just like the other cases in the if statement
+
+                %
+                ind_relative_secondhalf_1 = find(time_diff_anomaly == big_enough_timediff_anomaly_relative(2));
+                ind_relative_secondhalf_2 = find(time_diff_anomaly == big_enough_timediff_anomaly_relative(3));
+                %
+                ind_secondhalf_1 = inds_gobacks(i2) + ind_relative_secondhalf_1;
+                ind_secondhalf_2 = inds_gobacks(i2) + ind_relative_secondhalf_2 - 1;
+                %
+                ind_secondhalf = ind_secondhalf_1 : ind_secondhalf_2;
+
+                % Make partial correction
+                spotterSmartdata.dtime(ind_secondhalf) = spotterSmartdata.dtime(ind_secondhalf) - big_enough_timediff_anomaly_relative(2)/(24*3600);
+
+                % Now create the indices of the full segment to
+                % be adjusted later like all the other cases
+                % in the if statement
+                ind_seg_tofix = (inds_gobacks(i2)+1) : 1 : ind_secondhalf(end);
 
             end
 
         %
-        else 
-            
-        % Throw a warning if there is a clock problem within the segment
-        % that it's getting fixed -- nice to check, but so far I haven't
-        % seen an example of where this goes wrong
+        else
+            % Anything can happen here. I'll will only implement
+            % a correction for simple clock inversion. More complex
+            % cases may need to be removed altogether.
+            length(big_enough_timediff_anomaly_relative)
+            warning('****** WEIRD STUFF ******')
 
-% %             %
-% %             if abs(time_diff_inseg_aux - 0.5) >= 0.1
-% %                 warning('error 3!!!!!!!!')
-% %             end
-% % 
-% %             %
-% %             vec_diffaux = timediff_aux(inds_gobacks(i2):(inds_gobacks(i2) + NsegTH));
-% %             %
-% %             max_timediff = max(vec_diffaux);
-% %             %
-% %             new_vec_diffaux = setdiff(vec_diffaux, max_timediff, 'stable');
-% %             
-% %             %
-% %             second_max_timediff = max(new_vec_diffaux);
-% % 
-% %             %
-% %             if abs(second_max_timediff - 0.5) >= 0.1
-% %                 warning('error 4!!!!!!!!')
-% %                 %
-% %                 figure
-% %                     plot((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+24), ...
-% %                          24*3600*diff(spotterSmartdata.dtime((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+25))), '.-')
-% %                     hold on
-% %                     plot(ind_seg_tofix(1:end-1), ...
-% %                          24*3600*diff(spotterSmartdata.dtime(ind_seg_tofix)), '.-')
-% %                     grid on
-% %                     %
-% %                     set(gca, 'FontSize', 16)
-% % 
-% %             end
+            % Check if a 2-point correction may be good enough
+            balance_between_anomalies = big_enough_timediff_anomaly_relative(2:end) + big_enough_timediff_anomaly_relative(1);
+            ind_goodbalance_relative = find(abs(balance_between_anomalies) < 0.1);
+            %
+            if length(ind_goodbalance_relative) == 1
+                % Then there is a good balance between 2 anomalies,
+                % and it seems reasonable to apply the simple clock
+                % inversion correction
+                ind_insegment_balance = find(time_diff_anomaly == ...
+                                             big_enough_timediff_anomaly_relative(1 + ind_goodbalance_relative));
+
+                %
+                ind_seg_tofix = (inds_gobacks(i2)+1) : 1 : (inds_gobacks(i2) + ind_insegment_balance - 1);
+
+            else
+                % Otherwise just throw a warning (maybe should be error)
+                length(big_enough_timediff_anomaly_relative)
+                warning('****** --------------- A VERY COMPLEX/WEIRD PROBLEM --------------- ******')
+
+                % Doesn't try to fix
+                lfix_segment_aux = false;
+
+                keyboard
+            end
         end
+        
 
-        % Only apply correction if it's not identified as
-        % an exception by the if block just above
+        % A very useful diagnostic plot for the potential clock issues
+        % identified above -- just make sure this is commented when
+        % running the code as a whole and just make the plot for
+        % the desired iterations in the loop
+% %         ind_seg_plt = ind_seg_lookatdiff;
+        ind_seg_plt = (ind_seg_lookatdiff(1) - 10):(ind_seg_lookatdiff(end) + 10);
+        %
+        figure
+            %
+            set(gcf, 'Units', 'normalized')
+            set(gcf, 'Position', [0.47, 0.23, 0.19, 0.51])
+            %
+            haxs_1 = axes('Position', [0.1, 0.7, 0.8, 0.2]);
+            haxs_2 = axes('Position', [0.1, 0.4, 0.8, 0.2]);
+            haxs_3 = axes('Position', [0.1, 0.1, 0.8, 0.2]);
+            %
+            plot(haxs_1, ind_seg_plt(1:end-1) + 0.5, 24*3600*diff(spotterSmartdata.dtime(ind_seg_plt)) - 0.5, '.-')
+            plot(haxs_2, ind_seg_plt, spotterSmartdata.pressure(ind_seg_plt), '.-')
+            plot(haxs_3, spotterSmartdata.dtime(ind_seg_plt), spotterSmartdata.pressure(ind_seg_plt), '.-')
+
+        %
+        set([haxs_1, haxs_2, haxs_3], 'FontSize', 16, 'Box', 'on', 'XGrid', 'on', 'YGrid', 'on')
+        %
+        axis(haxs_1, 'tight')
+        axis(haxs_2, 'tight')
+        axis(haxs_3, 'tight')
+
+        % ------------------------------------------
+
+
+%         % Check the time differences before and after the segment
+%         % are DEFINITELY CONSISTENT with an error in the clock.
+%         % (one counter example, which I don't if ever happens would
+%         % be a real clock delay in the middle of the segment)
+%         time_diff_before_aux = spotterSmartdata.dtime(ind_seg_tofix(1)) - spotterSmartdata.dtime((ind_seg_tofix(1)-1));
+%         time_diff_after_aux = spotterSmartdata.dtime((ind_seg_tofix(end)+1)) - spotterSmartdata.dtime(ind_seg_tofix(end));
+%         %
+%         time_diff_before_aux = time_diff_before_aux*24*3600;
+%         time_diff_after_aux = time_diff_after_aux*24*3600;
+%         
+%         %
+%         time_diff_inseg_aux = 24*3600*diff(spotterSmartdata.dtime(ind_seg_tofix));
+
+
+
+% % % % % % % % % %  I THINK THIS WAS USEFUL ONLY FOR WHEN CLOCK SLOWS DOWN
+% % % % % % % % % %  BUT THEN IT'S NOT A PROBLEM. I SHOULDN'T NEED THIS
+% % % % % % % % % %  ANYMORE
+% % % % 
+% % % %         %
+% % % %         if time_diff_before_aux > 0
+% % % %             %
+% % % %             if abs(time_diff_after_aux - 0.5) < 0.8*abs(time_diff_before_aux - 0.5)
+% % % % % %                 %
+% % % % % %                 warning('error 1!!!!!!!!')
+% % % % % %                 
+% % % % % %                 % From a couple of Spotters error 2 always happens
+% % % % % %                 % when error 1 happens
+% % % % % %                 if any(abs(time_diff_inseg_aux - 0.5) > abs(time_diff_after_aux - 0.5))
+% % % % % %                     warning('error 2!!!!!!!!')
+% % % % % % 
+% % % % % %                 %
+% % % % % %                 figure
+% % % % % %                     plot((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+54), ...
+% % % % % %                          24*3600*diff(spotterSmartdata.dtime((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+55))), '.-')
+% % % % % %                     hold on
+% % % % % %                     plot(ind_seg_tofix(1:end-1), ...
+% % % % % %                          24*3600*diff(spotterSmartdata.dtime(ind_seg_tofix)), '.-')
+% % % % % %                     grid on
+% % % % % %                     %
+% % % % % %                     set(gca, 'FontSize', 16)
+% % % % % %                 
+% % % % % %                 end
+% % % % 
+% % % %                 % Remove the segment in this iteration from
+% % % %                 % those that need to be corrected
+% % % %                 lfix_segment_aux = false;
+% % % % 
+% % % %             end
+% % % % 
+% % % %         %
+% % % %         else 
+% % % %             
+% % % %         % Throw a warning if there is a clock problem within the segment
+% % % %         % that it's getting fixed -- nice to check, but so far I haven't
+% % % %         % seen an example of where this goes wrong
+% % % % 
+% % % % % %             %
+% % % % % %             if abs(time_diff_inseg_aux - 0.5) >= 0.1
+% % % % % %                 warning('error 3!!!!!!!!')
+% % % % % %             end
+% % % % % % 
+% % % % % %             %
+% % % % % %             vec_diffaux = timediff_aux(inds_gobacks(i2):(inds_gobacks(i2) + NsegTH));
+% % % % % %             %
+% % % % % %             max_timediff = max(vec_diffaux);
+% % % % % %             %
+% % % % % %             new_vec_diffaux = setdiff(vec_diffaux, max_timediff, 'stable');
+% % % % % %             
+% % % % % %             %
+% % % % % %             second_max_timediff = max(new_vec_diffaux);
+% % % % % % 
+% % % % % %             %
+% % % % % %             if abs(second_max_timediff - 0.5) >= 0.1
+% % % % % %                 warning('error 4!!!!!!!!')
+% % % % % %                 %
+% % % % % %                 figure
+% % % % % %                     plot((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+24), ...
+% % % % % %                          24*3600*diff(spotterSmartdata.dtime((ind_seg_tofix(1)-8):(ind_seg_tofix(1)+25))), '.-')
+% % % % % %                     hold on
+% % % % % %                     plot(ind_seg_tofix(1:end-1), ...
+% % % % % %                          24*3600*diff(spotterSmartdata.dtime(ind_seg_tofix)), '.-')
+% % % % % %                     grid on
+% % % % % %                     %
+% % % % % %                     set(gca, 'FontSize', 16)
+% % % % % % 
+% % % % % %             end
+% % % %         end
+
+        % Applies correction if it's not an exception
         if lfix_segment_aux
 
             % Make a simple correction in terms of multiples
             % of the sampling period (0.5 s)
-            %
             integer_division_aux = floor(10*abs(timediff_aux(inds_gobacks(i2))))/5;
             %
             if integer_division_aux < 1
@@ -479,10 +652,6 @@ for i1 = 1:length(list_SmartMoorings)
             % Add the time factor to correct the timestamps of the segment
             spotterSmartdata.dtime(ind_seg_tofix) = spotterSmartdata.dtime(ind_seg_tofix) + (time_factor_fix_aux ./ (24*3600));
         
-% %             if (spotterSmartdata.dtime(ind_seg_tofix(1))>datenum(2022, 07, 01, 18, 12, 00)) && ...
-% %                (spotterSmartdata.dtime(ind_seg_tofix(1))<datenum(2022, 07, 01, 18, 13, 30))
-% %                 keyboard
-% %             end
        
             % ------------------------
             % Make diagnostic plot -- there are hundreds of
@@ -491,9 +660,6 @@ for i1 = 1:length(list_SmartMoorings)
     
             %
             lmakeplot = false;
-    % %         if integer_division_aux < 1
-    % %             lmakeplot = true;
-    % %         end
     
             %
             if lmakeplot
@@ -571,32 +737,33 @@ for i1 = 1:length(list_SmartMoorings)
     % -------------------------------------------------
     % -------------------------------------------------
 
-    %%
-    keyboard
-    % ------------------------------------------
-    % Plot the unique values of clock finite difference
+    %% Plot the unique values of clock finite difference
     % (to check my processing has removed all
-    % instances of clock going backwards)
-    hclockfig = figure;
-        %
-        time_diff_unique = unique(24*3600*diff(spotterSmartdata.dtime));
-        %
-        lskipstodealwith = abs(time_diff_unique) < 100; 
-        
-        %
-        plot(time_diff_unique(lskipstodealwith), '.-')
+    % instances of clock going backwards) -- not a very
+    % insightful/useful plot though
+    
+% %     % ------------------------------------------
 
-        %
-        grid on
-        set(gca, 'FontSize', 16)
-
-        %
-        xlabel('Indice of unique time difference', 'Interpreter', 'Latex', 'FontSize', 16)
-        ylabel('Time difference [s]', 'Interpreter', 'Latex', 'FontSize', 16)
-        %
-        title({['ROXSI 2022: ' list_SmartMoorings{i1}(1:3) ' SN ' ...
-               list_SmartMoorings{i1}(end-3:end) ': unique ' ...
-               '(short) time'];'differences in processed data'}, 'Interpreter', 'Latex', 'FontSize', 20)
+% %     hclockfig = figure;
+% %         %
+% %         time_diff_unique = unique(24*3600*diff(spotterSmartdata.dtime));
+% %         %
+% %         lskipstodealwith = abs(time_diff_unique) < 100; 
+% %         
+% %         %
+% %         plot(time_diff_unique(lskipstodealwith), '.-')
+% % 
+% %         %
+% %         grid on
+% %         set(gca, 'FontSize', 16)
+% % 
+% %         %
+% %         xlabel('Indice of unique time difference', 'Interpreter', 'Latex', 'FontSize', 16)
+% %         ylabel('Time difference [s]', 'Interpreter', 'Latex', 'FontSize', 16)
+% %         %
+% %         title({['ROXSI 2022: ' list_SmartMoorings{i1}(1:3) ' SN ' ...
+% %                list_SmartMoorings{i1}(end-3:end) ': unique ' ...
+% %                '(short) time'];'differences in processed data'}, 'Interpreter', 'Latex', 'FontSize', 20)
 
     %% Convert pressure from Pascal to decibar
 
@@ -710,8 +877,8 @@ for i1 = 1:length(list_SmartMoorings)
     %
     disp('---- Saving smart mooring level 1 data ---- ')
 
-    % Save Level 1 data
-    save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1.mat']), 'spotsmart');
+% %     % Save Level 1 data
+% %     save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1.mat']), 'spotsmart');
 
     %
     disp(['-------------- Done with level 1 data processing of smart mooring ' spotsmart.mooringID ' - SN ' spotsmart.SN ' --------------'])
@@ -731,5 +898,78 @@ end
 % right after the code section that plots the figure:
 % 
 % exportgraphics(gcf, ['smartmooring_clockQC_timestops_' num2str(i2, '%.02d') '.png'], 'Resolution', 300);
+
+
+
+%%
+
+%
+inds_lim_procdata = [2492600, 2492700];
+% inds_lim_procdata = inds_lim_procdata + 1e6;
+
+%
+inds_segment_procdata = inds_lim_procdata(1):inds_lim_procdata(2);
+
+% Get corresponding time limits
+time_lims = datenum(spotsmart.dtime(inds_lim_procdata));
+
+% Now find the corresponding indices in the "unprocessed" data
+time_uncorrected = 719529 + (spotterSmartdata.unixEpoch./86400) - (7/24);
+
+% Do this in a way that I don't think will fail 
+% even with potential weird stuff in the clock
+inds_lim_uncorrectedtime = [find( (time_uncorrected > (time_lims(1) - 3/(24*3600))) & (time_uncorrected < (time_lims(1) + 3/(24*3600))), 1, 'first'), ...
+                            find( (time_uncorrected > (time_lims(2) - 3/(24*3600))) & (time_uncorrected < (time_lims(2) + 3/(24*3600))), 1, 'last')];
+
+inds_segment_uncorrectedtime = inds_lim_uncorrectedtime(1):inds_lim_uncorrectedtime(2);
+
+
+%
+figure
+    %
+    set(gcf, 'Units', 'normalized')
+    set(gcf, 'Position', [0.47, 0.23, 0.19, 0.51])
+    %
+    haxs_1 = axes('Position', [0.1, 0.6, 0.8, 0.3]);
+    haxs_2 = axes('Position', [0.1, 0.2, 0.8, 0.3]);
+
+
+% %     %
+% %     plot(haxs_1, 0.5 + inds_segment_uncorrectedtime(1:end-1), 24*3600*diff(time_uncorrected(inds_segment_uncorrectedtime)), '.-')
+% %     plot(haxs_2, 0.5 + inds_segment_procdata(1:end-1), 24*3600*diff(datenum(spotsmart.dtime(inds_segment_procdata))), '.-')
+    
+  
+    %
+    plot(haxs_1, datetime(time_uncorrected(inds_segment_uncorrectedtime(1:end-1)), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles'), ...
+                 24*3600*diff(time_uncorrected(inds_segment_uncorrectedtime)), '.-')
+    
+    %
+    plot(haxs_2, spotsmart.dtime(inds_segment_procdata(1:end-1)), ...
+                 24*3600*diff(datenum(spotsmart.dtime(inds_segment_procdata))), '.-')
+
+
+%
+set([haxs_1, haxs_2], 'FontSize', 16, 'Box', 'on', 'XGrid', 'on', 'YGrid', 'on')
+%
+axis(haxs_1, 'tight')
+axis(haxs_2, 'tight')
+% % axis(haxs_3, 'tight')
+
+%
+linkallaxes('xy')
+
+
+
+
+%%
+
+figure
+    hold on
+    %
+    plot(spotsmart.dtime, spotsmart.pressure, '.-')
+    plot(datetime(719529 + (spotterSmartdata.unixEpoch./86400) - (7/24), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles'), ...
+         spotterSmartdata.pressure, '.-')
+
+
 
 

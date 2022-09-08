@@ -251,31 +251,38 @@ end
 
 
 %% E05 1853 clock reversal that doesn't reset in a consistent way
+% (after resetting Spotter mode on dashboard)
 
-%
 removeBadData.E05_spot1853.time_trim_data = [datenum(2022, 06, 17, 07, 35, 00), datenum(2022, 06, 17, 17, 15, 00); ...
                                              datenum(2022, 06, 17, 17, 20, 30), datenum(2022, 07, 17, 10, 13, 00)];
 
 
+%% E07 1857 clock reversal that doesn't reset in a consistent way
+% (after resetting Spotter mode on dashboard)
+
+removeBadData.E07_spot1857.time_trim_data = [datenum(2022, 07, 05, 10, 45, 00), datenum(2022, 07, 05, 11, 20, 14); ...
+                                             datenum(2022, 07, 05, 11, 24, 27), datenum(2022, 07, 20, 06, 12, 00)];
+
+
 
 %% E08 1852 clock reversal that doesn't reset in a consistent way
+% (after resetting Spotter mode on dashboard)
 
-%
 removeBadData.E08_spot1852.time_trim_data = [datenum(2022, 06, 17, 08, 40, 00), datenum(2022, 06, 17, 17, 25, 45); ...
                                              datenum(2022, 06, 17, 17, 36, 40), datenum(2022, 07, 20, 06, 42, 00)];
 
 
 
 %% E09 1850 clock reversal that doesn't reset in a consistent way
+% (after resetting Spotter mode on dashboard)
 
-%
 removeBadData.E09_spot1850.time_trim_data = [datenum(2022, 06, 17, 08, 08, 00), datenum(2022, 06, 17, 17, 22, 40); ...
                                              datenum(2022, 06, 17, 17, 41, 30), datenum(2022, 06, 21, 14, 00, 00)];
 
 
 %% E10 1848 has weird short bad data
+% (after resetting Spotter mode on dashboard)
 
-%
 removeBadData.E10_spot1848.time_trim_data = [datenum(2022, 06, 17, 08, 20, 00), datenum(2022, 06, 17, 12, 31, 15); ...
                                              datenum(2022, 06, 17, 12, 31, 48), datenum(2022, 07, 20, 06, 56, 00)];
 

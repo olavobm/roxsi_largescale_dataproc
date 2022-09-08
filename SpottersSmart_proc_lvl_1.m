@@ -53,27 +53,28 @@ lsave_fig = false;
 % %                      'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
 % %                      'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
-% % Look at just one that we didn't have problems with
-list_SmartMoorings = {'E02_spot1859'};
-
 % All good Smart Moorings
 % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
+% Same, but separately
+% % list_SmartMoorings = {'E01_spot1851'};
+% % list_SmartMoorings = {'E02_spot1859'};
+list_SmartMoorings = {'E08_spot1852'};
+% % list_SmartMoorings = {'E10_spot1848'};
 
 % All seemingly great, apart from not extending the whole deployment
 % list_SmartMoorings = {'E05_spot1853', 'E07_spot1857', 'E09_spot1856'};
-% list_SmartMoorings = {'E07_spot1857', 'E09_spot1856'};
-
-% %
-% list_SmartMoorings = {'E08_spot1852'};
-
-
-% %
-% list_SmartMoorings = {'E05_spot1853'};    % ONE ANNOYING PROBLEM
-
-% % list_SmartMoorings = {'E09_spot1850'};    % one annoying problem
-
 %
-list_SmartMoorings = {'E11_spot1860'};
+% list_SmartMoorings = {'E05_spot1853'};
+% list_SmartMoorings = {'E07_spot1857'};
+% list_SmartMoorings = {'E09_spot1856'};
+
+
+% % 
+% list_SmartMoorings = {'E09_spot1850'};    % one annoying problem
+% list_SmartMoorings = {'E11_spot1860'};
+
+% % % Three that broke (though only E07 and E13 will have sparse segments)
+% % list_SmartMoorings = {'E07_spot1855, 'E09_spot1856', 'E13_spot1849'};
 
 %
 Nspotters = length(list_SmartMoorings);
@@ -350,7 +351,8 @@ for i1 = 1:length(list_SmartMoorings)
     % Threshold of the maximum length (in number of points) of
     % the segment to be fixed -- MAYBE NOT THE BEST APPROACH, BUT
     % MAYBE GOOD ENOUGH
-    NsegTH = 20;
+%     NsegTH = 20;    % not good in one instance in E11 - SN 1860, with 2-step correction that is a bit longer than 20 pts 
+    NsegTH = 30;
 
     %
     for i2 = 1:length(inds_gobacks)
@@ -374,6 +376,21 @@ for i1 = 1:length(list_SmartMoorings)
         %
         time_diff_lookat = 24*3600*diff(spotterSmartdata.dtime(ind_seg_lookatdiff));
 
+        % If clock goes backwards
+        if time_diff_lookat(1)<0
+            %
+            if time_diff_lookat(2:end)<0
+
+% %                 datetime(719529 + (spotterSmartdata.unixEpoch((2372755-100):(2372755+100))./86400) - (7/24), 'ConvertFrom', 'datenum')
+
+                %
+                warning('AAAAAAAAGGGGGHHHHH!!!!!!!')
+                keyboard
+            end
+        end
+
+
+
         %
         time_diff_anomaly = time_diff_lookat - 0.5;
 
@@ -395,6 +412,10 @@ for i1 = 1:length(list_SmartMoorings)
 % %         if (inds_gobacks(i2) > 2492600) && (inds_gobacks(i2) < 2492680)
 % %             keyboard
 % %         end
+% % 
+% %         if inds_gobacks(i2)==2372755
+% %             keyboard
+% %         end
 
         %
         if (length(big_enough_timediff_anomaly_relative) == 1) && (big_enough_timediff_anomaly_relative > -0.5)
@@ -411,14 +432,14 @@ for i1 = 1:length(list_SmartMoorings)
             %
             ind_seg_tofix = (inds_gobacks(i2)+1) : 1 : ind_backtonormal;
 
-            % Plot to check that the identification of data points that
-            % need to be adjusted is correct
-            figure
-                grid on
-                hold on
-                inds_plt = (inds_gobacks(i2)-10):(ind_seg_tofix(end)+10);
-                plot(inds_plt, spotterSmartdata.dtime(inds_plt), '.-', 'MarkerSize', 20)
-                plot(ind_seg_tofix, spotterSmartdata.dtime(ind_seg_tofix), '.-', 'MarkerSize', 20)
+% %             % Plot to check that the identification of data points that
+% %             % need to be adjusted is correct
+% %             figure
+% %                 grid on
+% %                 hold on
+% %                 inds_plt = (inds_gobacks(i2)-10):(ind_seg_tofix(end)+10);
+% %                 plot(inds_plt, spotterSmartdata.dtime(inds_plt), '.-', 'MarkerSize', 20)
+% %                 plot(ind_seg_tofix, spotterSmartdata.dtime(ind_seg_tofix), '.-', 'MarkerSize', 20)
 
         %
         elseif length(big_enough_timediff_anomaly_relative) == 3
@@ -454,6 +475,24 @@ for i1 = 1:length(list_SmartMoorings)
 % %                     plot(ind_seg_tofix, spotterSmartdata.dtime(ind_seg_tofix), '.-', 'MarkerSize', 20)
     
             else
+
+% % %                 %
+% % %                 if abs(sum(big_enough_timediff_anomaly_relative))<0.25
+% % %                     % If there is a reasonable balance between 3 anomalies,
+% % %                     % then do the 2-step clock correction
+% % %                 else
+% % %                     % Otherwise we have something different. Correct
+% % %                     % the inversion ONLY if there is a subsequent
+% % %                     % skip that is bigger than the inversion (thus
+% % %                     % the final correction is OK). Otherwise, throw
+% % %                     % an error.
+% %                   if abs(big_enough_timediff_anomaly_relative(1)  
+% %                   end
+% % %                     
+% % %                 end
+
+
+
                 % Or instead make a 3-point correction
 % %                 disp('------- NEEDS 2-step CLOCK CORRECTION -------')
 
@@ -461,7 +500,7 @@ for i1 = 1:length(list_SmartMoorings)
                 % that needs to be corrected, turning into a
                 % simple clock inversion that will be addressed
                 % below just like the other cases in the if statement
-
+                keyboard
                 %
                 ind_relative_secondhalf_1 = find(time_diff_anomaly == big_enough_timediff_anomaly_relative(2));
                 ind_relative_secondhalf_2 = find(time_diff_anomaly == big_enough_timediff_anomaly_relative(3));
@@ -478,6 +517,15 @@ for i1 = 1:length(list_SmartMoorings)
                 % be adjusted later like all the other cases
                 % in the if statement
                 ind_seg_tofix = (inds_gobacks(i2)+1) : 1 : ind_secondhalf(end);
+
+% %                 % Plot to check that the identification of data points that
+% %                 % need to be adjusted is correct
+% %                 figure
+% %                     grid on
+% %                     hold on
+% %                     inds_plt = (inds_gobacks(i2)-10):(ind_seg_tofix(end)+10);
+% %                     plot(inds_plt, spotterSmartdata.dtime(inds_plt), '.-', 'MarkerSize', 20)
+% %                     plot(ind_seg_tofix, spotterSmartdata.dtime(ind_seg_tofix), '.-', 'MarkerSize', 20)
 
             end
 
@@ -508,40 +556,87 @@ for i1 = 1:length(list_SmartMoorings)
                 length(big_enough_timediff_anomaly_relative)
                 warning('****** --------------- A VERY COMPLEX/WEIRD PROBLEM --------------- ******')
 
-                % Doesn't try to fix
-                lfix_segment_aux = false;
+% %                 % Doesn't try to fix
+% %                 lfix_segment_aux = false;
 
-                keyboard
+                % Select indice for a simple clock inversion --
+                % this could be OK or a problem. Similar as the
+                % first instance in the if statement, but take
+                % indice with the best balance. I think this should be
+                % generally fine though (as long as the later
+                % timestamp anomalies are not related to the
+                % clock inversion).
+
+% %                 % First one
+% %                 ind_insegment_balance = find(time_diff_anomaly == ...
+% %                                              big_enough_timediff_anomaly_relative(1 + ind_goodbalance_relative(1)));
+
+                %
+                [~, ind_bestbalance] = min(abs(balance_between_anomalies));
+                
+                % Also get the second best balance
+                ind_others = setdiff(1:length(balance_between_anomalies), ind_bestbalance);
+                ind_secondbestbalance = find(balance_between_anomalies == min(balance_between_anomalies(ind_others)));
+
+                %
+                if abs(balance_between_anomalies(ind_bestbalance) - ...
+                       balance_between_anomalies(ind_secondbestbalance)) < 1e-3
+                    % If difference is too small, just take
+                    % the one that appears earlier
+                    ind_choice_aux = min([ind_bestbalance, ind_secondbestbalance]);
+                else
+                    % Otherwise takes the best balance
+                    ind_choice_aux = ind_bestbalance;
+                end
+              
+                %
+                ind_insegment_balance = find(time_diff_anomaly == ...
+                                             big_enough_timediff_anomaly_relative(1 + ind_choice_aux));
+                %
+                ind_seg_tofix = (inds_gobacks(i2)+1) : 1 : (inds_gobacks(i2) + ind_insegment_balance - 1);
+
+                
+
+% %                 % Plot to check that the identification of data points that
+% %                 % need to be adjusted is correct
+% %                 figure
+% %                     grid on
+% %                     hold on
+% %                     inds_plt = (inds_gobacks(i2)-10):(ind_seg_tofix(end)+10);
+% %                     plot(inds_plt, spotterSmartdata.dtime(inds_plt), '.-', 'MarkerSize', 20)
+% %                     plot(ind_seg_tofix, spotterSmartdata.dtime(ind_seg_tofix), '.-', 'MarkerSize', 20)
+
             end
         end
         
 
-        % A very useful diagnostic plot for the potential clock issues
-        % identified above -- just make sure this is commented when
-        % running the code as a whole and just make the plot for
-        % the desired iterations in the loop
-% %         ind_seg_plt = ind_seg_lookatdiff;
-        ind_seg_plt = (ind_seg_lookatdiff(1) - 10):(ind_seg_lookatdiff(end) + 10);
-        %
-        figure
-            %
-            set(gcf, 'Units', 'normalized')
-            set(gcf, 'Position', [0.47, 0.23, 0.19, 0.51])
-            %
-            haxs_1 = axes('Position', [0.1, 0.7, 0.8, 0.2]);
-            haxs_2 = axes('Position', [0.1, 0.4, 0.8, 0.2]);
-            haxs_3 = axes('Position', [0.1, 0.1, 0.8, 0.2]);
-            %
-            plot(haxs_1, ind_seg_plt(1:end-1) + 0.5, 24*3600*diff(spotterSmartdata.dtime(ind_seg_plt)) - 0.5, '.-')
-            plot(haxs_2, ind_seg_plt, spotterSmartdata.pressure(ind_seg_plt), '.-')
-            plot(haxs_3, spotterSmartdata.dtime(ind_seg_plt), spotterSmartdata.pressure(ind_seg_plt), '.-')
+% %         % A very useful diagnostic plot for the potential clock issues
+% %         % identified above -- just make sure this is commented when
+% %         % running the code as a whole and just make the plot for
+% %         % the desired iterations in the loop
+% % % %         ind_seg_plt = ind_seg_lookatdiff;
+% %         ind_seg_plt = (ind_seg_lookatdiff(1) - 10):(ind_seg_lookatdiff(end) + 10);
+% %         %
+% %         figure
+% %             %
+% %             set(gcf, 'Units', 'normalized')
+% %             set(gcf, 'Position', [0.47, 0.23, 0.19, 0.51])
+% %             %
+% %             haxs_1 = axes('Position', [0.1, 0.7, 0.8, 0.2]);
+% %             haxs_2 = axes('Position', [0.1, 0.4, 0.8, 0.2]);
+% %             haxs_3 = axes('Position', [0.1, 0.1, 0.8, 0.2]);
+% %             %
+% %             plot(haxs_1, ind_seg_plt(1:end-1) + 0.5, 24*3600*diff(spotterSmartdata.dtime(ind_seg_plt)) - 0.5, '.-')
+% %             plot(haxs_2, ind_seg_plt, spotterSmartdata.pressure(ind_seg_plt), '.-')
+% %             plot(haxs_3, spotterSmartdata.dtime(ind_seg_plt), spotterSmartdata.pressure(ind_seg_plt), '.-')
+% % 
+% %         %
+% %         set([haxs_1, haxs_2, haxs_3], 'FontSize', 16, 'Box', 'on', 'XGrid', 'on', 'YGrid', 'on')
+% %         %
+% %         axis(haxs_1, 'tight')
+% %         axis(haxs_2, 'tight')
+% %         axis(haxs_3, 'tight')
 
-        %
-        set([haxs_1, haxs_2, haxs_3], 'FontSize', 16, 'Box', 'on', 'XGrid', 'on', 'YGrid', 'on')
-        %
-        axis(haxs_1, 'tight')
-        axis(haxs_2, 'tight')
-        axis(haxs_3, 'tight')
 
         % ------------------------------------------
 
@@ -900,12 +995,40 @@ end
 % exportgraphics(gcf, ['smartmooring_clockQC_timestops_' num2str(i2, '%.02d') '.png'], 'Resolution', 300);
 
 
+%% Plot to make sure there are no clock timestamps going backwards
+
+%
+figure
+    %
+    plot(24*3600*diff(datenum(spotsmart.dtime)), '.-')
+    hold on
+    
+    %
+    ylim([-0.5, 2])
+    %
+    set(gca, 'FontSize', 16, 'Box', 'on', ...
+             'XGrid', 'on', 'YGrid', 'on')
+    %
+    xlim([-0.02, 1.02].*length(spotsmart.dtime))
+    %
+    plot(xlim, [0, 0], '-k')
+
+    %
+    title([list_SmartMoorings{1}(1:3) ' - SN ' list_SmartMoorings{1}(end-3:end)], 'FontSize', 22)
+
 
 %%
 
-%
-inds_lim_procdata = [2492600, 2492700];
-% inds_lim_procdata = inds_lim_procdata + 1e6;
+return
+
+%%
+
+% % %
+% % inds_lim_procdata = [2492600, 2492700];
+% % % inds_lim_procdata = inds_lim_procdata + 1e6;
+
+% For E08
+inds_lim_procdata = [2372700, 2372790];
 
 %
 inds_segment_procdata = inds_lim_procdata(1):inds_lim_procdata(2);
@@ -934,18 +1057,18 @@ figure
     haxs_2 = axes('Position', [0.1, 0.2, 0.8, 0.3]);
 
 
-% %     %
-% %     plot(haxs_1, 0.5 + inds_segment_uncorrectedtime(1:end-1), 24*3600*diff(time_uncorrected(inds_segment_uncorrectedtime)), '.-')
-% %     plot(haxs_2, 0.5 + inds_segment_procdata(1:end-1), 24*3600*diff(datenum(spotsmart.dtime(inds_segment_procdata))), '.-')
+    %
+    plot(haxs_1, 0.5 + inds_segment_uncorrectedtime(1:end-1), 24*3600*diff(time_uncorrected(inds_segment_uncorrectedtime)), '.-')
+    plot(haxs_2, 0.5 + inds_segment_procdata(1:end-1), 24*3600*diff(datenum(spotsmart.dtime(inds_segment_procdata))), '.-')
     
   
-    %
-    plot(haxs_1, datetime(time_uncorrected(inds_segment_uncorrectedtime(1:end-1)), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles'), ...
-                 24*3600*diff(time_uncorrected(inds_segment_uncorrectedtime)), '.-')
-    
-    %
-    plot(haxs_2, spotsmart.dtime(inds_segment_procdata(1:end-1)), ...
-                 24*3600*diff(datenum(spotsmart.dtime(inds_segment_procdata))), '.-')
+% %     %
+% %     plot(haxs_1, datetime(time_uncorrected(inds_segment_uncorrectedtime(1:end-1)), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles'), ...
+% %                  24*3600*diff(time_uncorrected(inds_segment_uncorrectedtime)), '.-')
+% %     
+% %     %
+% %     plot(haxs_2, spotsmart.dtime(inds_segment_procdata(1:end-1)), ...
+% %                  24*3600*diff(datenum(spotsmart.dtime(inds_segment_procdata))), '.-')
 
 
 %

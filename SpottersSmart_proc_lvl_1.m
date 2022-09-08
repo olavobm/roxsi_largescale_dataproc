@@ -47,14 +47,14 @@ lsave_fig = false;
 
 %% List of Spotters/Smart moorings that will be processed
 
-% % % All Spotters/Smart moorings
-% % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
-% %                      'E05_spot1853', 'E07_spot1855', 'E07_spot1857', ...
-% %                      'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
-% %                      'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
+% All Spotters/Smart moorings
+list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
+                     'E05_spot1853', 'E07_spot1855', 'E07_spot1857', ...
+                     'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
+                     'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
-% All good Smart Moorings
-list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
+% % All good Smart Moorings
+% list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
 % Same, but separately
 % % list_SmartMoorings = {'E01_spot1851'};
 % % list_SmartMoorings = {'E02_spot1859'};
@@ -65,7 +65,7 @@ list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1
 % list_SmartMoorings = {'E05_spot1853', 'E07_spot1857', 'E09_spot1856'};
 %
 % list_SmartMoorings = {'E05_spot1853'};
-% list_SmartMoorings = {'E07_spot1857'};
+list_SmartMoorings = {'E07_spot1857'};
 % list_SmartMoorings = {'E09_spot1856'};
 
 
@@ -74,7 +74,8 @@ list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1
 % list_SmartMoorings = {'E11_spot1860'};
 
 % % % Three that broke (though only E07 and E13 will have sparse segments)
-% % list_SmartMoorings = {'E07_spot1855, 'E09_spot1856', 'E13_spot1849'};
+% % list_SmartMoorings = {'E07_spot1855', 'E09_spot1856', 'E13_spot1849'};
+% % list_SmartMoorings = {'E07_spot1855'};
 
 %
 Nspotters = length(list_SmartMoorings);
@@ -118,8 +119,15 @@ mooringtable = mooringtable.mooringtable;
 %% Load deploymente info to trim the data during deployment
 
 %
-dplySpotters = load(fullfile(repo_dirpath(), 'deploymentInfo_Spotters_ROXSI2022'));
+dplySpotters = load(fullfile(repo_dirpath(), 'deploymentInfo_Spotters_ROXSI2022.mat'));
 dplySpotters = dplySpotters.dployInfo_Spotters;
+
+
+%% Load extra trimming info
+
+%
+extraTrim = load(fullfile(repo_dirpath(), 'smart_mooring_extratrim_gooddata.mat'));
+extraTrim = extraTrim.removeBadData;
 
 
 %% Load atmospheric pressure
@@ -283,7 +291,7 @@ for i1 = 1:length(list_SmartMoorings)
     spotterSmartdata.pressure = raw_readdata.allfiles.pressure(l_gooddata);
     %
     spotterSmartdata.unixEpoch = raw_readdata.allfiles.unixEpoch(l_gooddata);
-
+keyboard
     % ------------------------------------------
     % *****
     % AT LEAST IN 2022, THE SMART MOORINGS
@@ -321,6 +329,79 @@ for i1 = 1:length(list_SmartMoorings)
     spotterSmartdata.pressure = spotterSmartdata.pressure(lintime_lims_aux);
     spotterSmartdata.unixEpoch = spotterSmartdata.unixEpoch(lintime_lims_aux);    % this unixEpoch is only used below to have a copy of
                                                                                   % uncorrected time, so that it's compared to corrected time.
+
+    % ------------------------------------------
+    % (may) Trim between times defined by script
+    % define_SpottersSmart_BadData.m, that looks
+    % in more detail the times that we don't want
+    % to look at the data.
+    %
+    if isfield(extraTrim, list_SmartMoorings{i1})
+
+        %
+        l_keepdata = false(size(spotterSmartdata.dtime));
+    
+        %
+        for i2 = 1:size(extraTrim.(list_SmartMoorings{i1}).time_trim_data, 1)
+
+            % These time comparison is in datenum
+            %
+            lin_segment = (spotterSmartdata.dtime >= extraTrim.(list_SmartMoorings{i1}).time_trim_data(i2, 1)) & ...
+                          (spotterSmartdata.dtime <= extraTrim.(list_SmartMoorings{i1}).time_trim_data(i2, 2));
+            %
+            l_keepdata(lin_segment) = true;
+        end
+
+        %
+        spotterSmartdata.dtime = spotterSmartdata.dtime(l_keepdata);
+        spotterSmartdata.pressure = spotterSmartdata.pressure(l_keepdata);
+        spotterSmartdata.unixEpoch = spotterSmartdata.unixEpoch(l_keepdata);
+
+    end
+
+    % ------------------------------------------
+    % Remove obviously wrong spikes (which are
+    % associated with broken Smart Mooring
+    % connection cable).
+    %
+    % Here I will just eliminate pressure differences
+    % that are completely unreasonable (would also be good to
+    % make sure these two data points are close in time).
+    %
+    % This algorithm assumes that spikes are not adjacent to
+    % each other and with similar magnitude.
+
+    % In Pascal -- (5e4 is equivalent to 5 meters of water difference)
+    spike_diffpresTH = 5e4;
+
+    %
+    inddiff_pos_spikes = find(diff(spotterSmartdata.pressure) >= spike_diffpresTH);
+    inddiff_neg_spikes = find(diff(spotterSmartdata.pressure) <= -spike_diffpresTH);
+
+    %
+    if length(inddiff_pos_spikes)~=length(inddiff_neg_spikes)
+        %
+        error(['FAILED SPIKE REMOVAL ON ' list_SmartMoorings{i1} '! -- error 1'])
+    end
+    %
+    if any(abs(inddiff_pos_spikes - inddiff_neg_spikes) ~= 1)
+        %
+        error(['FAILED SPIKE REMOVAL ON ' list_SmartMoorings{i1} '! -- error 2'])
+    end
+
+    %
+    inds_spikes = max([inddiff_pos_spikes, inddiff_neg_spikes], [], 2);
+
+    % Remove spikes from the data
+    inds_all_data = 1:length(spotterSmartdata.dtime);
+    %
+    inds_nospikes = setdiff(inds_all_data, inds_spikes);
+
+    %
+    spotterSmartdata.dtime = spotterSmartdata.dtime(inds_nospikes);
+    spotterSmartdata.pressure = spotterSmartdata.pressure(inds_nospikes);
+    spotterSmartdata.unixEpoch = spotterSmartdata.unixEpoch(inds_nospikes);
+
 
     %%
     % -------------------------------------------------
@@ -994,8 +1075,8 @@ for i1 = 1:length(list_SmartMoorings)
     %
     disp('---- Saving smart mooring level 1 data ---- ')
 
-% %     % Save Level 1 data
-% %     save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1.mat']), 'spotsmart');
+    % Save Level 1 data
+    save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1.mat']), 'spotsmart');
 
     %
     disp(['-------------- Done with level 1 data processing of smart mooring ' spotsmart.mooringID ' - SN ' spotsmart.SN ' --------------'])
@@ -1004,8 +1085,8 @@ for i1 = 1:length(list_SmartMoorings)
     %% Clear variables/close figures as needed before
     % going to the next loop iteration
 
-% %     %
-% %     close all
+    %
+    close all
 
 
 end

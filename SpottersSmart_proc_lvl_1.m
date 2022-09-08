@@ -54,11 +54,11 @@ lsave_fig = false;
 % %                      'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
 % All good Smart Moorings
-% list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
+list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
 % Same, but separately
 % % list_SmartMoorings = {'E01_spot1851'};
 % % list_SmartMoorings = {'E02_spot1859'};
-list_SmartMoorings = {'E08_spot1852'};
+% % list_SmartMoorings = {'E08_spot1852'};
 % % list_SmartMoorings = {'E10_spot1848'};
 
 % All seemingly great, apart from not extending the whole deployment
@@ -354,6 +354,13 @@ for i1 = 1:length(list_SmartMoorings)
 %     NsegTH = 20;    % not good in one instance in E11 - SN 1860, with 2-step correction that is a bit longer than 20 pts 
     NsegTH = 30;
 
+
+    %
+    if any(diff(inds_gobacks) <= NsegTH)
+        %
+        warning([list_SmartMoorings{i1} ': THERE ARE CLOCK INVERSIONS THAT ARE TOO CLOSE TOGETHER!!!!'])
+    end
+
     %
     for i2 = 1:length(inds_gobacks)
 
@@ -376,21 +383,6 @@ for i1 = 1:length(list_SmartMoorings)
         %
         time_diff_lookat = 24*3600*diff(spotterSmartdata.dtime(ind_seg_lookatdiff));
 
-        % If clock goes backwards
-        if time_diff_lookat(1)<0
-            %
-            if time_diff_lookat(2:end)<0
-
-% %                 datetime(719529 + (spotterSmartdata.unixEpoch((2372755-100):(2372755+100))./86400) - (7/24), 'ConvertFrom', 'datenum')
-
-                %
-                warning('AAAAAAAAGGGGGHHHHH!!!!!!!')
-                keyboard
-            end
-        end
-
-
-
         %
         time_diff_anomaly = time_diff_lookat - 0.5;
 
@@ -400,8 +392,12 @@ for i1 = 1:length(list_SmartMoorings)
         %
         big_timediff_anomaly_relative = time_diff_anomaly(abs(time_diff_anomaly) > 0.2);
 
-
         %
+        if any(big_timediff_anomaly(2:end) < 0)
+            warning('!!!!! CLOCK GOES BACKWARD TWICE IN TWO INSTANCES VERY CLOSE TO EACH OTHER !!!!!')
+        end
+
+        % This assumes that big_timediff_anomaly(2:end) are all positive
         lbig_enough = big_timediff_anomaly(2:end) > (0.3*abs(big_timediff_anomaly(1)));
         lbig_enough = [true; lbig_enough];
 
@@ -413,9 +409,17 @@ for i1 = 1:length(list_SmartMoorings)
 % %             keyboard
 % %         end
 % % 
+% %         if inds_gobacks(i2)==2372744
+% %             keyboard
+% %         end
 % %         if inds_gobacks(i2)==2372755
 % %             keyboard
 % %         end
+
+% %         if i2 >= 291
+% %             keyboard
+% %         end
+
 
         %
         if (length(big_enough_timediff_anomaly_relative) == 1) && (big_enough_timediff_anomaly_relative > -0.5)
@@ -476,47 +480,65 @@ for i1 = 1:length(list_SmartMoorings)
     
             else
 
-% % %                 %
-% % %                 if abs(sum(big_enough_timediff_anomaly_relative))<0.25
-% % %                     % If there is a reasonable balance between 3 anomalies,
-% % %                     % then do the 2-step clock correction
-% % %                 else
-% % %                     % Otherwise we have something different. Correct
-% % %                     % the inversion ONLY if there is a subsequent
-% % %                     % skip that is bigger than the inversion (thus
-% % %                     % the final correction is OK). Otherwise, throw
-% % %                     % an error.
-% %                   if abs(big_enough_timediff_anomaly_relative(1)  
-% %                   end
-% % %                     
-% % %                 end
+                % Use a criterion to infer if a 2-step clock correction
+                % is reasonable. Otherwise do something different
+
+                %
+                if abs(sum(big_enough_timediff_anomaly_relative))<0.25
+                    % If there is a reasonable balance between 3 anomalies,
+                    % then do the 2-step clock correction
+
+% %                     disp('------- NEEDS 2-step CLOCK CORRECTION -------')
+
+                    % Here I'll just do the second part of the segment
+                    % that needs to be corrected, turning into a
+                    % simple clock inversion that will be addressed
+                    % below just like the other cases in the if statement
+                    
+                    %
+                    ind_relative_secondhalf_1 = find(time_diff_anomaly == big_enough_timediff_anomaly_relative(2));
+                    ind_relative_secondhalf_2 = find(time_diff_anomaly == big_enough_timediff_anomaly_relative(3));
+                    %
+                    ind_secondhalf_1 = inds_gobacks(i2) + ind_relative_secondhalf_1;
+                    ind_secondhalf_2 = inds_gobacks(i2) + ind_relative_secondhalf_2 - 1;
+                    %
+                    ind_secondhalf = ind_secondhalf_1 : ind_secondhalf_2;
+    
+                    % Make partial correction
+                    spotterSmartdata.dtime(ind_secondhalf) = spotterSmartdata.dtime(ind_secondhalf) - big_enough_timediff_anomaly_relative(2)/(24*3600);
+    
+                    % Now create the indices of the full segment to
+                    % be adjusted later like all the other cases
+                    % in the if statement
+                    ind_seg_tofix = (inds_gobacks(i2)+1) : 1 : ind_secondhalf(end);
+
+                else
+                    % Otherwise we have something different. Correct
+                    % the inversion ONLY if there is a subsequent
+                    % skip that is bigger than the inversion (thus
+                    % the final correction is OK). Otherwise, throw
+                    % an error.
+                    %
+                    max_anomaly = max(big_enough_timediff_anomaly_relative);
+                    %
+                    if max_anomaly > abs(big_enough_timediff_anomaly_relative(1))
+                        % If the maximum anomaly is larger than the
+                        % negative anomaly, then we can make a correction
+% % keyboard
+                    else
+                        % Otherwise, the correction above will still have a
+                        % clock reversal. Then doesn't do anything
+
+                        % %                       lfix_segment_aux
+                    end
+                    
+                    
+                end
 
 
 
                 % Or instead make a 3-point correction
-% %                 disp('------- NEEDS 2-step CLOCK CORRECTION -------')
 
-                % Here I'll just the second part of the segment
-                % that needs to be corrected, turning into a
-                % simple clock inversion that will be addressed
-                % below just like the other cases in the if statement
-                keyboard
-                %
-                ind_relative_secondhalf_1 = find(time_diff_anomaly == big_enough_timediff_anomaly_relative(2));
-                ind_relative_secondhalf_2 = find(time_diff_anomaly == big_enough_timediff_anomaly_relative(3));
-                %
-                ind_secondhalf_1 = inds_gobacks(i2) + ind_relative_secondhalf_1;
-                ind_secondhalf_2 = inds_gobacks(i2) + ind_relative_secondhalf_2 - 1;
-                %
-                ind_secondhalf = ind_secondhalf_1 : ind_secondhalf_2;
-
-                % Make partial correction
-                spotterSmartdata.dtime(ind_secondhalf) = spotterSmartdata.dtime(ind_secondhalf) - big_enough_timediff_anomaly_relative(2)/(24*3600);
-
-                % Now create the indices of the full segment to
-                % be adjusted later like all the other cases
-                % in the if statement
-                ind_seg_tofix = (inds_gobacks(i2)+1) : 1 : ind_secondhalf(end);
 
 % %                 % Plot to check that the identification of data points that
 % %                 % need to be adjusted is correct

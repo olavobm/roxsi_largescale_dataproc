@@ -303,6 +303,11 @@ removeBadData.E10_spot1848.time_trim_data = [datenum(2022, 06, 17, 08, 20, 00), 
 % % removeBadData.E13_spot1849.time_trim_data = [datenum(2022, 06, 17, 08, 32, 00), datenum(2022, 06, 17, 17, 04, 30); ...
 % %                                              datenum(2022, 06, 17, 17, 07, 20), datenum(2022, 07, 20, 06, 27, 00)];
 
+% It would be like this if there was not other gap -- extend gap to deal
+% with clock issue
+% % removeBadData.E13_spot1849.time_trim_data = [datenum(2022, 06, 17, 08, 32, 00), datenum(2022, 06, 17, 17, 04, 30); ...
+% %                                              datenum(2022, 06, 17, 17, 18, 50), datenum(2022, 07, 20, 06, 27, 00)];
+
 
 % Appending with what has already been created:
 temporary_var = [removeBadData.E13_spot1849.time_trim_data(1, :); ...
@@ -313,7 +318,7 @@ temporary_var = [removeBadData.E13_spot1849.time_trim_data(1, :); ...
 temporary_var(2, 2) = temporary_var(1, 2);
 % Insert the new time edges
 temporary_var(1, 2) = datenum(2022, 06, 17, 17, 04, 30);
-temporary_var(2, 1) = datenum(2022, 06, 17, 17, 07, 20);
+temporary_var(2, 1) = datenum(2022, 06, 17, 17, 18, 50);
 
 %
 removeBadData.E13_spot1849.time_trim_data = temporary_var;

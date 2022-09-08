@@ -249,6 +249,12 @@ end
 % ------------------------------------------------
 
 
+%% E02 1859 clock reversal that doesn't reset in a consistent way
+% (after resetting Spotter mode on dashboard)
+
+removeBadData.E02_spot1859.time_trim_data = [datenum(2022, 06, 17, 07, 25, 00), datenum(2022, 06, 17, 17, 02, 20); ...
+                                             datenum(2022, 06, 17, 17, 08, 15), datenum(2022, 07, 20, 06, 05, 00)];
+
 
 %% E05 1853 clock reversal that doesn't reset in a consistent way
 % (after resetting Spotter mode on dashboard)
@@ -288,10 +294,64 @@ removeBadData.E10_spot1848.time_trim_data = [datenum(2022, 06, 17, 08, 20, 00), 
 
 
 
+%% Add gap associated with resetting mode for E13 1849 -- this one 
+% doesn't seem to have bad clock reversal after reset gap, but
+% it does have a seemingly double-reversal before the reset gap.
+% Set time limits to deal with that
+
+% It would be like this if there was not other gap
+% % removeBadData.E13_spot1849.time_trim_data = [datenum(2022, 06, 17, 08, 32, 00), datenum(2022, 06, 17, 17, 04, 30); ...
+% %                                              datenum(2022, 06, 17, 17, 07, 20), datenum(2022, 07, 20, 06, 27, 00)];
+
+
+% Appending with what has already been created:
+temporary_var = [removeBadData.E13_spot1849.time_trim_data(1, :); ...
+                 NaN(1, 2); ...
+                 removeBadData.E13_spot1849.time_trim_data(2:end, :)];
+
+% Replace NaN with existing time
+temporary_var(2, 2) = temporary_var(1, 2);
+% Insert the new time edges
+temporary_var(1, 2) = datenum(2022, 06, 17, 17, 04, 30);
+temporary_var(2, 1) = datenum(2022, 06, 17, 17, 07, 20);
+
+%
+removeBadData.E13_spot1849.time_trim_data = temporary_var;
+
+
+%% Add gap associated with resetting mode for E07 1855 -- more uncertain
+% where clock reversal problem is, but maybe it could be a 2-step
+% reset that takes longer than most cases
+
+
+% % %
+% % removeBadData.E07_spot1855.time_trim_data = [datenum(2022, 06, 17, 08, 40, 00), datenum(2022, 06, 17, 17, 12, 05); ...
+% %                                              datenum(2022, 06, 17, 17, 20, 30), datenum(2022, 07, 05, 10, 00, 00)];
+
+
+% Appending with what has already been created:
+temporary_var = [removeBadData.E07_spot1855.time_trim_data(1, :); ...
+                 NaN(1, 2); ...
+                 removeBadData.E07_spot1855.time_trim_data(2:end, :)];
+
+% Replace NaN with existing time
+temporary_var(2, 2) = temporary_var(1, 2);
+% Insert the new time edges
+temporary_var(1, 2) = datenum(2022, 06, 17, 17, 12, 05);
+temporary_var(2, 1) = datenum(2022, 06, 17, 17, 20, 30);
+
+%
+removeBadData.E07_spot1855.time_trim_data = temporary_var;
+
+
+
 %%
 % ------------------------------------------------
 % - ADD SOME MORE INFORMATION AND SAVE STRUCTURE -
 % ------------------------------------------------
+
+% Sort fields in increasing number of mooring ID
+removeBadData = orderfields(removeBadData);
 
 %
 removeBadData.timezone = 'PDT';

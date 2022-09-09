@@ -287,8 +287,8 @@ removeBadData.E09_spot1850.time_trim_data = [datenum(2022, 06, 17, 08, 08, 00), 
 
 
 %% E10 1848 has weird short bad data
-% (after resetting Spotter mode on dashboard)
 
+%
 removeBadData.E10_spot1848.time_trim_data = [datenum(2022, 06, 17, 08, 20, 00), datenum(2022, 06, 17, 12, 31, 15); ...
                                              datenum(2022, 06, 17, 12, 31, 48), datenum(2022, 07, 20, 06, 56, 00)];
 

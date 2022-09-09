@@ -40,9 +40,9 @@ if nargin>5
 end
 tolold = inf;
     
-h = waitbar(0,'Please wait...IMLM calculation');
+% % % % h = waitbar(0,'Please wait...IMLM calculation');
 for iz = 1:maxIter
-  waitbar(iz/maxIter,h)
+% % % %   waitbar(iz/maxIter,h)
   % Calculation of cross spectra based on DS
   for ix=1:m
     Sxy(ix,ix,:) = simpson(thetai,squeeze(Gwt(ix,:,:).*conj(Gwt(ix,:,:))).*DS);
@@ -75,6 +75,6 @@ for iz = 1:maxIter
 %     pause
 %   end
 end     
-close(h)
+% % % % close(h)
 return; % imlm
   

@@ -66,8 +66,8 @@ dspec_method = "IMLM";
 % index the displacement and depth files
 % The location data must have been processed to include depth 
 % % cd(displacement_data_path)
-disp = dir(fullfile(displacement_data_path, "*displacement_deployed.mat"));
-loc = dir(fullfile(displacement_data_path, "*location_deployed.mat"));
+spotter_disp = dir(fullfile(displacement_data_path, "*displacement_deployed.mat"));
+spotter_loc = dir(fullfile(displacement_data_path, "*location_deployed.mat"));
 
 
 %%
@@ -98,12 +98,13 @@ pos = [0,  0,  0; ...
 %%
 % now loop through each displacement file to generate directional spectra
 
-for ii = 1: length(disp)
+%
+for ii = 1: length(spotter_disp)
     
-    load(disp(ii).name);
+    load(spotter_disp(ii).name);
     %%%%%%%%% This needs to correct for the displacement file name 
-    site_name = disp(ii).name(1:end-26);
-    load(loc(ii).name); % check that the index is the same for the displacement and location file... it should ne
+    site_name = spotter_disp(ii).name(1:end-26);
+    load(spotter_loc(ii).name); % check that the index is the same for the displacement and location file... it should ne
 
     % pull out an analysis period of data
     % ind is the index of the start of the first full hour
@@ -124,17 +125,18 @@ for ii = 1: length(disp)
 
     % Print message to the screen
     %
-    disp(' ')
-    disp(' ')
-    disp(['----- The total number of analysis ' ...
+    spotter_disp(' ')
+    spotter_disp(' ')
+    spotter_disp(['----- The total number of analysis ' ...
           'periods is: ' num2str(analysis_periods) ' -----'])
     
     %
+    tic
     for sample = 1 : analysis_periods
         
         %
-        disp(' ')
-        disp(' ')
+        spotter_disp(' ')
+        spotter_disp(' ')
 
         %
         data_index = ind_start + (sample -1) *N : ...
@@ -169,7 +171,9 @@ for ii = 1: length(disp)
         S_f_temp(:,sample) = Sw.S.*(2*pi);    
 
         %
-        disp(['----- Done with iteration/period ' num2str(sample) ' ' ...
+        toc
+        %
+        spotter_disp(['----- Done with iteration/period ' num2str(sample) ' ' ...
               'out of ' num2str(analysis_periods) ' -----'])
        
     end

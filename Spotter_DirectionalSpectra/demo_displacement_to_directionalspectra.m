@@ -122,8 +122,21 @@ for ii = 1: length(disp)
     lat = nan(1, analysis_periods);
     lon = nan(1, analysis_periods);
 
+    % Print message to the screen
+    %
+    disp(' ')
+    disp(' ')
+    disp(['----- The total number of analysis ' ...
+          'periods is: ' num2str(analysis_periods) ' -----'])
+    
+    %
     for sample = 1 : analysis_periods
         
+        %
+        disp(' ')
+        disp(' ')
+
+        %
         data_index = ind_start + (sample -1) *N : ...
                         ind_start + sample *N -1;
         xt = spotdisp.x(data_index);
@@ -154,6 +167,10 @@ for ii = 1: length(disp)
         end
 %       
         S_f_temp(:,sample) = Sw.S.*(2*pi);    
+
+        %
+        disp(['----- Done with iteration/period ' num2str(sample) ' ' ...
+              'out of ' num2str(analysis_periods) ' -----'])
        
     end
 

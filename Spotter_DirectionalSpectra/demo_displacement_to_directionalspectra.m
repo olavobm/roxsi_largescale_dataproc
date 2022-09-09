@@ -125,9 +125,9 @@ for ii = 1: length(spotter_disp)
 
     % Print message to the screen
     %
-    spotter_disp(' ')
-    spotter_disp(' ')
-    spotter_disp(['----- The total number of analysis ' ...
+    disp(' ')
+    disp(' ')
+    disp(['----- The total number of analysis ' ...
           'periods is: ' num2str(analysis_periods) ' -----'])
     
     %
@@ -135,8 +135,8 @@ for ii = 1: length(spotter_disp)
     for sample = 1 : analysis_periods
         
         %
-        spotter_disp(' ')
-        spotter_disp(' ')
+        disp(' ')
+        disp(' ')
 
         %
         data_index = ind_start + (sample -1) *N : ...
@@ -173,7 +173,7 @@ for ii = 1: length(spotter_disp)
         %
         toc
         %
-        spotter_disp(['----- Done with iteration/period ' num2str(sample) ' ' ...
+        disp(['----- Done with iteration/period ' num2str(sample) ' ' ...
               'out of ' num2str(analysis_periods) ' -----'])
        
     end

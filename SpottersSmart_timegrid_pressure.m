@@ -1,5 +1,5 @@
 %% Time grid pressure data from all smart moorings
-% in ROXSI 2022 to the same time grid
+% in ROXSI 2022 to a common time grid.
 
 %
 clear
@@ -25,6 +25,11 @@ for i = 1:length(list_files)
     list_files{i} = dir_all_L1(i).name;
 end
 
+%
+disp('------------ Will time grid pressure for the following smart moorings: ------------ ')
+%
+list_files
+
 
 %% Loop over file names and load data
 
@@ -44,23 +49,42 @@ list_fields = fieldnames(smartMoorlvl1);
 
 %% Get min/max date-times where observations are available
 
+% --------------------------------------------------------
+% Min/max time grabbing all data
+
+% % %
+% % min_max_times = [min(smartMoorlvl1.(list_fields{1}).dtime), ...
+% %                  max(smartMoorlvl1.(list_fields{1}).dtime)];
+% % 
+% % % Get min/max time
+% % for i = 2:length(list_fields)
+% % 
+% %     %
+% %     min_max_times(1) = min([min_max_times(1), min(smartMoorlvl1.(list_fields{i}).dtime)]);
+% %     min_max_times(2) = max([min_max_times(2), max(smartMoorlvl1.(list_fields{i}).dtime)]);
+% % 
+% % end
+% % 
+% % % Round time edges so that there is no fractional second
+% % min_max_times(1) = datetime(min_max_times(1).Year, min_max_times(1).Month, min_max_times(1).Day, ...
+% %                             min_max_times(1).Hour, min_max_times(1).Minute, ceil(min_max_times(1).Second), ...
+% %                             'TimeZone', min_max_times.TimeZone);
+% % min_max_times(2) = datetime(min_max_times(2).Year, min_max_times(2).Month, min_max_times(2).Day, ...
+% %                             min_max_times(2).Hour, min_max_times(2).Minute, floor(min_max_times(2).Second), ...
+% %                             'TimeZone', min_max_times.TimeZone);
+
+
+% --------------------------------------------------------
+% Min/max time chosen mannually (and removing some data at the edges)
+
+% Starting on 06/17 17:45:00 should remove gaps with changing
+% spotter mode for those deployed on the first day
+
 %
-min_max_times = [min(smartMoorlvl1.(list_fields{1}).dtime), ...
-                 max(smartMoorlvl1.(list_fields{1}).dtime)];
+min_max_times = [datetime(2022, 06, 17, 17, 45, 00), ...
+                 datetime(2022, 07, 20, 06, 00, 00)];
 
-% Get min/max time
-for i = 2:length(list_fields)
-
-    %
-    min_max_times(1) = min([min_max_times(1), min(smartMoorlvl1.(list_fields{i}).dtime)]);
-    min_max_times(2) = max([min_max_times(2), max(smartMoorlvl1.(list_fields{i}).dtime)]);
-
-end
-
-% Round time edges so that there is no fractional second
-
-
-% Or instead set something mannually
+min_max_times.TimeZone = 'America/Los_Angeles';
 
 
 %% Create time grid
@@ -82,6 +106,12 @@ gap_TH = 5;    % gap threshold in seconds
 % Loop over Smart Moorings
 tic
 for i1 = 1:length(list_fields)
+
+    %
+    disp(' ')
+    disp(' ')
+    %
+    disp(['--- Start to grid pressure from smart mooring ' list_fields{i1} ' ---'])
 
     % Initialize logical array to tell where we want
     % (and don't want to interpolate pressure)
@@ -138,7 +168,7 @@ for i1 = 1:length(list_fields)
         end
     end
 
-    
+
     %% Time-grid pressure
 
     %
@@ -149,6 +179,9 @@ for i1 = 1:length(list_fields)
                         interp1(smartMoorlvl1.(list_fields{i1}).dtime, ...
                                 smartMoorlvl1.(list_fields{i1}).pressure, ...
                                 dtime(linterp_ok));
+
+    %
+    disp(['--- Done gridding pressure from smart mooring ' list_fields{i1} ' ---'])
 
 
 end
@@ -176,3 +209,60 @@ figure
     %
     set(gcf, 'units', 'normalized')
     set(gcf, 'Position', [0.2, 0.2, 0.6, 0.4])
+
+
+%% Now put the interpolated pressure data in individual structures
+% and save each of them separately
+
+
+%
+for i = 1:length(list_fields)
+
+    %
+    spotsmart.mooringID = smartMoorlvl1.(list_fields{i}).mooringID;
+    spotsmart.SN = smartMoorlvl1.(list_fields{i}).SN;
+    %
+    spotsmart.latitude = smartMoorlvl1.(list_fields{i}).latitude;
+    spotsmart.longitude = smartMoorlvl1.(list_fields{i}).longitude;
+    %
+    spotsmart.zhab = smartMoorlvl1.(list_fields{i}).zhab;
+
+    %
+    spotsmart.dt = dt_grid;
+    spotsmart.timelims = min_max_times;
+    spotsmart.gapTH = seconds(gap_TH);
+    %
+    spotsmart.dtime = dtime;
+    %
+    spotsmart.pressure = smartMoorlvl1.(list_fields{i}).pressureinterp;
+    
+
+    %
+    time_dataproc = datestr(datetime('now', 'TimeZone', 'America/Los_Angeles'), 'yyyy/mm/dd HH:MM:SS');
+    %
+    spotsmart.README = ['Level 1 (gridded) smart mooring data from ROXSI ' ...
+                        '2022. Data gridded by script ' mfilename() '.m on ' ...
+                        time_dataproc ' (PDT). Data gaps shorter or equal than ' ...
+                        'the gap threshold (gapTH) are interpolated over. ' ...
+                        'Continuous data segments are at least 2 hours long. ' ...
+                        'Pressure is the water pressure. ' ...
+                        'Longitude and latitude (for the pressure measurement) ' ...
+                        'were computed from the mean watch circle obtained ' ...
+                        'from Spotter coordinates over the whole deployment. ' ...
+                        'zhab is the the height in meters of the pressure ' ...
+                        'sensor above the bottom.'];
+
+    %
+    disp(' ')
+    disp(' ')
+    %
+    disp('---- Saving smart mooring level 1 data ---- ')
+    % Save Level 1 gridded data
+    save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1_gridded.mat']), 'spotsmart');
+    %
+    disp(['---- Done with level 1 time-gridding pressure from smart mooring ' spotsmart.mooringID ' - SN ' spotsmart.SN ' ----'])
+
+
+    %
+    clear spotsmart
+end

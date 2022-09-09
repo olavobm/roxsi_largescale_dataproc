@@ -56,7 +56,7 @@ list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
 % % All good Smart Moorings
 % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
 % Same, but separately
-% % list_SmartMoorings = {'E01_spot1851'};
+list_SmartMoorings = {'E01_spot1851'};
 % % list_SmartMoorings = {'E02_spot1859'};
 % % list_SmartMoorings = {'E08_spot1852'};
 % % list_SmartMoorings = {'E10_spot1848'};
@@ -65,7 +65,7 @@ list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
 % list_SmartMoorings = {'E05_spot1853', 'E07_spot1857', 'E09_spot1856'};
 %
 % list_SmartMoorings = {'E05_spot1853'};
-list_SmartMoorings = {'E07_spot1857'};
+% list_SmartMoorings = {'E07_spot1857'};
 % list_SmartMoorings = {'E09_spot1856'};
 
 
@@ -76,6 +76,13 @@ list_SmartMoorings = {'E07_spot1857'};
 % % % Three that broke (though only E07 and E13 will have sparse segments)
 % % list_SmartMoorings = {'E07_spot1855', 'E09_spot1856', 'E13_spot1849'};
 % % list_SmartMoorings = {'E07_spot1855'};
+% % list_SmartMoorings = {'E13_spot1849'};
+
+
+% Smart moorings that still have inversion problems (!!!)
+% list_SmartMoorings = {'E08_spot1852'};
+% list_SmartMoorings = {'E11_spot1860'};
+% list_SmartMoorings = {'E13_spot1849'};
 
 %
 Nspotters = length(list_SmartMoorings);
@@ -304,7 +311,6 @@ keyboard
     %
     spotterSmartdata.pressure = spotterSmartdata.pressure./10;
 
-
     % ------------------------------------------
     % Trim between times when instrument was in
     % the water (which also removes timestamps at
@@ -485,22 +491,30 @@ keyboard
         %
         big_enough_timediff_anomaly_relative = big_timediff_anomaly_relative(lbig_enough);
 
-% %         %
-% %         if (inds_gobacks(i2) > 2492600) && (inds_gobacks(i2) < 2492680)
-% %             keyboard
-% %         end
-% % 
-% %         if inds_gobacks(i2)==2372744
-% %             keyboard
-% %         end
-% %         if inds_gobacks(i2)==2372755
+
+
+% % % % % E08
+% %         if (spotterSmartdata.dtime(inds_gobacks(i2)) >= datenum(2022, 07, 01, 03, 34, 05)) && ...
+% %            (spotterSmartdata.dtime(inds_gobacks(i2)) <= datenum(2022, 07, 01, 03, 34, 50))
 % %             keyboard
 % %         end
 
-% %         if i2 >= 291
+% % % E11
+% %         if (spotterSmartdata.dtime(inds_gobacks(i2)) >= datenum(2022, 07, 14, 05, 00, 00)) && ...
+% %            (spotterSmartdata.dtime(inds_gobacks(i2)) <= datenum(2022, 07, 14, 05, 08, 00))
 % %             keyboard
 % %         end
 
+% %         % E13
+% %         if (spotterSmartdata.dtime(inds_gobacks(i2)) >= datenum(2022, 06, 17, 17, 18, 30)) && ...
+% %            (spotterSmartdata.dtime(inds_gobacks(i2)) <= datenum(2022, 06, 17, 17, 19, 00))
+% %             keyboard
+% %         end
+% %         % E13
+% %         if (spotterSmartdata.dtime(inds_gobacks(i2)) >= datenum(2022, 06, 26, 18, 53, 00)) && ...
+% %            (spotterSmartdata.dtime(inds_gobacks(i2)) <= datenum(2022, 06, 26, 18, 57, 00))
+% %             keyboard
+% %         end
 
         %
         if (length(big_enough_timediff_anomaly_relative) == 1) && (big_enough_timediff_anomaly_relative > -0.5)

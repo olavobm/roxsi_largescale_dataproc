@@ -16,9 +16,16 @@ dir_rawdata_parent = fullfile(data_dirpath(), 'RAW', 'Aquadopp');
 
 %%
 
-% %
+%
 dir_output_data_L1 = fullfile(data_dirpath(), 'Level1_Data', 'Aquadopp_Level1');
 dir_output_figs_L1 = fullfile(data_dirpath(), 'Level1_Data', 'Aquadopp_Level1', 'qc_plots');
+
+% % 
+% % %
+% % dir_output_data_L1 = fullfile('/home/omarques/Documents/MATLAB/ROXSIproc_output/');
+% % dir_output_figs_L1 = fullfile('/home/omarques/Documents/MATLAB/ROXSIproc_output/');
+
+
 %
 % dir_output_data_L1 = '/Volumes/OBM-HD/docs/researchPostdoc/datasets/ROXSI/fieldworks/experiment_2022/Aquadopp/';
 % dir_output_figs_L1 = fullfile(dir_output_data_L1, 'qc_p lots');
@@ -47,7 +54,8 @@ list_Aquadopp = {'A03_5380', ...
                  'X06_13290', 'X13_9945'};
 
 % Just a test
-list_Aquadopp = {'B02_12507', 'X13_9945'};
+% list_Aquadopp = {'B02_12507', 'X13_9945'};
+list_Aquadopp = {'X13_9945'};
 
 % A few tests
 % % list_Aquadopp = {'B02_12507'};   % a little data (averaging)
@@ -120,14 +128,15 @@ for i = 1:Naquadopps
 
     %
     header_aux = Aquadopp_read_header(fullfile(file_header_aux.folder, file_header_aux.name));
-    
+
     % ----------------------------------------------------
     %
     file_sen_aux = dir(fullfile(dir_rawdata_parent, list_Aquadopp{i}, '*.sen'));
 
     %
+    tic
     senAQDP_aux = Aquadopp_read_senfile(fullfile(file_sen_aux.folder, file_sen_aux.name), list_senfile_vars);
-    
+    toc
 % % %     %
 % % %     senAQDP_aux.time = datetime(datenum(senAQDP_aux.time, 'yyyy/mm/dd HH:MM:SS'), ...
 % % %                                         'ConvertFrom', 'datenum', ...
@@ -135,12 +144,17 @@ for i = 1:Naquadopps
 
 
     % Now correct for clock drift
-    time_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, list_Aquadopp{i}(5:end), datenum(senAQDP_aux.time));
+    
+    tic
+    time_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
+                                            list_Aquadopp{i}(5:end), ...
+                                            datenum(senAQDP_aux.time, "yyyy/mm/dd HH:MM:SS"));
+    toc
     %
     senAQDP_aux.time = datetime(time_aux, ...
                                     'ConvertFrom', 'datenum', ...
                                     'TimeZone', 'America/Los_Angeles');
-
+keyboard
 
     % ----------------------------------------------------
     % Load velocity and backscatter data

@@ -56,8 +56,8 @@ list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
 % % All good Smart Moorings
 % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
 % Same, but separately
-list_SmartMoorings = {'E01_spot1851'};
-% % list_SmartMoorings = {'E02_spot1859'};
+% list_SmartMoorings = {'E01_spot1851'};
+list_SmartMoorings = {'E02_spot1859'};
 % % list_SmartMoorings = {'E08_spot1852'};
 % % list_SmartMoorings = {'E10_spot1848'};
 
@@ -281,7 +281,7 @@ for i1 = 1:length(list_SmartMoorings)
                list_SmartMoorings{i1}(end-3:end) ': unique ' ...
                '(short) time differences'], 'Interpreter', 'Latex', 'FontSize', 16)
 
-    
+    keyboard
     %%
     % ----------------------------------------------------------
     % --------------- DO LEVEL 1 DATA PROCESSING ---------------

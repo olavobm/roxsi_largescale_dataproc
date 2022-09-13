@@ -46,6 +46,8 @@ list_Aquadopp = {'A03_5380', ...
                  'F01_9995', 'F02_5838', 'F03_5384', 'F04_5401', 'F05_14032', ...
                  'X06_13290', 'X13_9945'};
 
+% Just a test
+list_Aquadopp = {'B02_12507', 'X13_9945'};
 
 % A few tests
 % % list_Aquadopp = {'B02_12507'};   % a little data (averaging)

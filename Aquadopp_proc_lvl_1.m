@@ -134,9 +134,7 @@ for i = 1:Naquadopps
     file_sen_aux = dir(fullfile(dir_rawdata_parent, list_Aquadopp{i}, '*.sen'));
 
     %
-    tic
     senAQDP_aux = Aquadopp_read_senfile(fullfile(file_sen_aux.folder, file_sen_aux.name), list_senfile_vars);
-    toc
 % % %     %
 % % %     senAQDP_aux.time = datetime(datenum(senAQDP_aux.time, 'yyyy/mm/dd HH:MM:SS'), ...
 % % %                                         'ConvertFrom', 'datenum', ...
@@ -144,17 +142,13 @@ for i = 1:Naquadopps
 
 
     % Now correct for clock drift
-    
-    tic
     time_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
                                             list_Aquadopp{i}(5:end), ...
                                             datenum(senAQDP_aux.time, "yyyy/mm/dd HH:MM:SS"));
-    toc
     %
     senAQDP_aux.time = datetime(time_aux, ...
                                     'ConvertFrom', 'datenum', ...
                                     'TimeZone', 'America/Los_Angeles');
-keyboard
 
     % ----------------------------------------------------
     % Load velocity and backscatter data

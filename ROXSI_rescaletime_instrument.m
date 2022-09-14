@@ -46,6 +46,7 @@ else
 
     % Convert time from string to datenum
     str_format = 'yyyy/mm/dd HH:MM:SS';
+    
     %
     time_set_datenum = datenum(table_correction.time_set_clockdrift(ind_row_match), str_format);
     time_end_datenum = datenum(table_correction.time_end_clockdrift(ind_row_match), str_format);

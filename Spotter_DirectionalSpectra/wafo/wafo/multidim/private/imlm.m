@@ -57,7 +57,7 @@ for iz = 1:maxIter
   %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   DS   = normspfn(DS,thetai);
   tol  = max(abs(DS(:)-DSold(:)));
-  disp(['Iteration nr ' num2str(iz),' of ' num2str(maxIter),' Error = ' num2str(tol) ])
+% % % %   disp(['Iteration nr ' num2str(iz),' of ' num2str(maxIter),' Error = ' num2str(tol) ])
   if iz>5,
     if (min(tol,abs(tol-tolold)*3) < errorTol) , 
       disp('Close enough to convergence'),break,

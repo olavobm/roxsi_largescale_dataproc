@@ -135,18 +135,23 @@ for i = 1:Nvariables
         %
         Nobs = length(data_Aquadopp{1});
 
+% %         %
+% %         senAQDP.time = repmat(" ", Nobs, 1);
+% %         keyboard
+% %         %
+% %         for i2 = 1:Nobs
+% % 
+% %             %
+% %             senAQDP.time(i2) = [data_Aquadopp{3}{i2} '/' data_Aquadopp{1}{i2} '/' data_Aquadopp{2}{i2} ' ' ...
+% %                                 data_Aquadopp{4}{i2} ':' data_Aquadopp{5}{i2} ':' data_Aquadopp{6}{i2}];
+% % 
+% %         end
         %
-        senAQDP.time = repmat(" ", Nobs, 1);
+        cell_dates_cat = strcat(data_Aquadopp{3}, repmat({'/'}, Nobs, 1), data_Aquadopp{1}, repmat({'/'}, Nobs, 1), data_Aquadopp{2}, ...
+                                repmat({' '}, Nobs, 1), ...
+                                data_Aquadopp{4}, repmat({':'}, Nobs, 1), data_Aquadopp{5}, repmat({':'}, Nobs, 1), data_Aquadopp{6});
+        senAQDP.time = string(cell_dates_cat);
         
-        %
-        for i2 = 1:Nobs
-
-            %
-            senAQDP.time(i2) = [data_Aquadopp{3}{i2} '/' data_Aquadopp{1}{i2} '/' data_Aquadopp{2}{i2} ' ' ...
-                                data_Aquadopp{4}{i2} ':' data_Aquadopp{5}{i2} ':' data_Aquadopp{6}{i2}];
-
-        end
-  
     %
     else
 
@@ -155,6 +160,7 @@ for i = 1:Nvariables
 
     end
 end
+
 
 
 

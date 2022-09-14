@@ -17,8 +17,8 @@
 % that takes several minutes to disperse???). SST can take several minutes
 % after Spotter is in the water to be "good"/trustworthy.
 
-% % clear
-% % close all
+clear
+close all
 
 
 %%
@@ -515,14 +515,56 @@ time_end_deployment = ["2022/07/06 09:00:00"; ...    % Standard spotter / B01 11
                        "2022/07/20 06:40:00"];    % E13 1849
 
 % ------------------------------------------
-%
-time_begin_trim = ["2022/06/15 09:00:00"; ...    % Standard spotter / B01 1158 -- issues needed to be recovered
-                   "2022/07/06 09:10:00"; ...    % B01 1150
-                   "2022/06/15 09:05:00"; ...    % B03 1152
-                   "2022/06/15 09:10:00"; ...    % B05 1153
-                   "2022/06/15 09:20:00"; ...    % X01 1151
-                   "2022/06/15 09:30:00"; ...    % X03 1157
-                   "2022/06/15 09:35:00"; ...    % X04 1155
+% % % Not good for all standard spotters
+% % 
+% % time_begin_trim = ["2022/06/15 09:00:00"; ...    % Standard spotter / B01 1158 -- issues needed to be recovered
+% %                    "2022/07/06 09:10:00"; ...    % B01 1150
+% %                    "2022/06/15 09:05:00"; ...    % B03 1152
+% %                    "2022/06/15 09:10:00"; ...    % B05 1153
+% %                    "2022/06/15 09:20:00"; ...    % X01 1151
+% %                    "2022/06/15 09:30:00"; ...    % X03 1157
+% %                    "2022/06/15 09:35:00"; ...    % X04 1155
+% %                    "2022/06/17 10:39:30"; ...    % Smart mooring / E01 1851
+% %                    "2022/06/17 07:25:00"; ...    % E02 1859    06:11:30 anchor on the bottom  % not clear if divers moved it, maybe around 07:10
+% %                    "2022/06/17 07:35:00"; ...    % E05 1853 -- this one stopped working at once.  06:20:30 anchor on the bottom
+% %                    "2022/06/17 08:40:00"; ...    % E07 1855 -- spotter that went bad and was replaced. 08:23:30 anchor on the bottom
+% %                    "2022/07/05 10:45:00"; ...     % E07 1857 -- 10:26:00 pressure sensor on the bottom, but was putting this in place of the other one by divers (i.e. this was a replacement Spotter, and moorings were swaped at the anchor point by divers).
+% %                    "2022/06/17 08:40:00"; ...    % E08 1852    08:29:00 anchor on the bottom    % doesn't look like divers moved this one
+% %                    "2022/06/17 08:08:00"; ...    % E09 1850    06:33:15 anchor on the bottom
+% %                    "2022/06/24 08:56:00"; ...    % E09 1856    07:59:00 anchor on the bottom
+% %                    "2022/06/17 08:20:00"; ...    % E10 1848    06:39:30 anchor on the bottom
+% %                    "2022/06/17 08:50:00"; ...    % E11 1860 08:35:30 anchor on the bottom
+% %                    "2022/06/17 08:32:00"];    % E13 1849,   08:09:30 anchor on the bottom
+% % 
+% % %
+% % time_end_trim = ["2022/07/02 01:22:00"; ...    % Standard spotter / B01 1158 -- issues needed to be recovered. This end trim time may be refined after looking at data and issues that happened towards the end.
+% %                  "2022/07/20 07:30:00"; ...    % B01 1150
+% %                  "2022/07/20 07:30:00"; ...    % B03 1152
+% %                  "2022/07/20 07:30:00"; ...    % B05 1153
+% %                  "2022/07/20 07:30:00"; ...    % X01 1151
+% %                  "2022/07/20 07:30:00"; ...    % X03 1157
+% %                  "2022/07/20 07:30:00"; ...    % X04 1155
+% %                  "2022/07/20 06:00:00"; ...    % Smart mooring / E01 1851
+% %                  "2022/07/20 06:05:00"; ...     % E02 1859
+% %                  "2022/07/17 10:13:00"; ...    % E05 1853 -- this one stopped getting pressure at once at ~10:20:30. Trimming a few minutes before the data is visibly bad. Spotter buoy itself is getting measurements all the way too the end, so trimming for that can be done a couple hours before time_end_deployment.
+% %                  "2022/07/05 10:00:00"; ...     % E07 1855 -- spotter that went bad and was replaced.
+% %                  "2022/07/20 06:12:00"; ...     % E07 1857 
+% %                  "2022/07/20 06:42:00"; ...     % E08 1852
+% %                  "2022/06/21 14:00:00"; ...    % E09 1850 -- went bad and was replaced
+% %                  "2022/07/20 06:52:00"; ...    % E09 1856
+% %                  "2022/07/20 06:56:00"; ...    % E10 1848
+% %                  "2022/07/21 08:55:00"; ...    % E11 1860
+% %                  "2022/07/20 06:27:00"];    % E13 1849
+
+% But these trimming edges should now
+% be great for the Standard Spotters
+time_begin_trim = ["2022/06/15 10:00:00"; ...    % Standard spotter / B01 1158 -- issues needed to be recovered
+                   "2022/07/06 10:00:00"; ...    % B01 1150
+                   "2022/06/15 10:00:00"; ...    % B03 1152
+                   "2022/06/15 10:00:00"; ...    % B05 1153
+                   "2022/06/15 10:00:00"; ...    % X01 1151
+                   "2022/06/15 10:00:00"; ...    % X03 1157
+                   "2022/06/15 10:00:00"; ...    % X04 1155
                    "2022/06/17 10:39:30"; ...    % Smart mooring / E01 1851
                    "2022/06/17 07:25:00"; ...    % E02 1859    06:11:30 anchor on the bottom  % not clear if divers moved it, maybe around 07:10
                    "2022/06/17 07:35:00"; ...    % E05 1853 -- this one stopped working at once.  06:20:30 anchor on the bottom
@@ -536,13 +578,13 @@ time_begin_trim = ["2022/06/15 09:00:00"; ...    % Standard spotter / B01 1158 -
                    "2022/06/17 08:32:00"];    % E13 1849,   08:09:30 anchor on the bottom
 
 %
-time_end_trim = ["2022/07/02 01:22:00"; ...    % Standard spotter / B01 1158 -- issues needed to be recovered. This end trim time may be refined after looking at data and issues that happened towards the end.
-                 "2022/07/20 07:30:00"; ...    % B01 1150
-                 "2022/07/20 07:30:00"; ...    % B03 1152
-                 "2022/07/20 07:30:00"; ...    % B05 1153
-                 "2022/07/20 07:30:00"; ...    % X01 1151
-                 "2022/07/20 07:30:00"; ...    % X03 1157
-                 "2022/07/20 07:30:00"; ...    % X04 1155
+time_end_trim = ["2022/07/02 01:10:00"; ...    % Standard spotter / B01 1158 -- issues needed to be recovered. This end trim time may be refined after looking at data and issues that happened towards the end.
+                 "2022/07/20 06:00:00"; ...    % B01 1150
+                 "2022/07/20 06:00:00"; ...    % B03 1152
+                 "2022/07/20 06:00:00"; ...    % B05 1153
+                 "2022/07/20 06:00:00"; ...    % X01 1151
+                 "2022/07/20 06:00:00"; ...    % X03 1157
+                 "2022/07/20 06:00:00"; ...    % X04 1155
                  "2022/07/20 06:00:00"; ...    % Smart mooring / E01 1851
                  "2022/07/20 06:05:00"; ...     % E02 1859
                  "2022/07/17 10:13:00"; ...    % E05 1853 -- this one stopped getting pressure at once at ~10:20:30. Trimming a few minutes before the data is visibly bad. Spotter buoy itself is getting measurements all the way too the end, so trimming for that can be done a couple hours before time_end_deployment.
@@ -555,7 +597,6 @@ time_end_trim = ["2022/07/02 01:22:00"; ...    % Standard spotter / B01 1158 -- 
                  "2022/07/21 08:55:00"; ...    % E11 1860
                  "2022/07/20 06:27:00"];    % E13 1849
 
-
 %% Now create table with deployment information
 
 
@@ -567,8 +608,8 @@ dployInfo_Spotters = table(mooringID, SN, spottertype, ...
 
 %% Save the table
 
-% % %
-% % save(fullfile(repo_dirpath(), ...
-% %               'deploymentInfo_Spotters_ROXSI2022.mat'), ...
-% %               'dployInfo_Spotters')
+%
+save(fullfile(repo_dirpath(), ...
+              'deploymentInfo_Spotters_ROXSI2022.mat'), ...
+              'dployInfo_Spotters')
 

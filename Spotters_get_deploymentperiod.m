@@ -20,7 +20,7 @@
 clear
 close all
 
-
+return
 %%
 % -------------------------------------------------------
 % -------------------------------------------------------
@@ -579,12 +579,12 @@ time_begin_trim = ["2022/06/15 10:00:00"; ...    % Standard spotter / B01 1158 -
 
 %
 time_end_trim = ["2022/07/02 01:10:00"; ...    % Standard spotter / B01 1158 -- issues needed to be recovered. This end trim time may be refined after looking at data and issues that happened towards the end.
-                 "2022/07/20 06:00:00"; ...    % B01 1150
-                 "2022/07/20 06:00:00"; ...    % B03 1152
-                 "2022/07/20 06:00:00"; ...    % B05 1153
-                 "2022/07/20 06:00:00"; ...    % X01 1151
-                 "2022/07/20 06:00:00"; ...    % X03 1157
-                 "2022/07/20 06:00:00"; ...    % X04 1155
+                 "2022/07/20 04:00:01"; ...    % B01 1150
+                 "2022/07/20 04:00:01"; ...    % B03 1152
+                 "2022/07/20 04:00:01"; ...    % B05 1153
+                 "2022/07/20 04:00:01"; ...    % X01 1151
+                 "2022/07/20 04:00:01"; ...    % X03 1157
+                 "2022/07/20 04:00:01"; ...    % X04 1155
                  "2022/07/20 06:00:00"; ...    % Smart mooring / E01 1851
                  "2022/07/20 06:05:00"; ...     % E02 1859
                  "2022/07/17 10:13:00"; ...    % E05 1853 -- this one stopped getting pressure at once at ~10:20:30. Trimming a few minutes before the data is visibly bad. Spotter buoy itself is getting measurements all the way too the end, so trimming for that can be done a couple hours before time_end_deployment.

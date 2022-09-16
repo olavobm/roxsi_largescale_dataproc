@@ -28,7 +28,8 @@ dir_data_level_1 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotte
 %               'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
 % Just a few to test
-list_Spotters = {'B03_spot1152', 'B05_spot1153', 'E02_spot1859'};
+% % list_Spotters = {'B03_spot1152', 'B05_spot1153', 'E02_spot1859'};
+list_Spotters = {'B05_spot1153', 'E02_spot1859'};
 
 % Output directory
 dir_output_level_2 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
@@ -302,10 +303,11 @@ for i = 1:length(list_Spotters)
     dir_naut_unsorted= mod(270 - rad2deg(Sd.theta(1:end-1)),360);
     [dir_naut, ind] = sort(dir_naut_unsorted);
 
-    dspec.site = site_name;
-
 
     %% Now save directional spectra output
+
+    %
+    dspec.site = list_Spotters{i};
 
     % Save each dspec method to the dspec structure
     for jj = 1 : length(dspec_method)
@@ -324,7 +326,7 @@ for i = 1:length(list_Spotters)
     dspec.analysis_period_hours = analysis_period_hours;
 
     %
-    disp(['----- Saving directional spectra ' list_Spotters{i} ' ---'])
+    disp(['--- Saving directional spectra ' list_Spotters{i} ' ---'])
     %
     fname = fullfile(dir_output_level_2, [list_Spotters{i} '_dspec.mat']);
     save(fname, "dspec" , '-v7.3')

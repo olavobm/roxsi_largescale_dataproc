@@ -35,6 +35,16 @@ list_Spotters = {'B05_spot1153', 'E02_spot1859'};
 dir_output_level_2 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
 
 
+% Print message to the screen:
+disp(' '), disp(' ')
+%
+disp('Will compute directional spectrum for Spotters:')
+list_Spotters
+%
+disp('Output directory is')
+dir_output_level_2
+
+
 %% Load the location file with bathymetry
 % (actually, elevation to mean sea level)
 

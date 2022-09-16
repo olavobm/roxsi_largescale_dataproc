@@ -19,7 +19,7 @@ function s = Spotter_parsed_to_mat(dirparsed, timezone_UTCtoLocal)
 %% Check if time zone correction 
 
 %
-if ~exist('timezone_GMTtoLocal', 'var')
+if ~exist('timezone_UTCtoLocal', 'var')
     timezone_UTCtoLocal = 0;
     %
     warning(['Time zone correction not given in input. ' ...

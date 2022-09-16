@@ -71,7 +71,6 @@ for i = 1:length(csv_fileinfo)
         end
         %
         time = datetime(a.year, a.month, a.day, a.hour + timezone_UTCtoLocal, a.min, a.sec, var_milisecond);
-
             
         % Add datetime before the variable/column year
         a = addvars(a, time, 'Before','year');

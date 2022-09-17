@@ -307,7 +307,7 @@ for i = 1:length(list_Spotters)
     [dir_naut, ind] = sort(dir_naut_unsorted);
 
 
-    %% Now save directional spectra output
+    %% Organize directional spectra output
 
     %
     dspec.site = list_Spotters{i};
@@ -329,6 +329,8 @@ for i = 1:length(list_Spotters)
     dspec.nfft = nfft;
     dspec.analysis_period_hours = analysis_period_hours;
 
+
+    %% Save directional spectra
     %
     disp(['--- Saving full directional spectra for ' list_Spotters{i} ' ---'])
     %
@@ -344,6 +346,51 @@ for i = 1:length(list_Spotters)
     fname = fullfile(dir_output_level_2, [list_Spotters{i} '_dspec_reduced.mat']);
     save(fname, "dspec" , '-v7.3')
 
+
+    %% Plot displacement spectrum (averaged in direcion, 
+    % as a function of time and frequency)
+
+    %
+    hfig_spec = figure;
+        pcolor(dspec.dtime, dspec.f, log10(dspec.S_f))
+        shading flat
+
+        %
+        caxis([-4.5, 0.5])
+        %
+        hcb = colorbar;
+            hcb.Label.Interpreter = 'Latex';
+            hcb.Label.String = '$\log_{10}$ of displacement variance [m$^2$ cps$^{-1}$]';
+            hcb.Label.FontSize = 18;
+
+    %
+    set(gca, 'FontSize', 16, 'Box', 'on', ...
+             'XGrid', 'on', 'YGrid', 'on', ...
+             'YScale', 'log')
+    set(gca, 'XLim', [datetime(2022, 06, 15, 06, 0, 0, 'TimeZone', 'America/Los_Angeles'), ...
+                      datetime(2022, 07, 23, 12, 0, 0, 'TimeZone', 'America/Los_Angeles')], ...
+             'YLim', [0, 1.25])
+    %
+    xlabel('Time [PDT]', 'Interpreter', 'Latex', 'FOntSize', 22)
+    ylabel('Frequency [cps]', 'Interpreter', 'Latex', 'FOntSize', 22)
+    %
+    title(['ROXSI 2022: displacement spectra. Spotter ' list_Spotters{i}(1:3) ...
+           ' SN ' list_Spotters{i}(9:12)], 'Interpreter', 'Latex', 'FOntSize', 22)
+
+    %
+    set(gcf, 'units', 'normalized')
+    set(gcf, 'Position', [0.35, 0.28, 0.41, 0.27])
+
+    %
+    disp(['--- Saving spectra figure for ' list_Spotters{i} ' ---'])
+    %
+    exportgraphics(hfig_spec, fullfile(dir_output_level_2, ['spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
+    %
+    pause(5)
+    %
+    close(hfig_spec)
+
+    %%
     %
     disp(['------------------ Done with directional spectrum ' ...
           'for Spotter ' list_Spotters{i} ' ------------------'])

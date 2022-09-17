@@ -29,7 +29,7 @@ dir_data_level_1 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotte
 
 % Just a few to test
 % % list_Spotters = {'B03_spot1152', 'B05_spot1153', 'E02_spot1859'};
-list_Spotters = {'B05_spot1153', 'E02_spot1859'};
+list_Spotters = {'E02_spot1859'};
 
 % Output directory
 dir_output_level_2 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
@@ -197,13 +197,6 @@ for i = 1:length(list_Spotters)
     vars2dirspectra.spotterdisp.z = data_buoy.displacement.("z (m)")(lintrim_edges);
 
     
-    %%
-    
-% %     load(spotter_disp(i).name);
-% %     %%%%%%%%% This needs to correct for the displacement file name 
-% %     site_name = spotter_disp(i).name(1:end-26);
-% %     load(spotter_loc(i).name); % check that the index is the same for the displacement and location file... it should ne
-
     %%
 
     % pull out an analysis period of data

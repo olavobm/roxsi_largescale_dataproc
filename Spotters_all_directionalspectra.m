@@ -326,6 +326,7 @@ for i = 1:length(list_Spotters)
     end
     %
     dspec.S_f = S_f_temp;
+    dspec.S_f_dir = mean(dspec.S_f_theta_IMLM, 3, 'omitnan');
     dspec.f = f;
     dspec.direction_nautical = dir_naut;
     dspec.dtime = dtime(:);
@@ -336,9 +337,18 @@ for i = 1:length(list_Spotters)
     dspec.analysis_period_hours = analysis_period_hours;
 
     %
-    disp(['--- Saving directional spectra ' list_Spotters{i} ' ---'])
+    disp(['--- Saving full directional spectra for ' list_Spotters{i} ' ---'])
     %
     fname = fullfile(dir_output_level_2, [list_Spotters{i} '_dspec.mat']);
+    save(fname, "dspec" , '-v7.3')
+
+    %
+    disp(['--- Saving reduced (averaged) spectra for ' list_Spotters{i} ' ---'])
+    %
+    dspec = rmfield(dspec, "S_f_theta_IMLM");
+    dspec = rmfield(dspec, "D_f_theta_IMLM");
+    %
+    fname = fullfile(dir_output_level_2, [list_Spotters{i} '_dspec_reduced.mat']);
     save(fname, "dspec" , '-v7.3')
 
     %

@@ -1,6 +1,6 @@
 # roxsi_largescale_dataproc
 
-This is repository with data processing code for the data in the ROXSI large-scale arrays. Other libraries are necessary, but the bulk of the data processing should be self-sufficient in this repository. 
+This repository contains code for processing the data in the large-scale arrays of ROXSI. Other libraries are necessary for specific tasks, but the bulk of the data processing should be self-sufficient in this repository. 
 
 After downloading the repository, the data parent directory must be included in the function data_dirpath.m so that the rest of the code knows where the data are.
 

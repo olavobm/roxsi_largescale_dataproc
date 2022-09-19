@@ -113,7 +113,7 @@ Nbest = 0; %Best model order
 
 DS = repmat(1/(2*pi),nt,nf); % initialize DS
      
-h = waitbar(0,'Please wait...EMEM calculation');
+% % % % h = waitbar(0,'Please wait...EMEM calculation');
 
 % compute a fast estimate in order to find a good
 % starting guess for the Lagrange multipliers 
@@ -122,7 +122,7 @@ h = waitbar(0,'Please wait...EMEM calculation');
 %Oneth = ones(nt,1);
 
 for ff=k, % loop over frequencies where S(f)>0
-  waitbar(ff/k(end),h)
+% % % %   waitbar(ff/k(end),h)
     
   Hj     = H(:,:,ff).';  %H(1:M,1:nt) 
   Phij = repmat(phi(1:M,ff).',nt,1); 
@@ -256,9 +256,9 @@ for ff=k, % loop over frequencies where S(f)>0
       
   end % while
   
-  if display>0
-    disp(sprintf('f = %g \t \t Model order = %d \t \t error = %g',fi(ff),Nbest,max(abs(Z))))
-  end
+% % % %   if display>0
+% % % %     disp(sprintf('f = %g \t \t Model order = %d \t \t error = %g',fi(ff),Nbest,max(abs(Z))))
+% % % %   end
   %plot(deltaCoef,'r*'),hold on,plot(coef(1:2*Nbest),'g*'),hold off,pause
   
   exponent = (coef(1:Nbest)*cosn(1:Nbest,:)+coef(Nbest+1:2*Nbest)*sinn(1:Nbest,:)).';

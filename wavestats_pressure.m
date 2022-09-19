@@ -1,12 +1,13 @@
-function statsout = wavestats_pressure(timevec, pressuredata, windowfft, windowavg, timespeccenter)
-% statsout = WAVESTATS_PRESSURE(timevec, pressuredata, windowfft, windowavg, timespeccenter)
+function statsout = wavestats_pressure(timevec, pressuredata, windowfft, windowavg, timespeclims, dt_step)
+% statsout = WAVESTATS_PRESSURE(timevec, pressuredata, windowfft, windowavg, timespeclims, dt_step)
 %
 %   inputs
-%       - timevec:
+%       - timevec: time grid of the pressure data (the time grid CAN NOT
+%                  be defined .....????)
 %       - pressuredata: timegridded pressure data (vector)????
 %       - windowfft: in seconds
 %       - windowavg: in seconds
-%       - timespeccenter:
+%       - timespeclims:
 %
 %   outputs
 %       -
@@ -28,7 +29,7 @@ fnyq = fs/2;   % Nyquist frequency
 
 %%
 
-%
+% Number of points 
 nfft = windowfft*fs;   % 6 minute chunks
 
 %
@@ -53,20 +54,115 @@ lin_SSband = (fm > freq_lims_SS(1)) & (fm < freq_lims_SS(2));
 
 %%
 
+%
+if ~exist('dt_step', 'var')
+    %
+    dt_step = windowavg/86400;    % window in days/datenum
+    %
+    lindependentintervals = true;
+else
+    lindependentintervals = false;    % not necessarily
+end
+
+%
+if ~exist('timespeclims', 'var') || isempty(timespeclims)
+    
+    %
+    tstart_dnum = timevec(1) + dt_step;
+    tend_dnum = timevec(end) - dt_step;
+    %
+    timespeclims = [tstart_dnum, tend_dnum];
+
+end
+
+%
+timespecintervals = timespeclims(1): dt_step : timespeclims(2);
+
+%
+nt = length(timespecintervals);
+half_t_interval = dt_step/2;
+
+
+%%
+
 % output variables
 mean_depth = nan*ones(nt,1);
 varP = nan*ones(nt,1);
 varPdetrend = nan*ones(nt,1);
 Spp = nan*ones(nt,nnyq);
+
+%
 meanfreqSS = nan*ones(nt,1);
 peakfreqSS = nan*ones(nt,1);
 
 
+%% Find the number of points per averaging window
+
+%
+npts_ininterval = fs*3600*(timespecintervals(2) - timespecintervals(1));
+%
+npts_ininterval = npts_ininterval - 1;
+
+
 %%
 
+if lindependentintervals
+
+    %
+    time_bounds = [(timespecintervals - half_t_interval); ...
+                   (timespecintervals + half_t_interval)];
+
+    %
+    ind_start_data = find(~isnan(pressuredata), 1, 'first');
+    ind_end_data = find(~isnan(pressuredata), 1, 'last');
+
+
+    %
+    ind_first_wholeinterval = find(time_bounds(1, :) >= timevec(ind_start_data), 1, 'first');
+
+    %
+    ind_data_start_firstinterval = find(timevec==time_bounds(1, ind_first_wholeinterval));
+
+    %
+    nt_intervals = floor(length(ind_data_start_firstinterval : ind_end_data) / npts_ininterval);
+
+    %
+    ind_data_wholeintervals = ind_data_start_firstinterval + ...
+                                   (0 : 1 : (nt_intervals*npts_ininterval));
+    %
+    pressure_perinterval = reshape(pressuredata(ind_data_wholeintervals), npts_ininterval, nt_intervals);
+
+    %
+    
+
+    %
+    % ------------------------------------------------
 
 
 
+%     %
+%     ind_start_grid = find(time_bounds(1, :) >= timevec(ind_start_data), 1, 'first');
+%     ind_end_grid = find(time_bounds(2, :) <= timevec(ind_end_data), 1, 'last');
+    %
+    ind_start_grid = find(time_bounds(1, 2:end-1) == timevec(ind_start_data));
+    ind_end_grid = find(time_bounds(2, 2:end-1) == timevec(ind_end_data));
+    %
+    ind_in_grid = ind_start_grid:ind_end_grid;
+
+    % not right!!! inds_in_grid is not in the data!!! THIS MUST/SHOULD BE AN INTEGER!!!
+    n_intervalsindata = length(ind_in_grid) / npts_ininterval;
+
+    %
+    reshape(pressuredata(ind_in_grid), npts_ininterval, n_intervalsindata);
+    %
+    
+
+else
+    error('Complicated option not implemented')
+
+end
+
+%%
 %%
 
 ii = find((SOLOD.time_dnum>=timeL2_dnum(i)-half_t_interval) &  (SOLOD.time_dnum<timeL2_dnum(i)+half_t_interval));

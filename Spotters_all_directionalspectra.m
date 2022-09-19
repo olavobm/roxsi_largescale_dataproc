@@ -95,7 +95,7 @@ analysis_period_hours = 0.5; %the analysis period in hours.
 
 % dspec_method = ["EMEM","IMLM","MLM"]; % the directional algorithms to use
 
-dspec_method = "IMLM";
+dspec_method = "EMEM";
 
 % CHECK that the index for the displacement and location files are
 % consistent (line 64)

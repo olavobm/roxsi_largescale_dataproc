@@ -27,9 +27,17 @@ dir_data_level_1 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotte
 %               'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
 %               'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
+% All Spotters and Smart Moorings
+list_Spotters = {'B03_spot1152', 'B05_spot1153', ...
+                 'X01_spot1151', 'X03_spot1157', 'X04_spot1155', ...
+                 'E01_spot1851', 'E02_spot1859', 'E05_spot1853', ...
+                 'E07_spot1855', 'E07_spot1857', ...
+                 'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
+                 'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
+
 % Just a few to test
 % % list_Spotters = {'B03_spot1152', 'B05_spot1153', 'E02_spot1859'};
-list_Spotters = {'E02_spot1859'};
+% % list_Spotters = {'E02_spot1859'};
 
 % Output directory
 dir_output_level_2 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
@@ -270,9 +278,9 @@ for i = 1:length(list_Spotters)
         
         % ------------------------------
         % Print progress message to the screen (the
-        % second argument is the percentage for which
+        % second argument is the percentage step when
         % the progress will be printed to the screen)
-        if mod(round(100*sample/analysis_periods), 5)==0
+        if mod(round(100*sample/analysis_periods), 25)==0
             %
             if lprogress_switch
 
@@ -312,14 +320,26 @@ for i = 1:length(list_Spotters)
     %
     dspec.site = list_Spotters{i};
 
+    % The list of methods used in the calculation
+    % of the directional spectra
+    dspec.list_methods = dspec_method;
+
     % Save each dspec method to the dspec structure
     for jj = 1 : length(dspec_method)
-        eval("dspec.S_f_theta_" + dspec_method(jj) + "= S_f_theta_temp(:,ind,:,jj);")
-        eval("dspec.D_f_theta_" + dspec_method(jj) + "= D_f_theta_temp(:,ind,:,jj);")
+
+% % %         old stuff
+% %         eval("dspec.S_f_theta_" + dspec_method(jj) + "= S_f_theta_temp(:,ind,:,jj);")
+% %         eval("dspec.D_f_theta_" + dspec_method(jj) + "= D_f_theta_temp(:,ind,:,jj);")
+
+        %
+        dspec.(dspec_method(jj)).S_f_theta = S_f_theta_temp(:, ind, :, jj);
+        dspec.(dspec_method(jj)).D_f_theta = D_f_theta_temp(:, ind, :, jj);
+
     end
     %
     dspec.S_f = S_f_temp;
-    dspec.S_f_dir = mean(dspec.S_f_theta_IMLM, 3, 'omitnan');
+
+    % Other variables
     dspec.f = f;
     dspec.direction_nautical = dir_naut;
     dspec.dtime = dtime(:);
@@ -340,8 +360,9 @@ for i = 1:length(list_Spotters)
     %
     disp(['--- Saving reduced (averaged) spectra for ' list_Spotters{i} ' ---'])
     %
-    dspec = rmfield(dspec, "S_f_theta_IMLM");
-    dspec = rmfield(dspec, "D_f_theta_IMLM");
+    for i2 = 1:length(dspec_method)
+        dspec = rmfield(dspec, dspec_method(i2));
+    end
     %
     fname = fullfile(dir_output_level_2, [list_Spotters{i} '_dspec_reduced.mat']);
     save(fname, "dspec" , '-v7.3')
@@ -360,7 +381,7 @@ for i = 1:length(list_Spotters)
         %
         hcb = colorbar;
             hcb.Label.Interpreter = 'Latex';
-            hcb.Label.String = '$\log_{10}$ of displacement variance [m$^2$ cps$^{-1}$]';
+            hcb.Label.String = '$\log_{10}$ of displacement variance [m$^2$ Hz$^{-1}$]';
             hcb.Label.FontSize = 18;
 
     %
@@ -372,7 +393,7 @@ for i = 1:length(list_Spotters)
              'YLim', [0, 1.25])
     %
     xlabel('Time [PDT]', 'Interpreter', 'Latex', 'FOntSize', 22)
-    ylabel('Frequency [cps]', 'Interpreter', 'Latex', 'FOntSize', 22)
+    ylabel('Frequency [Hz]', 'Interpreter', 'Latex', 'FOntSize', 22)
     %
     title(['ROXSI 2022: displacement spectra. Spotter ' list_Spotters{i}(1:3) ...
            ' SN ' list_Spotters{i}(9:12)], 'Interpreter', 'Latex', 'FOntSize', 22)

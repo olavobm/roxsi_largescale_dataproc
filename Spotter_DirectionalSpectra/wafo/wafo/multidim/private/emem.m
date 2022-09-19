@@ -266,7 +266,7 @@ for ff=k, % loop over frequencies where S(f)>0
   DS(:,ff) = exp(a0+exponent);
         
 end % for ff=
-close(h)
+% % % % close(h)
 DS = normspfn(DS,theta);
 
 warning(warningState);

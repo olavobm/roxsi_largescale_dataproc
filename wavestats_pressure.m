@@ -122,12 +122,11 @@ half_t_interval = dt_step/2;
 npts_ininterval = fs*windowavg;
 
 
-%% Create function handle to convert frequencies
-% into wavenumbers according to the dispersion
-% relationship of surface waves -- the mean water
-% depth is a parameter that will be taken from the
-% data and a loops are required for frequency and
-% water depth
+%% Create function handle to convert frequencies into wavenumbers
+% according to the dispersion relationship of surface waves. The
+% wavenumbers are found numerically by finding the zero of the 
+% function. The mean water depth is a parameter that will be taken
+% from the data and loops are required for the frequency and water depth.
 
 %
 k_from_disprel  = @(x, H, f) 9.8*x*tanh(x*H) - (2*pi*f)^2;
@@ -204,10 +203,18 @@ if lindependentintervals
     % Now loop over intervals and compute spectra
     for i2 = 1:length(ind_all_intervals)
 
+        %% Get and break apart the data for fft
+
         % Reshape each interval such that each
         % column is a chunk where FFT will be
         % computed -- NO OVERLAP OR WINDOWING
         pres_chunks = reshape(pressure_perinterval(:, i2), nfft, (npts_ininterval/nfft));
+
+        % Or get the data with 50% overlapping segments
+        % (in case the data is windowed below)
+
+
+        %% Preliminary calculations to compute fft
 
         % Compute mean pressure in each chunk
         mean_pres_chunks = mean(pres_chunks, 1);
@@ -225,6 +232,9 @@ if lindependentintervals
 
         % Compute variance of the full interval
         var_data_aux = sum((pres_detrended_chunks(:).^2))./nfft;
+
+        % Window data here to taper the edges
+
 
 
         %% Compute power spectra pressure
@@ -280,8 +290,15 @@ if lindependentintervals
         % either shallow-water or deep-water k. But what about the
         % general k? What's the numerical approach to do it?
 
-        % HOW DO WE DERIVE THE CORRECTION FACTOR???
-        
+        % ------------------------------------------------------------
+        % ------------------------------------------------------------
+        % HOW DO WE DERIVE THE CORRECTION FACTOR??? Not obvious to me
+        % how that appears from the dispersion relationship (maybe
+        % a derivative turns sinh into cosh?)
+        % %
+        % % correction = cosh( k*mean_depth(i))./cosh(k*doffz);
+        % ------------------------------------------------------------
+        % ------------------------------------------------------------
 
         % % % ----------------------------------------
         % % % Go from pressure to SSH spectrum:

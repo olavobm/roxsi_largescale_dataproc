@@ -41,7 +41,7 @@ dt = (timevec(2) - timevec(1));
 dt = seconds(dt);
 
 %
-fs = 1/dt;     % sampling frequency
+fs = 1/dt;     % sampling frequency in Hertz
 fnyq = fs/2;   % Nyquist frequency
 
 
@@ -57,10 +57,10 @@ if mod(nfft, 2)~=0
 end
 
 %
-df = fs/(nfft-1);   % This is the frequency resolution
+df = fs/(nfft-1);   % This is the frequency resolution (in Hz)
 nnyq = nfft/2 + 1;
 
-% Positive frequency vector
+% Positive frequency vector (in Hz)
 fm = (0:(nnyq-1)) * df;
 
 
@@ -120,6 +120,21 @@ half_t_interval = dt_step/2;
 
 %
 npts_ininterval = fs*windowavg;
+
+
+%% Create function handle to convert frequencies
+% into wavenumbers according to the dispersion
+% relationship of surface waves -- the mean water
+% depth is a parameter that will be taken from the
+% data and a loops are required for frequency and
+% water depth
+
+%
+k_from_disprel  = @(x, H, f) 9.8*x*tanh(x*H) - (2*pi*f)^2;
+% frequency input is in Hz and wavenumber output is in radians per meters.
+
+
+% k_at_meanH = @(x) k_from_disprel(x, 10)
 
 
 %%
@@ -260,9 +275,13 @@ if lindependentintervals
 
         %% Convert pressure spectra to sea-surface height spectra
 
+
         % What is the wavenumber k? It's straightforward to compute
         % either shallow-water or deep-water k. But what about the
         % general k? What's the numerical approach to do it?
+
+        % HOW DO WE DERIVE THE CORRECTION FACTOR???
+        
 
         % % % ----------------------------------------
         % % % Go from pressure to SSH spectrum:

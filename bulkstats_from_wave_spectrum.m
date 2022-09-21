@@ -20,6 +20,7 @@ function [freq_peak, freq_mean, Hsig] = bulkstats_from_wave_spectrum(freq, wvspe
 %%
 
 % If vector, make sure it's a column vector
+% (because I want time to be in the column dimension)
 if isvector(wvspec)
     wvspec = wvspec(:);
 end

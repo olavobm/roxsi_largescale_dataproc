@@ -1,5 +1,5 @@
-function dir = bulkstats_from_wave_dirspectrum(freq, dirvec, Dir_f_fcn, wvdirspec, wvspec)
-%% bulk = BULKSTATS_FROM_WAVE_DIRSPECTRUM(freq, dirvec, Dir_f_fcn, wvdirspec, wvspec)
+function bulkoutput = bulkstats_from_wave_dirspectrum(freq, dirvec, Dir_f_fcn, wvdirspec, wvspec)
+%% bulkoutput = BULKSTATS_FROM_WAVE_DIRSPECTRUM(freq, dirvec, Dir_f_fcn, wvdirspec, wvspec)
 %
 %   inputs
 %       - freq: in Hz.
@@ -9,7 +9,7 @@ function dir = bulkstats_from_wave_dirspectrum(freq, dirvec, Dir_f_fcn, wvdirspe
 %       - wvspec:
 %
 %   outputs
-%       - bulk: 
+%       - bulkoutput: 
 %
 %
 % Turn dspec into bulk statistics. Check if the computer has
@@ -87,7 +87,7 @@ disp(['-------------- Total number of time stamps is = ' num2str(Ntime) ' ------
 %
 % (Skip the last one because I need to fix the code that computes spectrum)
 tic
-for i1 = 1:(Ntime-1)
+for i1 = 1:100%(Ntime-1)
 
     % Loop over frequency
     for i2 = 1 : Nfrequency
@@ -133,14 +133,14 @@ weight(isnan(theta0')) = 0;
 
 % THIS NEEDS TO BE BROKEN DOWN FOR CLARITY!!!!
 %
-dir_mean = mod(atan2d(sum(weight.*sind(rad2deg(theta0(:, :)'))), ...
-                      sum(weight.*cosd(rad2deg(theta0(:, :)')))), ...
+dir_mean = mod(atan2d(sum(weight.*sind(rad2deg(theta0(:, :)))), ...
+                      sum(weight.*cosd(rad2deg(theta0(:, :))))), ...
                360);
 %
-spread_mean = trapz(freq, wvspec.*sigma0') ./ trapz(freq, wvspec);
+spread_mean = trapz(freq, wvspec.*sigma0) ./ trapz(freq, wvspec);
 
 % these lines pick out the direction and spread for the peak frequency
-for ii_dt = 1 : (Ntime - 1)
+for ii_dt = 1:100%(Ntime - 1)
 
     % the index of the peak frequency
     [~, ind_f_pk(ii_dt)] = max(wvspec(:, ii_dt));
@@ -154,13 +154,13 @@ end
 %% Assign bulk statistics to output variable
 
 %
-dspec.dir_mean_f = rad2deg(theta0)';
-dspec.spread_mean_f = sigma0';
+bulkoutput.dir_mean_f = rad2deg(theta0);
+bulkoutput.spread_mean_f = sigma0;
 
 %
-dspec.dir_mean = dir_mean(:);
-dspec.spread_mean = spread_mean(:);
+bulkoutput.dir_mean = dir_mean;
+bulkoutput.spread_mean = spread_mean;
 %
-dspec.dir_peak = dir_peak(:);
-dspec.spread_peak = spread_peak(:);
+bulkoutput.dir_peak = dir_peak;
+bulkoutput.spread_peak = spread_peak;
 

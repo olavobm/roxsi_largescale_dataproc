@@ -100,8 +100,8 @@ for i1 = 1:100%(Ntime-1)
         guess = dirinradians(ind_max);
         
         % use fzero to solve for theta0, per timestep, per frequency.
-        theta0(i1, i2) = fzero(@(theta0) trapz(dirinradians, sin(dirinradians-theta0).*D), guess);
-        sigma0(i1, i2) = rad2deg(sqrt(4.*trapz(dirinradians, (sin((dirinradians-theta0(i1, i2))./2).^2).*D)));
+        theta0(i2, i1) = fzero(@(theta0find) trapz(dirinradians, sin(dirinradians-theta0find).*D), guess);
+        sigma0(i2, i1) = rad2deg(sqrt(4.*trapz(dirinradians, (sin((dirinradians-theta0(i2, i1))./2).^2).*D)));
     end
 
     % Print progress message
@@ -125,19 +125,15 @@ theta0 = mod(theta0, 2*pi);
 % variable, the normal energy weighting has to be modified.
 %
 % Lines have been added here to remove the impact when the spread
-% function is uniform
+% function is uniform (???????????)
 
 %
 weight = (freq(2) - freq(1)) .* wvspec ./ trapz(freq, wvspec);
-weight(isnan(theta0')) = 0;
+weight(isnan(theta0)) = 0;
 
-% THIS NEEDS TO BE BROKEN DOWN FOR CLARITY!!!!
-% % %
-% % dir_mean = mod(atan2d(sum(weight.*sind(rad2deg(theta0(:, :)))), ...
-% %                       sum(weight.*cosd(rad2deg(theta0(:, :))))), ...
-% %                360);
-dir_mean = mod(atan2d(sum(weight.*sin(theta0(:, :))), ...
-                      sum(weight.*cos(theta0(:, :)))), ...
+% Sum over frequencies
+dir_mean = mod(atan2d(sum(weight.*sin(theta0)), ...
+                      sum(weight.*cos(theta0))), ...
                360);
 %
 spread_mean = trapz(freq, wvspec.*sigma0) ./ trapz(freq, wvspec);

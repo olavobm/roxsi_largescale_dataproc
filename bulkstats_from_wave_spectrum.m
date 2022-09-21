@@ -35,7 +35,7 @@ freq_peak = freq(ind);
 
 % Mean period and frequency
 T_mean = trapz(freq, wvspec) ./ trapz(freq, freq.* wvspec);
-freq_mean = 1/T_mean;
+freq_mean = 1./T_mean;
 
 
 %% Significant wave height

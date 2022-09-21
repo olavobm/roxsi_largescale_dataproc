@@ -87,7 +87,7 @@ disp(['-------------- Total number of time stamps is = ' num2str(Ntime) ' ------
 %
 % (Skip the last one because I need to fix the code that computes spectrum)
 tic
-for i1 = 1:100%(Ntime-1)
+for i1 = 1:(Ntime-1)
 
     % Loop over frequency
     for i2 = 1 : Nfrequency
@@ -105,7 +105,7 @@ for i1 = 1:100%(Ntime-1)
     end
 
     % Print progress message
-    fractional_progress = round(100*i1/Ntime);
+    fractional_progress = round(1000*i1/Ntime)/10;
     %
     if fractional_progress~=0 && mod(fractional_progress, 10)==0
         disp(['Done with timestamp ' num2str(i1) ' out of ' num2str(Ntime)])
@@ -139,14 +139,14 @@ dir_mean = mod(atan2d(sum(weight.*sin(theta0)), ...
 spread_mean = trapz(freq, wvspec.*sigma0) ./ trapz(freq, wvspec);
 
 % these lines pick out the direction and spread for the peak frequency
-for ii_dt = 1:100%(Ntime - 1)
+for ii_dt = 1:(Ntime - 1)
 
     % the index of the peak frequency
     [~, ind_f_pk(ii_dt)] = max(wvspec(:, ii_dt));
 
     %
-    dir_peak(ii_dt) = rad2deg(theta0(ii_dt, ind_f_pk(ii_dt)));
-    spread_peak(ii_dt) = sigma0(ii_dt, ind_f_pk(ii_dt));
+    dir_peak(ii_dt) = rad2deg(theta0(ind_f_pk(ii_dt), ii_dt));
+    spread_peak(ii_dt) = sigma0(ind_f_pk(ii_dt), ii_dt);
 end
 
 

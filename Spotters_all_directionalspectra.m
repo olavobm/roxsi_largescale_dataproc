@@ -38,6 +38,7 @@ list_Spotters = {'B03_spot1152', 'B05_spot1153', ...
 % Just a few to test
 % % list_Spotters = {'B03_spot1152', 'B05_spot1153', 'E02_spot1859'};
 % % list_Spotters = {'E02_spot1859'};
+list_Spotters = {'X03_spot1157'};
 
 % Output directory
 dir_output_level_2 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
@@ -317,37 +318,79 @@ for i = 1:length(list_Spotters)
 
     %% Organize directional spectra output
 
+    % ---------------------------------
     %
-    dspec.site = list_Spotters{i};
+    dspec.site = list_Spotters{i}(1:3);
+    dspec.SN = list_Spotters{i}(end-3:end);
+    %
+    dspec.latitude = lat(:);
+    dspec.longitude = lon(:);
+    %
+    dspec.depth = depth(:);
+    
+    %
+    dspec.dthour = analysis_period_hours;
+    dspec.dtime = dtime(:);
+    
+    % ---------------------------------
+
+    % 
+    dspec.df = f(2) - f(1);
+    dspec.nfft = nfft;
+    dspec.frequency = f;
+    
+    %
+    dspec.S_f = S_f_temp;
+
+    % ---------------------------------
+    % Directional spectrum
+
+    %
+    dspec.direction_nautical = dir_naut;
+    
 
     % The list of methods used in the calculation
     % of the directional spectra
-    dspec.list_methods = dspec_method;
+    dspec.list_methods_dirspec = dspec_method;
 
     % Save each dspec method to the dspec structure
     for jj = 1 : length(dspec_method)
-
-% % %         old stuff
-% %         eval("dspec.S_f_theta_" + dspec_method(jj) + "= S_f_theta_temp(:,ind,:,jj);")
-% %         eval("dspec.D_f_theta_" + dspec_method(jj) + "= D_f_theta_temp(:,ind,:,jj);")
 
         %
         dspec.(dspec_method(jj)).S_f_theta = S_f_theta_temp(:, ind, :, jj);
         dspec.(dspec_method(jj)).D_f_theta = D_f_theta_temp(:, ind, :, jj);
 
     end
-    %
-    dspec.S_f = S_f_temp;
 
-    % Other variables
-    dspec.f = f;
-    dspec.direction_nautical = dir_naut;
-    dspec.dtime = dtime(:);
-    dspec.depth = depth(:);
-    dspec.lon   = lon(:);
-    dspec.lat   = lat(:);
-    dspec.nfft = nfft;
-    dspec.analysis_period_hours = analysis_period_hours;
+
+    
+    %% Compute bulk parameters from wave spectrum
+
+    %
+    [freq_peak, freq_mean, Hsig] = bulkstats_from_wave_spectrum(dspec.frequency, dspec.S_f);
+    %
+    dspec.peak_f = freq_peak(:);
+    dspec.mean_f = freq_mean(:);
+    dspec.Hsig = Hsig(:);
+
+    %
+    for i2 = 1 : length(dspec_method)
+
+        %
+        bulkstats_aux = bulkstats_from_wave_dirspectrum(dspec.frequency, dspec.direction_nautical, ...
+                                                        dspec.(dspec_method(i2)).D_f_theta, dspec.(dspec_method(i2)).S_f_theta, ...
+                                                        dspec.S_f);
+    
+        %
+        dspec.(dspec_method(i2)).mean_dir_f = bulkstats_aux.dir_mean_f;
+        dspec.(dspec_method(i2)).mean_spread_f = bulkstats_aux.spread_mean_f;
+        %
+        dspec.(dspec_method(i2)).mean_dir = bulkstats_aux.dir_mean(:);
+        dspec.(dspec_method(i2)).mean_spread = bulkstats_aux.spread_mean(:);
+        %
+        dspec.(dspec_method(i2)).peak_dir = bulkstats_aux.dir_peak(:);
+        dspec.(dspec_method(i2)).peak_spread = bulkstats_aux.spread_peak(:);
+    end
 
 
     %% Save directional spectra
@@ -361,7 +404,8 @@ for i = 1:length(list_Spotters)
     disp(['--- Saving reduced (averaged) spectra for ' list_Spotters{i} ' ---'])
     %
     for i2 = 1:length(dspec_method)
-        dspec = rmfield(dspec, dspec_method(i2));
+        dspec.(dspec_method(i2)) = rmfield(dspec.(dspec_method(i2)), 'S_f_theta');
+        dspec.(dspec_method(i2)) = rmfield(dspec.(dspec_method(i2)), 'D_f_theta');
     end
     %
     fname = fullfile(dir_output_level_2, [list_Spotters{i} '_dspec_reduced.mat']);

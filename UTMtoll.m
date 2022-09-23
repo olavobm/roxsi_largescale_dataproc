@@ -16,9 +16,6 @@ function [Lat, Long] = UTMtoll(UTMEasting, UTMNorthing, ZoneNumber)
 % in this function restricts it to the Northern Hemisphere.
 %
 
-%
-warning(['ORDER OF INPUTS WAS RECENTLY CHANGED (08/26/2002). MAKE SURE YOU ARE CALLING THIS FUNCTION IN THE RIGHT WAY!!!!'])
-
 
 %% Define constanst
 

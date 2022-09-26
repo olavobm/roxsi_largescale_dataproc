@@ -43,14 +43,15 @@ list_spotters = {'B01_spot1150', 'B01_spot1158', ...
 dt = 0.4;    % this is 
 
 % Bulk statistics period for which bulk
-% statistics will be computed for (in minutes)
+% statistics will be computed for (in minutes).
+% Sofar does it hourly.
 % dt_bulkstats = 30;
 dt_bulkstats = 60;
 
-% Number of points in fft
+% Parameters for bulk statistics,
+% (which match what Sofar uses!)
 nfft = 256;
-
-%
+% 
 noverlap = nfft/2;
 window = hanning(nfft);
 
@@ -64,7 +65,7 @@ spotter_dplt = spotter_dplt.dployInfo_Spotters;
 
 %%
 
-list_tablefields = ["bulkparameters", "displacement", "location", "sst"];
+list_tablefields = ["a1", "a2", "b1", "b2", "bulkparameters", "displacement", "location", "sst"];
 
 
 %%
@@ -123,12 +124,12 @@ for i = 3%1:length(list_spotters)
     %% Trim data removing data points before/after (or during) deployment/recovery
 
     %
-    data_out = data_aux;
+    data_trimmed = data_aux;
 
     %
     for i2 = 1:length(list_tablefields)
 
-        %
+        % Make sure 
         if isfield(data_aux, list_tablefields(i2))
 
             %
@@ -136,7 +137,7 @@ for i = 3%1:length(list_spotters)
                           (data_aux.(list_tablefields(i2)).time <= trim_edge_2);
     
             %
-            data_out.(list_tablefields(i2)) = data_out.(list_tablefields(i2))(lintrim_aux, :);
+            data_trimmed.(list_tablefields(i2)) = data_trimmed.(list_tablefields(i2))(lintrim_aux, :);
 
             %
             list_vars_intable_aux = data_aux.(list_tablefields(i2)).Properties.VariableNames;
@@ -151,12 +152,36 @@ for i = 3%1:length(list_spotters)
                    strcmp(list_vars_intable_aux{i3}, 'msec') || strcmp(list_vars_intable_aux{i3}, 'milisec')
     
                     %
-                    data_out.(list_tablefields(i2)) = removevars(data_out.(list_tablefields(i2)), list_vars_intable_aux{i3});
+                    data_trimmed.(list_tablefields(i2)) = removevars(data_trimmed.(list_tablefields(i2)), list_vars_intable_aux{i3});
 
                 end
             end
+        %
+        else
+            warning(['Table ' list_tablefields(i2) ' does not exist in the data for '])
+        %
+        end            
 
-        end
+    end
+
+    %%
+
+    %
+    if any(strcmp(data_trimmed.displacement.Properties.VariableNames, "x(m)"))
+        data_trimmed.displacement = renamevars(data_trimmed.displacement, ...
+                                               "x(m)", "x (m)");
+    end
+
+    %
+    if any(strcmp(data_trimmed.displacement.Properties.VariableNames, "y(m)"))
+        data_trimmed.displacement = renamevars(data_trimmed.displacement, ...
+                                               "y(m)", "y (m)");
+    end
+
+    %
+    if any(strcmp(data_trimmed.displacement.Properties.VariableNames, "z(m)"))
+        data_trimmed.displacement = renamevars(data_trimmed.displacement, ...
+                                               "z(m)", "z (m)");
     end
 
 
@@ -172,8 +197,8 @@ for i = 3%1:length(list_spotters)
     % points (where there is sufficient data at the edges). Since these
     % timestamps are very likely not "on whole hours", the appropriate
     % grid points need to be taken as the timese adjacent to these
-    first_indata = data_out.bulkparameters.time(1) + minutes(dt_bulkstats/2);
-    last_indata = data_out.bulkparameters.time(end) - minutes(dt_bulkstats/2);
+    first_indata = data_trimmed.bulkparameters.time(1) + minutes(dt_bulkstats/2);
+    last_indata = data_trimmed.bulkparameters.time(end) - minutes(dt_bulkstats/2);
 
     % Find first and last grid points that are contained in the interval
     % [first_time_indata, last_time_indata] -- a possibly too conservative
@@ -232,16 +257,28 @@ for i = 3%1:length(list_spotters)
 
     %
     time_grid_aux = first_time_gridpoint : minutes(dt_bulkstats) : last_time_gridpoint;
-    keyboard
+    
+
+    %%
+
+% %     data_out = data_trimmed;
 
     %% Recalculate Fourier coefficients and bulkparameters
     % for specified time grid points -- here we neglect that
     % the data is NOT EXACTLY on a time grid (there are only
-    % milisecond variations though, which are provided by the Spotter)
+    % milisecond variations though, which are small and provided
+    % by the Spotter)
+
+    %
+    data_out.timestats = time_grid_aux;
+    %
+    data_out.frequency = [];
+    data_out.Ezz = NaN(128, length(time_grid_aux));
 
     % Loop over grid points, get the appropriate displacement
     % data, and compute bulk statistics
     %
+    tic
     for i2 = 1:length(time_grid_aux)
 
         %
@@ -249,21 +286,70 @@ for i = 3%1:length(list_spotters)
         time_edge_grid_2 = (time_grid_aux(i2) + minutes(dt_bulkstats/2));
 
         %
-        lintime_forbulkstats = (data_out.displacement.time >= time_edge_grid_1) & ...
-                               (data_out.displacement.time < time_edge_grid_2);
+        lintime_forbulkstats = (data_trimmed.displacement.time >= time_edge_grid_1) & ...
+                               (data_trimmed.displacement.time < time_edge_grid_2);
 
         %
-        keyboard
+        x_data_aux = data_trimmed.displacement.("x (m)")(lintime_forbulkstats, :);
+        y_data_aux = data_trimmed.displacement.("y (m)")(lintime_forbulkstats, :);
+        z_data_aux = data_trimmed.displacement.("z (m)")(lintime_forbulkstats, :);
+
+
+        %
+        if length(x_data_aux)~=9000
+            warning(['Wrong number of data points!!! There are ' num2str(length(x_data_aux)) ' instead'])
+        end
+
+        %
+
+        %
+        [a1, a2, b1, b2, ...
+              Ezz, Hsig, T_mean, ...
+              dir_mean, spread_mean, f_peak, T_peak, dir_peak, spread_peak, ...
+              f, DoF] = ...
+                    wave_spec_fourier_displacement(x_data_aux, y_data_aux, z_data_aux, ...
+                                                   dt, nfft, noverlap, window);
+
+        % Sofar's coefficients are 0 : 0.009765625 : 1.240234375,
+        % where the first 3 are NaNs. For default parameters, there
+        % is one more (higher) frequency that comes out of
+        % wave_spec_fourier_displacement (cpsd.m creates f inside of
+        % the higher level function), but this is apparently
+        % neglected by Sofar.
+
+        % Put Spectra in output structure
+        if i2==1
+            data_out.frequency = f(1:end-1);
+        end
+        %
+        data_out.Ezz(:, i2) = Ezz(1:end-1);
+
+        % Put data in spectrum in output structure
+
+        % Put Fourier coefficients in output structure
+
+        % Put bulk statistics
+
 
     end
+    toc
 
+    %%
+
+    % Pass displacement
+    data_out.displacement = data_trimmed.displacement;
+
+    % Pass location
+    data_out.location = data_trimmed.location;
+
+    % Pass sst (if it exists)
+    if isfield(data_trimmed, "sst")
+        data_out.sst = data_trimmed.sst;
+    end
+
+    
     %
-    [a1, a2, b1, b2, ...
-          Ezz, Hsig, T_mean, ...
-          dir_mean, spread_mean, f_peak, T_peak, dir_peak, spread_peak, ...
-          f, DoF] = wave_spec_fourier_displacement(x, y, z, dt, nfft, noverlap, window);
-
-
+    keyboard
 
 
 end

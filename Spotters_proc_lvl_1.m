@@ -184,16 +184,20 @@ for i = 3%1:length(list_spotters)
     % statistics time grid points
     %
     % For the first grid point
-    if (first_indata.Second==0) && ((first_indata.Minute==0) || (first_indata.Minute==30))
+    if (first_indata.Second==0) && (mod(first_indata.Minute, dt_bulkstats)==0)
         % This is highly unlikely, but still possible
         first_time_gridpoint = first_indata;
     else
         
+% %         %
+% %         mins_to_next_point = mod(2*30 - first_indata.Minute, 30);
+
         %
-        mins_to_next_point = mod(2*30 - first_indata.Minute, 30);
+        mins_to_next_point = mod(60 - first_indata.Minute, dt_bulkstats);
+
         %
         if mins_to_next_point==0
-            add_minute_factor = 30;
+            add_minute_factor = dt_bulkstats;
         else
             add_minute_factor = mins_to_next_point;
         end
@@ -206,12 +210,12 @@ for i = 3%1:length(list_spotters)
     end
     %
     % For the last grid point
-    if (last_indata.Second==0) && ((last_indata.Minute==0) || (last_indata.Minute==30))
+    if (last_indata.Second==0) && (mod(last_indata.Minute, dt_bulkstats)==0)
         last_time_gridpoint = last_indata;
     else
         
         %
-        mins_to_previous_point = mod(last_indata.Minute - 2*30, 30);
+        mins_to_previous_point = mod(last_indata.Minute - 60, dt_bulkstats);
         %
         if mins_to_next_point==0
             minus_minute_factor = 0;
@@ -228,7 +232,7 @@ for i = 3%1:length(list_spotters)
 
     %
     time_grid_aux = first_time_gridpoint : minutes(dt_bulkstats) : last_time_gridpoint;
-
+    keyboard
 
     %% Recalculate Fourier coefficients and bulkparameters
     % for specified time grid points -- here we neglect that

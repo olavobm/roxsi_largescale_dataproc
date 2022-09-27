@@ -21,29 +21,21 @@ close all
 % See right below the dynamic definition
 % % dir_data_level_1 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
 % dir_data_parsed = '/Volumes/ROXSI_Data/LargeScale_Data_2022/RAW/Spotters/SDcards/';
- 
-% % All Spotters and Smart Moorings
-% list_Spotters = {'B01_spot1150', 'B01_spot1158', 'B03_spot1152', ...
-%               'B05_spot1153', 'X01_spot1151', 'X03_spot1157', ...
-%               'X04_spot1155', ...
-%               'E01_spot1851', 'E02_spot1859', 'E05_spot1853', ...
-%               'E07_spot1855', 'E07_spot1857', ...
-%               'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
-%               'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
-% % % All Spotters and Smart Moorings
-% % list_spotters = {'B01_spot1150', 'B01_spot1158', ...
-% %                  'B03_spot1152', 'B05_spot1153', ...
-% %                  'X01_spot1151', 'X03_spot1157', 'X04_spot1155', ...
-% %                  'E01_spot1851', 'E02_spot1859', 'E05_spot1853', ...
-% %                  'E07_spot1855', 'E07_spot1857', ...
-% %                  'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
-% %                  'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
+% All Spotters and Smart Moorings
+list_spotters = {'B01_spot1150', 'B01_spot1158', ...
+                 'B03_spot1152', 'B05_spot1153', ...
+                 'X01_spot1151', 'X03_spot1157', 'X04_spot1155', ...
+                 'E01_spot1851', 'E02_spot1859', 'E05_spot1853', ...
+                 'E07_spot1855', 'E07_spot1857', ...
+                 'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
+                 'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
+
+% % % Test on a few Spotters
 % % list_spotters = {'B01_spot1150', 'B01_spot1158', ...
 % %                  'B05_spot1153', ...
 % %                  'E02_spot1859', 'E05_spot1853'};
-list_spotters = {'E01_spot1851'};
 
 %
 dir_data_parent = "/Volumes/ROXSI_Data/LargeScale_Data_2022/RAW/";
@@ -75,9 +67,8 @@ dir_QCfig = fullfile(dir_outlvl1, 'figs_QC');
 % Sampling period (in seconds)
 dt = 0.4;    % this is 
 
-% Bulk statistics period for which bulk
-% statistics will be computed for (in minutes).
-% Sofar does it hourly.
+% Bulk statistics period for which bulk statistics will be
+% computed for (in minutes). Sofar does it hourly.
 % dt_bulkstats = 30;
 dt_bulkstats = 60;
 
@@ -106,7 +97,7 @@ list_tables_totrim = ["a1", "a2", "b1", "b2", "bulkparameters", "displacement", 
 
 %%
 % ------------------------------------------------------------
-% ------------------------------------------------------------
+% -------------------- DO DATA PROCESSING --------------------
 % ------------------------------------------------------------
 
 %%
@@ -115,13 +106,10 @@ disp(' '), disp(' ')
 disp('------------------------------ Processing data from Spotters: ------------------------------')
 list_spotters
 
-%% First plot bulk parameters for all Spotters to
-% check trimming edges
 
 %%
 
-
-%
+% Loop over Spotters
 for i = 1:length(list_spotters)
 
     %
@@ -135,7 +123,7 @@ for i = 1:length(list_spotters)
     %
     ind_match = find(strncmp(spotter_dplt.SN, list_spotters{i}(9:12), 4));
     
-    %%
+    %% A basic plot of Sofar's significant height
     %
     figure
         plot(data_aux.bulkparameters.time, ...
@@ -211,7 +199,7 @@ for i = 1:length(list_spotters)
 
     end
 
-    %%
+    %% Rename table variables for consistency
 
     %
     if any(strcmp(data_trimmed.displacement.Properties.VariableNames, "x(m)"))
@@ -432,9 +420,6 @@ for i = 1:length(list_spotters)
         first_time_gridpoint = first_indata;
     else
         
-% %         %
-% %         mins_to_next_point = mod(2*30 - first_indata.Minute, 30);
-
         %
         mins_to_next_point = mod(60 - first_indata.Minute, dt_bulkstats);
 
@@ -513,10 +498,6 @@ for i = 1:length(list_spotters)
     %
     data_out.frequency = [];
     data_out.Ezz = prealloc_aux;
-    %
-% %     data_out.df = prealloc_aux;
-% %     data_out.nfft = prealloc_aux;
-% %     data_out.dof = prealloc_aux;
 
     %
     a1_matrix_dummy = prealloc_aux;
@@ -594,7 +575,7 @@ for i = 1:length(list_spotters)
     toc
     
 
-    %%
+    %% Convert arrays to tables
 
     %
     data_out.a1 = array2table(a1_matrix_dummy);

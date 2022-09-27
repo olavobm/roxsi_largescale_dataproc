@@ -5,6 +5,11 @@
 %   - May recompute a1, a2, b1, and b2.
 %   - Output in better format
 %
+% The RAW *.mat files were created by the script read_spotter_ROXSI.m,
+% that you can find in the RAW data folder. It's read_spotter_ROXSI.m
+% that converts time in UTC recorded by the Spotter to local time
+% (-7 hours).
+
 
 clear
 close all
@@ -72,6 +77,11 @@ list_tablefields = ["a1", "a2", "b1", "b2", "bulkparameters", "displacement", "l
 % ------------------------------------------------------------
 % ------------------------------------------------------------
 
+%%
+
+disp(' '), disp(' ')
+disp('------------------------------ Processing data from Spotters: ------------------------------')
+list_spotters
 
 %% First plot bulk parameters for all Spotters to
 % check trimming edges
@@ -80,16 +90,15 @@ list_tablefields = ["a1", "a2", "b1", "b2", "bulkparameters", "displacement", "l
 
 
 %
-for i = 3%1:length(list_spotters)
+for i = 1:length(list_spotters)
 
     %
     disp(' '), disp(' ')
-    disp(['----- Processing data from Spotter ' list_spotters{i} ' -----'])
+    disp(['----- Loading data from Spotter ' list_spotters{i} ' -----'])
 
     %%
     data_aux = load(fullfile(dir_data_parsed, list_spotters{i}, 'parsed', [list_spotters{i} '.mat']));
     data_aux = data_aux.s;
-
 
     %
     ind_match = find(strncmp(spotter_dplt.SN, list_spotters{i}(9:12), 4));
@@ -125,6 +134,10 @@ for i = 3%1:length(list_spotters)
 
 
     %% Trim data removing data points before/after (or during) deployment/recovery
+
+    %
+    disp(' '), disp(' ')
+    disp(['----- Trimming data from Spotter ' list_spotters{i} ' -----'])
 
     %
     data_trimmed = data_aux;
@@ -190,6 +203,22 @@ for i = 3%1:length(list_spotters)
 
     %% Interpolate short (3s) gaps? deal with longer gaps?
 
+
+    %
+    figure
+        %
+        plot(data_trimmed.displacement.time(1:end-1), diff(data_trimmed.displacement.time))
+
+        %
+        grid on
+        set(gca, 'FontSize', 16)
+        %
+        set(gcf, 'Units', 'normalized')
+        set(gcf, 'Position', [0.26, 0.35, 0.4, 0.2632])
+       
+        %
+        title([list_spotters{i}(1:3) '-' list_spotters{i}(9:12)], 'FontSize', 18)
+continue
 
     
     %% Define time grid to calculate bulk statistics for the
@@ -286,6 +315,9 @@ for i = 3%1:length(list_spotters)
     % the data is NOT EXACTLY on a time grid (there are only
     % milisecond variations though, which are small and provided
     % by the Spotter)
+
+    %
+    disp(['----- Recalculating bulk statistics for Spotter ' list_spotters{i} ' -----'])
 
     %
     prealloc_aux = NaN(length(time_grid_aux), 128);
@@ -461,9 +493,23 @@ for i = 3%1:length(list_spotters)
         data_out.sst = data_trimmed.sst;
     end
 
-   
 
+    %% Add timezones to datetime variables
+
+    %
+    data_out.timestats.TimeZone = 'America/Los_Angeles';
+    data_out.displacement.time.TimeZone = 'America/Los_Angeles';
+    data_out.location.time.TimeZone = 'America/Los_Angeles';
+    data_out.sst.time.TimeZone = 'America/Los_Angeles';
+
+    %% Save the data
+
+    %
+    disp(['----- Saving level 1 data from Spotter ' list_spotters{i} ' at:-----'])
+
+    
 end
+
 
 
 %%

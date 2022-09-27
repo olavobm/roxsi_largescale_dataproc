@@ -392,7 +392,7 @@ for i = 1:length(list_spotters)
         set(hfig_aux, 'Position', [0.4227, 0.2632, 0.3773, 0.4063])
        
     %
-    exportgraphics(hfig_aux, fullfile(dir_QCfig, ['difftime_displacement_data_' list_spotters{i} '.png']), 'Resolution', 300)
+    exportgraphics(hfig_aux, fullfile(dir_QCfig, [list_spotters{i} '_difftime_displacement_data.png']), 'Resolution', 300)
 
 
     % Copy interpolated data to the data structure and keep
@@ -613,7 +613,7 @@ for i = 1:length(list_spotters)
                            "Mean Direction", "Peak Direction", "Mean Spreading", "Peak Spreading"]);
                
 
-    %% Rename variables to be consistent with sofar
+    %% Rename variables to be consistent with Sofar
 
     % 9 decimal points is the maximum nonzero number of nonzero digits
     names_frequency_char = num2str(f, '%.10f');    % First convert to char -- it's a matrix!
@@ -647,12 +647,6 @@ for i = 1:length(list_spotters)
                 %
                 names_frequency_string(i2) = ...
                                 convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(ind_first_final_0) - 1)));
-
-                
-% %                 %
-% %                 if any(diff_inds_0 > 1)
-% %                     names_frequency_string(i2) = convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(end)-1)));
-% %                 end
                 
             end
             
@@ -725,8 +719,8 @@ for i = 1:length(list_spotters)
                         mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
                         'Data in the Level 1 structure has been trimmed for the deployment ' ...
                         'period, which is defined in the table at ' file_spotter_deployment '. ' ...
-                        'Ezz is surface (vertical) elevation spectra (in m2/Hz) and was ' ...
-                        'as analogous as possible to Sofar''s calculations. These ' ...
+                        'Ezz is surface vertical displacement spectra (in m2/Hz) and was ' ...
+                        'computed as analogous as possible to Sofar''s calculations. These ' ...
                         'spectra, and all corresponding statistics, are calculated from ' ...
                         'data centered at timestamps in the field timestats. Statistics are ' ...
                         'calculated at temporal resolution dtstats in hours, with DOF '...
@@ -741,26 +735,40 @@ for i = 1:length(list_spotters)
     %
     hfig_aux = figure;
         %
-        haxs_1 = axes('Position', [0.15, 0.775, 0.7, 0.125]);
-        haxs_2 = axes('Position', [0.15, 0.550, 0.7, 0.125]);
-        haxs_3 = axes('Position', [0.15, 0.325, 0.7, 0.125]);
-        haxs_4 = axes('Position', [0.15, 0.100, 0.7, 0.125]);
+        haxs_1 = axes('Position', [0.15, 0.7, 0.7, 0.15]);
+        haxs_2 = axes('Position', [0.15, 0.5, 0.7, 0.15]);
+        haxs_3 = axes('Position', [0.15, 0.3, 0.7, 0.15]);
+        haxs_4 = axes('Position', [0.15, 0.1, 0.7, 0.15]);
         %
         haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
         %
-% %         hold(haxs_all, 'on')
+        hold(haxs_all, 'on')
 
             %
-%             data_aux.displacement.("z(m)")
-            plot(haxs_1, data_trimmed.displacement.time(1:end-1), ...
-                         24*3600*datenum(diff(data_trimmed.displacement.time)))
+            time_raw_displacement = data_aux.displacement.time;
+            time_raw_displacement.TimeZone = spotterL1.timestats.TimeZone;
             %
-%             data_aux.bulkparameters.("Significant Wave Height ")
-            plot(haxs_2, spotterL1.timestats, spotterL1.bulkparameters.("Significant Wave Height "))
+            time_raw_stats = data_aux.bulkparameters.time;
+            time_raw_stats.TimeZone = spotterL1.timestats.TimeZone;
+
+            % Plot vertical displacement
+            if any(strcmp(data_aux.displacement.Properties.VariableNames, "z(m)"))
+                field_z_aux = "z(m)";
+            else
+                field_z_aux = "z (m)";
+            end
+            plot(haxs_1, time_raw, data_aux.displacement.(field_z_aux))
             
-            %
-            plot(haxs_3, spotterL1.timestats, spotterL1.bulkparameters.("Mean Period"))
-            plot(haxs_4, spotterL1.timestats, spotterL1.bulkparameters.("Mean Direction"))
+            % Plot significant wave hieght
+            plot(haxs_2, time_raw_stats, data_aux.bulkparameters.("Significant Wave Height"), '.-')
+            plot(haxs_2, spotterL1.timestats, spotterL1.bulkparameters.("Significant Wave Height"), '.-k')
+            
+            % Plot mean period
+            plot(haxs_3, time_raw_stats, data_aux.bulkparameters.("Mean Period"), '.-')
+            plot(haxs_3, spotterL1.timestats, spotterL1.bulkparameters.("Mean Period"), '.-k')
+            % Plot mean direction
+            plot(haxs_4, time_raw_stats, data_aux.bulkparameters.("Mean Direction"), '.-')
+            plot(haxs_4, spotterL1.timestats, spotterL1.bulkparameters.("Mean Direction"), '.-k')
 
         %
         time_trim_1 = trim_edge_1;
@@ -769,14 +777,30 @@ for i = 1:length(list_spotters)
         time_trim_1.TimeZone = spotterL1.timestats.TimeZone;
         time_trim_2.TimeZone = spotterL1.timestats.TimeZone;
         %
-        time_lims_plt = [time_trim_1, time_trim_2] + [-hours(6); +hours(6)];
+        time_lims_plt = [time_trim_1; time_trim_2] + [-hours(24); +hours(24)];
 
         %
         set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
                       'XGrid', 'on', 'YGrid', 'on', ...
                       'XLim', time_lims_plt);
-% %         linkaxes(haxs_all, 'x')
+        set(haxs_all(1:end-1), 'XTickLabel', [])
+        % Set ylims of plots 2-4
+        set(haxs_all(2), 'YLim', [0, 1.1*max(spotterL1.bulkparameters.("Significant Wave Height"))])
+        set(haxs_all(3), 'YLim', [min(spotterL1.bulkparameters.("Mean Period")), max(spotterL1.bulkparameters.("Mean Period"))])
+        set(haxs_all(4), 'YLim', [min(spotterL1.bulkparameters.("Mean Direction")), max(spotterL1.bulkparameters.("Mean Direction"))])
+        %
+        linkaxes(haxs_all, 'x')
 
+        % Plot trimming edges with dashed lines
+        for i2 = 1:length(haxs_all)
+            %
+            ylims_aux = get(haxs_all(i2), 'YLim');
+            %
+            plot(haxs_all(i2), [time_trim_1, time_trim_1], ylims_aux, '--r')
+            plot(haxs_all(i2), [time_trim_2, time_trim_2], ylims_aux, '--r')
+            %
+            set(haxs_all(i2), 'YLim', ylims_aux)
+        end
 
 
         %
@@ -785,17 +809,20 @@ for i = 1:length(list_spotters)
         ylabel(haxs_3, '[seconds]', 'Interpreter', 'Latex', 'FontSize', 18)
         ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 18)
         %
-        title(haxs_1, ['ROXSI 2022: Spotter ' list_spotters{i}(1:3) ...
-                       ' SN ' list_spotters{i}(9:12) '. Vertical ' ...
-                       'elevation, Hsig, mean period, and mean direction.']         , ...
+        title(haxs_1, {['ROXSI 2022: Spotter ' list_spotters{i}(1:3) ...
+                       ' SN ' list_spotters{i}(9:12) ''];['Vertical ' ...
+                       'displacement, $H$sig, mean period, and mean direction']; ...
+                       '(processed data in black)'}, ...
                        'Interpreter', 'Latex', 'FontSize', 18)
        
         %
         set(hfig_aux, 'Units', 'normalized')
-        set(hfig_aux, 'Position', [0.4227, 0.2632, 0.3773, 0.4063])
-       
-% % %     %
-% % %     exportgraphics(hfig_aux, fullfile(dir_QCfig, ['difftime_displacement_data_' list_spotters{i} '.png']), 'Resolution', 300)
+        set(hfig_aux, 'Position', [0.5023, 0.0778, 0.2844, 0.3917])
+
+    %
+    disp(['----- Save level 1 data plot at -----'])
+    dir_QCfig
+    exportgraphics(hfig_aux, fullfile(dir_QCfig, [list_spotters{i} '_spotter_L1_data.png']), 'Resolution', 300)
 
 
 

@@ -56,7 +56,6 @@ noverlap = nfft/2;
 window = hanning(nfft);
 
 
-
 %%
 
 spotter_dplt = load(fullfile(repo_dirpath(), 'deploymentInfo_Spotters_ROXSI2022.mat'));
@@ -82,6 +81,10 @@ list_tablefields = ["a1", "a2", "b1", "b2", "bulkparameters", "displacement", "l
 
 %
 for i = 3%1:length(list_spotters)
+
+    %
+    disp(' '), disp(' ')
+    disp(['----- Processing data from Spotter ' list_spotters{i} ' -----'])
 
     %%
     data_aux = load(fullfile(dir_data_parsed, list_spotters{i}, 'parsed', [list_spotters{i} '.mat']));
@@ -258,22 +261,52 @@ for i = 3%1:length(list_spotters)
     %
     time_grid_aux = first_time_gridpoint : minutes(dt_bulkstats) : last_time_gridpoint;
     
+    %% Dummy (short) time grid just to test the code
+    %
+% % %     time_grid_aux = datetime(2022, 07, 01, 0, 0, 0) : hours(1) : datetime(2022, 07, 03, 0, 0, 0);
+
+
+% % %     % To match B03 time grid on the minutes for a more apples-to-apples
+% % %     % comparison
+% % %     time_grid_aux = time_grid_aux - minutes(15);
+% % %     time_grid_aux = time_grid_aux(2:end);
+% % % 
+% % %     % To match with Sofar's bulk statistics, which
+% % %     % are calculated from the preceding (1 h) data
+% % %     % before the timestamp
+% % %     time_grid_aux = time_grid_aux - minutes(30);
+% % %     time_grid_aux = time_grid_aux(2:end);
 
     %%
 
 % %     data_out = data_trimmed;
 
-    %% Recalculate Fourier coefficients and bulkparameters
+    %% Recalculate Fourier coefficients and bulk parameters
     % for specified time grid points -- here we neglect that
     % the data is NOT EXACTLY on a time grid (there are only
     % milisecond variations though, which are small and provided
     % by the Spotter)
 
     %
-    data_out.timestats = time_grid_aux;
+    prealloc_aux = NaN(length(time_grid_aux), 128);
+
+    %
+    data_out.timestats = time_grid_aux(:);
     %
     data_out.frequency = [];
-    data_out.Ezz = NaN(128, length(time_grid_aux));
+    data_out.Ezz = prealloc_aux;
+    %
+% %     data_out.df = prealloc_aux;
+% %     data_out.nfft = prealloc_aux;
+% %     data_out.dof = prealloc_aux;
+
+    %
+    a1_matrix_dummy = prealloc_aux;
+    a2_matrix_dummy = prealloc_aux;
+    b1_matrix_dummy = prealloc_aux;
+    b2_matrix_dummy = prealloc_aux;
+    %
+    bulkpars_matrix_dummy = NaN(length(time_grid_aux), 7);
 
     % Loop over grid points, get the appropriate displacement
     % data, and compute bulk statistics
@@ -308,9 +341,9 @@ for i = 3%1:length(list_spotters)
               dir_mean, spread_mean, f_peak, T_peak, dir_peak, spread_peak, ...
               f, DoF] = ...
                     wave_spec_fourier_displacement(x_data_aux, y_data_aux, z_data_aux, ...
-                                                   dt, nfft, noverlap, window);
+                                                   dt, nfft, noverlap, window, [0.029, 1.245]);
 
-        % Sofar's coefficients are 0 : 0.009765625 : 1.240234375,
+        % Sofar's frequencies for coefficients are 0 : 0.009765625 : 1.240234375,
         % where the first 3 are NaNs. For default parameters, there
         % is one more (higher) frequency that comes out of
         % wave_spec_fourier_displacement (cpsd.m creates f inside of
@@ -322,19 +355,100 @@ for i = 3%1:length(list_spotters)
             data_out.frequency = f(1:end-1);
         end
         %
-        data_out.Ezz(:, i2) = Ezz(1:end-1);
-
-        % Put data in spectrum in output structure
+        data_out.Ezz(i2, 4:end) = Ezz(4:end-1);
 
         % Put Fourier coefficients in output structure
-
+        a1_matrix_dummy(i2, 4:end) = a1(4:end-1);    % starts at 4 (frequencies higher than 0.029 Hz) because that's what Sofar does.
+        a2_matrix_dummy(i2, 4:end) = a2(4:end-1);
+        b1_matrix_dummy(i2, 4:end) = b1(4:end-1);
+        b2_matrix_dummy(i2, 4:end) = b2(4:end-1);
+        
         % Put bulk statistics
-
-
+        bulkpars_matrix_dummy(i2, :) = [Hsig, T_mean, T_peak, ...
+                                              dir_mean, dir_peak, ...
+                                              spread_mean, spread_peak];
+        
     end
     toc
+    
 
     %%
+
+    %
+    data_out.a1 = array2table(a1_matrix_dummy);
+    data_out.a2 = array2table(a2_matrix_dummy);
+    data_out.b1 = array2table(b1_matrix_dummy);
+    data_out.b2 = array2table(b2_matrix_dummy);
+
+    %
+%     data_out.bulkparameters = array2table([time_grid_aux(:), bulkpars_matrix_dummy]);    % this would be Sofar's format 
+    data_out.bulkparameters = array2table(bulkpars_matrix_dummy);
+
+    % Rename variables in the table of bulk parameters
+    data_out.bulkparameters = renamevars(data_out.bulkparameters, ...
+                                         data_out.bulkparameters.Properties.VariableNames, ...
+                          ["Significant Wave Height", "Mean Period", "Peak Period", ...
+                           "Mean Direction", "Peak Direction", "Mean Spreading", "Peak Spreading"]);
+               
+
+    %% Rename variables to be consistent with sofar
+
+    % 9 decimal points is the maximum nonzero number of nonzero digits
+    names_frequency_char = num2str(f, '%.10f');    % First convert to char -- it's a matrix!
+    %
+    names_frequency_string = strings(1, length(data_out.frequency));    
+
+    %
+    for i2 = 1:length(data_out.frequency)
+        % First deal with 0 frequency
+        if strcmp(names_frequency_char(i2, :), num2str(0, '%.10f'))
+            names_frequency_string(i2) = "0.0";
+        %
+        else
+            %
+            inds_loc_0 = strfind(names_frequency_char(i2, :), '0');
+            %
+            if length(inds_loc_0)==1
+                names_frequency_string(i2) = convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(end)-1)));
+            else
+
+                %
+                diff_inds_0 = diff(inds_loc_0);
+                %
+                ind_first_final_0 = find(diff_inds_0 > 1, 1, 'last') + 1;
+
+                %
+                if isempty(ind_first_final_0)
+                    ind_first_final_0 = 1;
+                end
+
+                %
+                names_frequency_string(i2) = ...
+                                convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(ind_first_final_0) - 1)));
+
+                
+% %                 %
+% %                 if any(diff_inds_0 > 1)
+% %                     names_frequency_string(i2) = convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(end)-1)));
+% %                 end
+                
+            end
+            
+            
+        end
+    end
+
+    % Rename variables in the tables of coeffcients
+    data_out.a1 = renamevars(data_out.a1, data_out.a1.Properties.VariableNames, names_frequency_string);
+    data_out.a2 = renamevars(data_out.a2, data_out.a2.Properties.VariableNames, names_frequency_string);
+    data_out.b1 = renamevars(data_out.b1, data_out.b1.Properties.VariableNames, names_frequency_string);
+    data_out.b2 = renamevars(data_out.b2, data_out.b2.Properties.VariableNames, names_frequency_string);
+
+
+    %% PROBABLY NOT SUPER USEFUL, BUT IT MIGHT BE GOOD TO HAVE
+    % THE HOURLY AVERAGE LOCATION TO GO ALONG WITH THE BULK STATISTICS
+    
+    %% Pass other tables to output structure
 
     % Pass displacement
     data_out.displacement = data_trimmed.displacement;
@@ -347,10 +461,7 @@ for i = 3%1:length(list_spotters)
         data_out.sst = data_trimmed.sst;
     end
 
-    
-    %
-    keyboard
-
+   
 
 end
 

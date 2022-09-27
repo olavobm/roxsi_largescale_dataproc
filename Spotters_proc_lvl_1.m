@@ -15,13 +15,12 @@ clear
 close all
 
 
-%%
+%% Directory of the RAW data and list of Spotters
+% that will be processed
 
-
-%
-% dir_data_level_1 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
-dir_data_parsed = '/Volumes/ROXSI_Data/LargeScale_Data_2022/RAW/Spotters/SDcards/';
-
+% See right below the dynamic definition
+% % dir_data_level_1 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+% dir_data_parsed = '/Volumes/ROXSI_Data/LargeScale_Data_2022/RAW/Spotters/SDcards/';
  
 % % All Spotters and Smart Moorings
 % list_Spotters = {'B01_spot1150', 'B01_spot1158', 'B03_spot1152', ...
@@ -32,17 +31,46 @@ dir_data_parsed = '/Volumes/ROXSI_Data/LargeScale_Data_2022/RAW/Spotters/SDcards
 %               'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
 %               'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
-% All Spotters and Smart Moorings
-list_spotters = {'B01_spot1150', 'B01_spot1158', ...
-                 'B03_spot1152', 'B05_spot1153', ...
-                 'X01_spot1151', 'X03_spot1157', 'X04_spot1155', ...
-                 'E01_spot1851', 'E02_spot1859', 'E05_spot1853', ...
-                 'E07_spot1855', 'E07_spot1857', ...
-                 'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
-                 'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
+% % % All Spotters and Smart Moorings
+% % list_spotters = {'B01_spot1150', 'B01_spot1158', ...
+% %                  'B03_spot1152', 'B05_spot1153', ...
+% %                  'X01_spot1151', 'X03_spot1157', 'X04_spot1155', ...
+% %                  'E01_spot1851', 'E02_spot1859', 'E05_spot1853', ...
+% %                  'E07_spot1855', 'E07_spot1857', ...
+% %                  'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
+% %                  'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
+
+% % list_spotters = {'B01_spot1150', 'B01_spot1158', ...
+% %                  'B05_spot1153', ...
+% %                  'E02_spot1859', 'E05_spot1853'};
+list_spotters = {'E01_spot1851'};
+
+%
+dir_data_parent = "/Volumes/ROXSI_Data/LargeScale_Data_2022/RAW/";
+dir_data_parsed = strings(length(list_spotters), 1);
+%
+for i = 1:length(list_spotters)
+    %
+    if strcmp(list_spotters{i}(1), 'E')
+        dir_data_parsed(i) = fullfile(dir_data_parent, 'Spotters_Smart', 'SDcards');
+    else
+        dir_data_parsed(i) = fullfile(dir_data_parent, 'Spotters', 'SDcards');
+    end
+end
 
 
-%%
+
+%% Define output directories
+
+%
+dir_outlvl1 = "/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1_new/";
+
+%
+dir_QCfig = fullfile(dir_outlvl1, 'figs_QC');
+
+
+%% Parameters of the data and for computing bulk statistics
+% (CODE HAS NOT BEEN THOROUGHLY TESTED FOR OTHER PARAMETERS!)
 
 % Sampling period (in seconds)
 dt = 0.4;    % this is 
@@ -61,15 +89,19 @@ noverlap = nfft/2;
 window = hanning(nfft);
 
 
-%%
+%% Load Spotter deployment info.
 
-spotter_dplt = load(fullfile(repo_dirpath(), 'deploymentInfo_Spotters_ROXSI2022.mat'));
+%
+file_spotter_deployment = 'deploymentInfo_Spotters_ROXSI2022.mat';
+%
+spotter_dplt = load(fullfile(repo_dirpath(), file_spotter_deployment));
 spotter_dplt = spotter_dplt.dployInfo_Spotters;
 
 
-%%
+%% List of tables in the data
 
-list_tablefields = ["a1", "a2", "b1", "b2", "bulkparameters", "displacement", "location", "sst"];
+list_tables_totrim = ["a1", "a2", "b1", "b2", "bulkparameters", "displacement", "location", "sst"];
+
 
 
 %%
@@ -94,10 +126,10 @@ for i = 1:length(list_spotters)
 
     %
     disp(' '), disp(' ')
-    disp(['----- Loading data from Spotter ' list_spotters{i} ' -----'])
+    disp(['----------------- Loading data from Spotter ' list_spotters{i} ' -----------------'])
 
     %%
-    data_aux = load(fullfile(dir_data_parsed, list_spotters{i}, 'parsed', [list_spotters{i} '.mat']));
+    data_aux = load(fullfile(dir_data_parsed(i), list_spotters{i}, 'parsed', [list_spotters{i} '.mat']));
     data_aux = data_aux.s;
 
     %
@@ -136,27 +168,26 @@ for i = 1:length(list_spotters)
     %% Trim data removing data points before/after (or during) deployment/recovery
 
     %
-    disp(' '), disp(' ')
-    disp(['----- Trimming data from Spotter ' list_spotters{i} ' -----'])
+    disp('----- Trimming data -----')
 
     %
     data_trimmed = data_aux;
 
     %
-    for i2 = 1:length(list_tablefields)
+    for i2 = 1:length(list_tables_totrim)
 
         % Make sure 
-        if isfield(data_aux, list_tablefields(i2))
+        if isfield(data_aux, list_tables_totrim(i2))
 
             %
-            lintrim_aux = (data_aux.(list_tablefields(i2)).time >= trim_edge_1) & ...
-                          (data_aux.(list_tablefields(i2)).time <= trim_edge_2);
+            lintrim_aux = (data_aux.(list_tables_totrim(i2)).time >= trim_edge_1) & ...
+                          (data_aux.(list_tables_totrim(i2)).time <= trim_edge_2);
     
             %
-            data_trimmed.(list_tablefields(i2)) = data_trimmed.(list_tablefields(i2))(lintrim_aux, :);
+            data_trimmed.(list_tables_totrim(i2)) = data_trimmed.(list_tables_totrim(i2))(lintrim_aux, :);
 
             %
-            list_vars_intable_aux = data_aux.(list_tablefields(i2)).Properties.VariableNames;
+            list_vars_intable_aux = data_aux.(list_tables_totrim(i2)).Properties.VariableNames;
 
             %
             for i3 = 1:length(list_vars_intable_aux)
@@ -168,13 +199,13 @@ for i = 1:length(list_spotters)
                    strcmp(list_vars_intable_aux{i3}, 'msec') || strcmp(list_vars_intable_aux{i3}, 'milisec')
     
                     %
-                    data_trimmed.(list_tablefields(i2)) = removevars(data_trimmed.(list_tablefields(i2)), list_vars_intable_aux{i3});
+                    data_trimmed.(list_tables_totrim(i2)) = removevars(data_trimmed.(list_tables_totrim(i2)), list_vars_intable_aux{i3});
 
                 end
             end
         %
         else
-            warning(['Table ' list_tablefields(i2) ' does not exist in the data for '])
+            warning(['Table ' char(list_tables_totrim(i2)) ' does not exist in the data for '])
         %
         end            
 
@@ -201,24 +232,179 @@ for i = 1:length(list_spotters)
     end
 
 
-    %% Interpolate short (3s) gaps? deal with longer gaps?
+    %% Interpolate short gaps (according to a threshold set below)
 
+
+    % Now interpolate short gaps -- actually this interpolation
+    % creates timestamps with about 0.4s and linearly interpolate
+    % the displacement quantities. These short gaps are only
+    % interpolated because they shouldn't give significant errors
+    % to the bulk statistics and we don't want to lose a bulk
+    % statistics data point.
 
     %
-    figure
-        %
-        plot(data_trimmed.displacement.time(1:end-1), diff(data_trimmed.displacement.time))
+    gapTH = 5;    % in seconds
+    % Because the data is required to have about 0.4s sampling period,
+    % gaps that are not a multple of 0.4s are a problem (which I will
+    % not deal with at this point). So set another threshold to make
+    % sure that the interpolation will create timestamps that are about
+    % 0.4s apart. If beyong the TH, then gap won't be interpolated
+    % and the code blocks below will skip the computation of bulk
+    % statistics
+    departuresamplingperiodTH = 0.002;    % in seconds
+
+    %
+    difftime_aux = diff(data_trimmed.displacement.time);
+
+    % These are the indices of the data point just before the gap
+    ind_short_gaps = find((difftime_aux > seconds(0.5)) & ...
+                          (difftime_aux < seconds(gapTH)));
+    %
+    Ngaps = length(ind_short_gaps);
+    Nfixedgaps = Ngaps;
+        
+    % Loop over short gaps
+    if ~isempty(ind_short_gaps)
 
         %
-        grid on
-        set(gca, 'FontSize', 16)
+        disp(['----- ' num2str(length(ind_short_gaps)) ' short gap(s) found ' ...
+              '(<' num2str(gapTH) 's). Adding timestamps and NaN to ' ...
+              'the displacement data over these gaps. -----'])
+
         %
-        set(gcf, 'Units', 'normalized')
-        set(gcf, 'Position', [0.26, 0.35, 0.4, 0.2632])
+        dummytable.time = data_trimmed.displacement.time;
+        dummytable.x = data_trimmed.displacement.("x (m)");
+        dummytable.y = data_trimmed.displacement.("y (m)");
+        dummytable.z = data_trimmed.displacement.("z (m)");
+
+        % Loop over short gaps
+        for i2 = 1:length(ind_short_gaps)
+            
+            %
+            inds_before_after_gap_aux = ind_short_gaps(i2) + [0, 1];
+            %
+            gap_in_seconds = 24*3600 * datenum(diff(dummytable.time(inds_before_after_gap_aux)));
+    
+            %
+            npts_interp = (gap_in_seconds/0.4) - 1;
+    
+            % Round the number of points. If the gap is multiple,
+            % then npts_interp is already an integer. If not, the
+            % gap is not exactly a multiple of 0.4s, and the sampling
+            % period TH will check below if it is close enough
+            if abs(npts_interp - round(npts_interp))~=0
+                npts_interp = round(npts_interp);
+            end
+    
+            % Create timestamps (+2 to include the edges with the data points)
+            timestamps_in_gap = linspace(dummytable.time(inds_before_after_gap_aux(1)), ...
+                                         dummytable.time(inds_before_after_gap_aux(2)), ...
+                                         (npts_interp + 2));
+            timestamps_in_gap = timestamps_in_gap(:);
+    
+            % Check the sampling period TH, and
+            % do or don't do the interpolation
+            if abs(0.4 - (24*3600*datenum(diff(timestamps_in_gap(1:2))))) > departuresamplingperiodTH
+                %
+                warning('Short gap length is not a multiple of sampling period. Skipping interpolation.')
+                %
+                Nfixedgaps = Nfixedgaps - 1;
+            else
+    
+                %
+                x_ongap_aux = interp1(dummytable.time(inds_before_after_gap_aux), ...
+                                      dummytable.x(inds_before_after_gap_aux), ...
+                                      timestamps_in_gap);
+                %
+                y_ongap_aux = interp1(dummytable.time(inds_before_after_gap_aux), ...
+                                      dummytable.y(inds_before_after_gap_aux), ...
+                                      timestamps_in_gap);
+                %
+                z_ongap_aux = interp1(dummytable.time(inds_before_after_gap_aux), ...
+                                      dummytable.z(inds_before_after_gap_aux), ...
+                                      timestamps_in_gap);
+
+                % Insert the interpolated gap in the data
+                dummytable.time = [dummytable.time(1:inds_before_after_gap_aux(1)); timestamps_in_gap(2:end-1); dummytable.time(inds_before_after_gap_aux(2):end)];
+                dummytable.x = [dummytable.x(1:inds_before_after_gap_aux(1)); x_ongap_aux(2:end-1); dummytable.x(inds_before_after_gap_aux(2):end)];
+                dummytable.y = [dummytable.y(1:inds_before_after_gap_aux(1)); y_ongap_aux(2:end-1); dummytable.y(inds_before_after_gap_aux(2):end)];
+                dummytable.z = [dummytable.z(1:inds_before_after_gap_aux(1)); z_ongap_aux(2:end-1); dummytable.z(inds_before_after_gap_aux(2):end)];
+
+                % If there are more short gaps, then change their
+                % indices because the size of the data has just
+                % been changed
+                if i2 < length(ind_short_gaps)
+                    ind_short_gaps((i2+1):end) = ind_short_gaps((i2+1):end) + npts_interp;
+                end
+    
+            end
+            
+    
+        end
+    end
+
+
+    % First plot the diff(time) in the data and new
+    % diff(time) in case interpolation was done
+    hfig_aux = figure;
+        %
+        if ~isempty(ind_short_gaps)
+            haxs_1 = axes('Position', [0.1, 0.55, 0.8, 0.35]);
+            haxs_2 = axes('Position', [0.1, 0.10, 0.8, 0.35]);
+            %
+            haxs_all = [haxs_1, haxs_2];
+
+            %
+            plot(haxs_2, dummytable.time(1:end-1), 24*3600*datenum(diff(dummytable.time)))
+
+            %
+            title(haxs_2, ['diff(time) after interpolation over gap(s). ' ...
+                           num2str(Ngaps) ' short gaps found and ' num2str(Nfixedgaps) ' were fixed.'], ...
+                          'Interpreter', 'Latex', 'FontSize', 18)
+
+        else
+            haxs_1 = axes('Position', [0.15, 0.15, 0.7, 0.7]);
+            %
+            haxs_all = haxs_1;
+        end
+
+        %
+        plot(haxs_1, data_trimmed.displacement.time(1:end-1), ...
+                     24*3600*datenum(diff(data_trimmed.displacement.time)))
+
+        %
+        set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+                      'XGrid', 'on', 'YGrid', 'on', ...
+                      'XLim', data_trimmed.displacement.time([1, end]) + [-hours(1); +hours(1)]);
+        linkaxes(haxs_all, 'xy')
+
+        %
+        ylabel(haxs_all, '[seconds]', 'Interpreter', 'Latex', 'FontSize', 18)
+        %
+        title(haxs_1, ['diff(time) in the loaded data. ' ...
+                       'Spotter ' list_spotters{i}(1:3) ' - SN ' ...
+                       list_spotters{i}(9:12) ' (' num2str(Ngaps) ' ' ...
+                       'short gap(s) found)'], ...
+                       'Interpreter', 'Latex', 'FontSize', 18)
        
         %
-        title([list_spotters{i}(1:3) '-' list_spotters{i}(9:12)], 'FontSize', 18)
-continue
+        set(hfig_aux, 'Units', 'normalized')
+        set(hfig_aux, 'Position', [0.4227, 0.2632, 0.3773, 0.4063])
+       
+    %
+    exportgraphics(hfig_aux, fullfile(dir_QCfig, ['difftime_displacement_data_' list_spotters{i} '.png']), 'Resolution', 300)
+
+
+    % Copy interpolated data to the data structure and keep
+    % the original names
+    if ~isempty(ind_short_gaps)
+        data_trimmed.displacement = struct2table(dummytable);
+        data_trimmed.displacement = renamevars(data_trimmed.displacement, ...
+                                               data_trimmed.displacement.Properties.VariableNames, ...
+                                               ["time", "x (m)", "y (m)", "z (m)"]);
+    end
+
+
 
     
     %% Define time grid to calculate bulk statistics for the
@@ -317,8 +503,8 @@ continue
     % by the Spotter)
 
     %
-    disp(['----- Recalculating bulk statistics for Spotter ' list_spotters{i} ' -----'])
-
+    disp('----- Recalculating bulk statistics -----')
+     
     %
     prealloc_aux = NaN(length(time_grid_aux), 128);
 
@@ -340,8 +526,8 @@ continue
     %
     bulkpars_matrix_dummy = NaN(length(time_grid_aux), 7);
 
-    % Loop over grid points, get the appropriate displacement
-    % data, and compute bulk statistics
+    % Loop over time grid points, get the appropriate
+    % displacement data, and compute bulk statistics
     %
     tic
     for i2 = 1:length(time_grid_aux)
@@ -359,10 +545,14 @@ continue
         y_data_aux = data_trimmed.displacement.("y (m)")(lintime_forbulkstats, :);
         z_data_aux = data_trimmed.displacement.("z (m)")(lintime_forbulkstats, :);
 
-
         %
         if length(x_data_aux)~=9000
-            warning(['Wrong number of data points!!! There are ' num2str(length(x_data_aux)) ' instead'])
+            warning(['Wrong number of displacement data points! There ' ...
+                     'are ' num2str(length(x_data_aux)) ' instead of 9000, ' ...
+                     'which is the correct number for a sampling period of ' ...
+                     '0.4 seconds. Skipping time grid point ' datestr(time_grid_aux(i2)) ' ' ...
+                     'for spotter ' list_spotters{i}])
+
         end
 
         %
@@ -491,52 +681,146 @@ continue
     % Pass sst (if it exists)
     if isfield(data_trimmed, "sst")
         data_out.sst = data_trimmed.sst;
+        data_out.sst.time.TimeZone = 'America/Los_Angeles';
     end
 
 
-    %% Add timezones to datetime variables
+    %% Add timezones to other datetime variables
 
     %
     data_out.timestats.TimeZone = 'America/Los_Angeles';
     data_out.displacement.time.TimeZone = 'America/Los_Angeles';
     data_out.location.time.TimeZone = 'America/Los_Angeles';
-    data_out.sst.time.TimeZone = 'America/Los_Angeles';
+    
+
+    %% Change variable name and add metadata
+
+    %
+    spotterL1.mooringID = list_spotters{i}(1:3);
+    spotterL1.SN = list_spotters{i}(9:12);
+    %
+    spotterL1.dtstats = [num2str(dt_bulkstats/60) ' hour'];
+
+    %
+    list_fields_aux = fieldnames(data_out);
+
+    %
+    for i2 = 1:length(list_fields_aux)
+        %
+        spotterL1.(list_fields_aux{i2}) = data_out.(list_fields_aux{i2});
+        %
+        if strcmp(list_fields_aux{i2}, 'Ezz')
+            %
+            npts_perbulkstats = dt_bulkstats * 60/0.4;                              
+            %
+            spotterL1.DOF = 2*(2*floor(npts_perbulkstats/nfft) - 1) - 2;
+        end
+    end
+ 
+    %
+    time_dataproc = datetime('now', 'TimeZone', 'Local');
+    time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
+    %
+    spotterL1.README = ['Level 1 Spotter data from ROXSI 2022. Data processed by script ' ...
+                        mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
+                        'Data in the Level 1 structure has been trimmed for the deployment ' ...
+                        'period, which is defined in the table at ' file_spotter_deployment '. ' ...
+                        'Ezz is surface (vertical) elevation spectra (in m2/Hz) and was ' ...
+                        'as analogous as possible to Sofar''s calculations. These ' ...
+                        'spectra, and all corresponding statistics, are calculated from ' ...
+                        'data centered at timestamps in the field timestats. Statistics are ' ...
+                        'calculated at temporal resolution dtstats in hours, with DOF '...
+                        'degrees of freedom.'];
+
+
+    %% Make a plot of some of the basic variables
+    %
+    % Plot vertical displacement, significant wave height (both Sofar's
+    % and computed by this code), and mean period.
+
+    %
+    hfig_aux = figure;
+        %
+        haxs_1 = axes('Position', [0.15, 0.775, 0.7, 0.125]);
+        haxs_2 = axes('Position', [0.15, 0.550, 0.7, 0.125]);
+        haxs_3 = axes('Position', [0.15, 0.325, 0.7, 0.125]);
+        haxs_4 = axes('Position', [0.15, 0.100, 0.7, 0.125]);
+        %
+        haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
+        %
+% %         hold(haxs_all, 'on')
+
+            %
+%             data_aux.displacement.("z(m)")
+            plot(haxs_1, data_trimmed.displacement.time(1:end-1), ...
+                         24*3600*datenum(diff(data_trimmed.displacement.time)))
+            %
+%             data_aux.bulkparameters.("Significant Wave Height ")
+            plot(haxs_2, spotterL1.timestats, spotterL1.bulkparameters.("Significant Wave Height "))
+            
+            %
+            plot(haxs_3, spotterL1.timestats, spotterL1.bulkparameters.("Mean Period"))
+            plot(haxs_4, spotterL1.timestats, spotterL1.bulkparameters.("Mean Direction"))
+
+        %
+        time_trim_1 = trim_edge_1;
+        time_trim_2 = trim_edge_2;
+        %
+        time_trim_1.TimeZone = spotterL1.timestats.TimeZone;
+        time_trim_2.TimeZone = spotterL1.timestats.TimeZone;
+        %
+        time_lims_plt = [time_trim_1, time_trim_2] + [-hours(6); +hours(6)];
+
+        %
+        set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+                      'XGrid', 'on', 'YGrid', 'on', ...
+                      'XLim', time_lims_plt);
+% %         linkaxes(haxs_all, 'x')
+
+
+
+        %
+        ylabel(haxs_1, '[m]', 'Interpreter', 'Latex', 'FontSize', 18)
+        ylabel(haxs_2, '[m]', 'Interpreter', 'Latex', 'FontSize', 18)
+        ylabel(haxs_3, '[seconds]', 'Interpreter', 'Latex', 'FontSize', 18)
+        ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 18)
+        %
+        title(haxs_1, ['ROXSI 2022: Spotter ' list_spotters{i}(1:3) ...
+                       ' SN ' list_spotters{i}(9:12) '. Vertical ' ...
+                       'elevation, Hsig, mean period, and mean direction.']         , ...
+                       'Interpreter', 'Latex', 'FontSize', 18)
+       
+        %
+        set(hfig_aux, 'Units', 'normalized')
+        set(hfig_aux, 'Position', [0.4227, 0.2632, 0.3773, 0.4063])
+       
+% % %     %
+% % %     exportgraphics(hfig_aux, fullfile(dir_QCfig, ['difftime_displacement_data_' list_spotters{i} '.png']), 'Resolution', 300)
+
+
 
     %% Save the data
 
     %
-    disp(['----- Saving level 1 data from Spotter ' list_spotters{i} ' at:-----'])
+    str_filename = ['spotter_L1_' list_spotters{i}(1:3) '_' list_spotters{i}(9:12)];
+    str_fullpath_file = fullfile(dir_outlvl1, [str_filename '.mat']);
 
-    
+    %
+    disp(['----- Saving level 1 data from Spotter ' list_spotters{i} ' at:-----'])
+    str_fullpath_file
+
+    %
+    save(str_fullpath_file, 'spotterL1', '-v7.3')
+
+    %
+    disp(['----------------- Done with level 1 data processing for Spotter ' list_spotters{i} ' -----------------'])
+
+    %
+    clear spotterL1
+
+
 end
 
 
-
-%%
-    
-% %     %
-% %     figure
-% %         plot(data_aux.bulkparameters.time, ...
-% %              data_aux.bulkparameters.("Significant Wave Height"), '.-')
-% % 
-
-
-%%
-% ------------------------------------------------------------
-% ------------------------------------------------------------
-% ------------------------------------------------------------
-
-% % % % From Sofar Spotter parsing script
-% % 
-% % The first columns indicate the time (year, month etc.) and dof is the 
-% % degrees of freedom (dof) used to calculate the spectra. After 
-% % the degrees of freedom, each subsequent entry corresponds to the variance 
-% % density at the frequency indicated by the header line (E0 is the energy in
-% % the mean, E1 at the first frequency f1 etc). The Spotter records
-% % at an equidistant spectral resolution of df=0.009765625 and there are
-% % nf=128 spectral entries, given by f(j) = df * j (with 0<=j<128). Frequencies are
-% % in Hertz, and spectral entries are given in squared meters per Hz (m^2/Hz) or 
-% % are dimensionless (for the directional moments a1,a2,b1,b2).
-
-
-
+%
+disp('###################### Done with data processing for all Spotters ######################')

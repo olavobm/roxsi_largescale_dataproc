@@ -36,6 +36,7 @@ list_spotters = {'B01_spot1150', 'B01_spot1158', ...
 % % list_spotters = {'B01_spot1150', 'B01_spot1158', ...
 % %                  'B05_spot1153', ...
 % %                  'E02_spot1859', 'E05_spot1853'};
+% % list_spotters = {'B01_spot1150'};
 
 %
 dir_data_parent = "/Volumes/ROXSI_Data/LargeScale_Data_2022/RAW/";
@@ -99,6 +100,14 @@ list_tables_totrim = ["a1", "a2", "b1", "b2", "bulkparameters", "displacement", 
 % ------------------------------------------------------------
 % -------------------- DO DATA PROCESSING --------------------
 % ------------------------------------------------------------
+
+%% Initialize a log file with what is printed to the command window
+
+%
+log_file_name = ['log_Spotter_procL1_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
+%
+diary(fullfile(dir_outlvl1, log_file_name))
+
 
 %%
 
@@ -546,7 +555,7 @@ for i = 1:length(list_spotters)
                     wave_spec_fourier_displacement(x_data_aux, y_data_aux, z_data_aux, ...
                                                    dt, nfft, noverlap, window, [0.029, 1.245]);
 
-        % Sofar's frequencies for coefficients are 0 : 0.009765625 : 1.240234375,
+        % Sofar's frequencies are 0 : 0.009765625 : 1.240234375,
         % where the first 3 are NaNs. For default parameters, there
         % is one more (higher) frequency that comes out of
         % wave_spec_fourier_displacement (cpsd.m creates f inside of
@@ -566,7 +575,7 @@ for i = 1:length(list_spotters)
         b1_matrix_dummy(i2, 4:end) = b1(4:end-1);
         b2_matrix_dummy(i2, 4:end) = b2(4:end-1);
         
-        % Put bulk statistics
+        % Put bulk statistics in dummy array
         bulkpars_matrix_dummy(i2, :) = [Hsig, T_mean, T_peak, ...
                                               dir_mean, dir_peak, ...
                                               spread_mean, spread_peak];
@@ -738,7 +747,7 @@ for i = 1:length(list_spotters)
             else
                 field_z_aux = "z (m)";
             end
-            plot(haxs_1, time_raw, data_aux.displacement.(field_z_aux))
+            plot(haxs_1, time_raw_displacement, data_aux.displacement.(field_z_aux))
             
             % Plot significant wave hieght
             plot(haxs_2, time_raw_stats, data_aux.bulkparameters.("Significant Wave Height"), '.-')
@@ -832,3 +841,9 @@ end
 
 %
 disp('###################### Done with data processing for all Spotters ######################')
+
+
+% Close the log file
+diary('off');
+
+

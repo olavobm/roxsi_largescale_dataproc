@@ -101,12 +101,16 @@ list_tables_totrim = ["a1", "a2", "b1", "b2", "bulkparameters", "displacement", 
 % -------------------- DO DATA PROCESSING --------------------
 % ------------------------------------------------------------
 
-%% Initialize a log file with what is printed to the command window
+%% Initialize a log file with what is printed to the
+% command window and timer for running the whole script
 
 %
 log_file_name = ['log_Spotter_procL1_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
 %
 diary(fullfile(dir_outlvl1, log_file_name))
+
+%
+totalRunTime = tic;
 
 
 %%
@@ -842,6 +846,11 @@ end
 %
 disp('###################### Done with data processing for all Spotters ######################')
 
+%
+disp(' '), disp(' ')
+disp('*** The total time to run the data processing was:')
+%
+toc(totalRunTime)
 
 % Close the log file
 diary('off');

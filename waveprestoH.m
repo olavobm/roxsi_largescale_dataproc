@@ -1,21 +1,24 @@
-function [bottomdepth] = waveprestoH(presbottom, dtsampling, dtavg, freqcutoff)
-%% function [eta, Hmo, Tp] = WAVEPRESTOH(presbottom, dtsampling, dtavg, freqcutoff)
+function [bottomdepth] = waveprestoH(pressuredata, hi, dtsampling, dtavg, freqcutoff)
+%% function [bottomdepth] = WAVEPRESTOH(pressuredata, hi, dtsampling, dtavg, freqcutoff)
 %
 %   inputs
-%       - presbottom: timeseries (vector) of bottom pressure in dbar.
-%       - dtavg: in seconds.
-%       - dtavg: in seconds.
-%       - freqcutoff: 
+%       - pressuredata: timeseries (vector) of pressure, in dbar, and
+%                       gridded in time with constant sampling period.
+%       - hi: height of the data above the bottom (in meters
+%             and just a constant).
+%       - dtsampling: sampling period (in seconds)
+%       - dtavg: time interval (in seconds) where low frequency depth
+%                will be computed with the hydrostatic equation.
+%       - freqcutoff: high-frequency cut off (in Hz) to eliminate high
+%                     frequencies that are too small to measure and lead
+%                     to sea surface heights that blow up to infinity.
 %
 %   outputs
-%       - bottomdepth: timeseries of bottom depth, computed from
-%                      pressure data and linear wave theory.
+%       - bottomdepth: timeseries of bottom depth (in m).
 %
 %
-% eta is sea surface elevation, Hmo=significant wave hieght, Tp=peak period
-% computes wave height from pressure measurements
-% p=pressure(decibars or meters); hi =instrument height (meters)
-% dt= sampling period (seconds)
+% WAVEPRESTOH.m computes a timeseries of bottom depth from a timeseries
+% of pressure and linear wave theory. The results 
 %
 % With pressure data at 2 Hz, this code takes about 7 seconds per week
 % of data to run (in my 2015 laptop, 3.1 GHz dual-core Intel Core i7,
@@ -36,7 +39,7 @@ g = 9.8;
 %%
 
 %
-Npts = length(presbottom);
+Npts = length(pressuredata);
 
 % % % Frequency resolution
 % % df = 1/(N.*dtsampling)
@@ -105,15 +108,15 @@ Nbeforecutoff = length(find(lbelowcutoff));
 % from hydrostatic pressure
 
 % % %
-% % presbottom_butlastsegment = reshape(presbottom(ind_begin_seg(1):ind_end_seg(end-1)), Nptsavg, Navgsegments);
+% % pressuredata_butlastsegment = reshape(pressuredata(ind_begin_seg(1):ind_end_seg(end-1)), Nptsavg, Navgsegments);
 
 % All but the last segment, which likely
 % has different number of points
-pressure_reshaped = reshape(presbottom(ind_begin_seg(1):ind_end_seg(end-1)), Nptsavg, (Navgsegments-1));
+pressure_reshaped = reshape(pressuredata(ind_begin_seg(1):ind_end_seg(end-1)), Nptsavg, (Navgsegments-1));
 
 % Compute mean pressure (and include the last segment)
 mean_pressure = [mean(pressure_reshaped, 1), ...
-                 mean(presbottom(ind_begin_seg(end):end))];
+                 mean(pressuredata(ind_begin_seg(end):end))];
 
 % May or may not be integer
 centerdummy = (ind_begin_seg + ind_end_seg)./2;
@@ -163,7 +166,7 @@ toc
 %% Try ffting without a loop
 
 %
-pressure_reshaped = reshape(presbottom(ind_begin_seg(1):ind_end_seg(end-1)), Nptsavg, (Navgsegments-1));
+pressure_reshaped = reshape(pressuredata(ind_begin_seg(1):ind_end_seg(end-1)), Nptsavg, (Navgsegments-1));
 %
 pressure_meanreshaped = reshape(pressure_lowfrequency(ind_begin_seg(1):ind_end_seg(end-1)), Nptsavg, (Navgsegments-1));
 %
@@ -181,7 +184,8 @@ matrix_k_forcoefs = [NaN(1, (Navgsegments-1)); k_matrix(1:(floor((Nptsavg-1)/2))
 matrix_waterdepth = repmat(depth_lowfrequency_perseg(1:end-1), Nptsavg, 1);
 
 %
-pres2ssh = cosh(matrix_k_forcoefs .* matrix_waterdepth);
+pres2ssh = cosh(matrix_k_forcoefs .* matrix_waterdepth) .* ...
+           cosh(matrix_k_forcoefs .* hi);
 pres2ssh(isnan(pres2ssh)) = 0;
 
 %
@@ -211,115 +215,4 @@ SSH_timeseries = SSH_var_timeseries(:);
 % Add the low frequency part
 bottomdepth = SSH_timeseries + depth_lowfrequency(1:length(SSH_timeseries)).';
 
-
-%%
-
-return
-
-%%
-
-%
-for i = 1:Navgsegments
-
-    %
-    inds_sub_aux = ind_begin_seg(i):ind_end_seg(i);
-
-
-
-
-    % Compute fft
-    pressure_fft = fft(presbottom());
-
-    % Normalization factors?
-
-    % zero out high frequencies
-    
-
-    % Use transfer function to go from
-    % Fourier coefficients of pressure
-    % coefficients of SSH
-     
-    % Do inverse fft to compute timeseries
-    % of elevation
-
-    
-
-end
-
-
-
-
-
-%%
-
-
-
-
-
-
-
-%%
-return
-
-%%
-
-%
-if rem(N, 2)==0
-    pz=detrend(p);
-    P=fft(pz)/N;
-    f = ([1:1:N/2+1]' - 1) * df;
-    lo=find(f<=0.15);
-    nf = length(f)-1;
-    f_lo=f(lo);
-    
-    keyboard
-    k=wavek_test(1./f_lo(2:end),abs(h));
-    Kp=[1 cosh(k.*hi)./cosh(k.*h)];
-    Kp(lo(end)+1:nf+1)=0;
-    
-    Kp=[Kp(1:(N/2+1)) fliplr(Kp(2:(N/2)))];
-    
-    Q=P(1:end)./Kp';
-    Q=denanize(Q,0);
-    eta=real(ifft(Q)).*N;
-    
-% %     S=2.*Q(1:N/2+1).*conj(Q(1:N/2+1))./df;
-% %     sum_spec=sum(S).*df;
-% %     variance=var(eta,1);
-% %     Hmo=4.01.*sqrt(sum_spec);
-% %     [u]=find(S(3:end)==max(S(3:end)));
-% %     peak_f=f(u);
-% %     Tp=1./peak_f;
-
-else
-    %
-    pz=detrend(p);
-    P=fft(pz)/N;
-    f = ([1:1:N/2+1]'-1) * df;
-    lo=find(f<=0.15);
-    nf = length(f);
-    f_lo=f(lo);
-    k=wavek_test(1./f_lo(2:end),abs(h));
-
-    Kp=[1 cosh(k.*hi)./cosh(k.*h)];
-    Kp(lo(end)+1:nf+1)=0;
-    % keyboard
-    Kp=[Kp(1:(N/2+.5)) fliplr(Kp(2:(N/2+.5)))];
-    %keyboard
-
-    Q=P(1:end)./Kp';
-    Q=denanize(Q,0);
-    eta=real(ifft(Q)).*N;
-    
-% %     S=2.*Q(1:N/2+.5).*conj(Q(1:N/2+.5))./df;
-% %     sum_spec=sum(S).*df;
-% %     variance=var(eta,1);
-% %     Hmo=4.01.*sqrt(sum_spec);
-% %     [u]=find(S(3:end)==max(S(3:end)));
-% %     peak_f=f(u);
-% %     Tp=1./peak_f;
-end    
-
-Hmo = 1;
-Tp = 1;
 

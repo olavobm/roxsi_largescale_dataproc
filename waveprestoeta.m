@@ -67,7 +67,8 @@ for i = 1:length(frequency)
     disp_rel_atfreq0 = @(k) disp_rel(k, frequency(i));
 
     %
-    kvec(i) = fzero(disp_rel_atfreq0, [(2*pi/(5000000)), (2*pi/(1))]);
+    kvec(i) = fzero(disp_rel_atfreq0, [(2*pi/(5000)), (2*pi/(1))]);
+
 end
 
 

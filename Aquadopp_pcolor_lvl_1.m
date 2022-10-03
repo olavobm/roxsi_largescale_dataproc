@@ -120,11 +120,15 @@ fighandle = figure;
     % Plot pressure (~depth)
     for i = 1:length(haxs_all)
 
-        % Where the surface is
-        plot(haxs_all(i), aquadoppL1.dtime, aquadoppL1.pressure, '-k', 'LineWidth', 2)
+% % %         % Where the surface is
+% % %         plot(haxs_all(i), aquadoppL1.dtime, aquadoppL1.pressure, '-k', 'LineWidth', 2)
+% % % 
+% % %         % Where I should trim the data to remove sidelobe contamination
+% % %         plot(haxs_all(i), aquadoppL1.dtime, aquadoppL1.pressure - (2*aquadoppL1.binsize), '--k', 'LineWidth', 1)
 
-        % Where I should trim the data to remove sidelobe contamination
-        plot(haxs_all(i), aquadoppL1.dtime, aquadoppL1.pressure - (2*aquadoppL1.binsize), '--k', 'LineWidth', 1)
+        %
+        plot(haxs_all(i), aquadoppL1.dtime, aquadoppL1.bottomdepthfrompres, '-k', 'LineWidth', 1)
+
     end
 
 
@@ -148,6 +152,7 @@ fighandle = figure;
                   'XGrid', 'on', 'YGrid', 'on', ...
                   'YLim', [0, ceil(aquadoppL1.zhab(end))], ...
                   'Color', 0.7.*[1, 1, 1])
+    set(haxs_all, 'XLim', dtime([1, end]))
 
     % Simple fixed color limits
 % %     set([haxs_v1, haxs_v2], 'CLim', 0.2.*[-1, 1])
@@ -163,7 +168,7 @@ fighandle = figure;
     
 
     %
-    set([haxs_a1, haxs_a2, haxs_a3], 'CLim', [0, 200])
+    set([haxs_a1, haxs_a2, haxs_a3], 'CLim', [aquadoppL1.backscatterTH, 200])
 
     %
     set(gcf, 'Units', 'normalized', 'Position', [0.3, 0.3, 0.4, 0.35]);
@@ -173,10 +178,10 @@ fighandle = figure;
     %
     ylabel(haxs_all(3), 'Height above the bottom [m]', 'Interpreter', 'Latex', 'FontSize', 16)
     %
-    title(haxs_all(1), ['Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' char(aquadoppL1.SN) ': Ue, Vn, and Wup'], 'Interpreter', 'Latex', 'FontSize', 16)
-    title(haxs_all(2), ['Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' char(aquadoppL1.SN) ': a1, a2, and a3'], 'Interpreter', 'Latex', 'FontSize', 16)
+    title(haxs_all(1), ['Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' char(aquadoppL1.SN) ': Ue, Vn, and Wup (' strplt ' fields)'], 'Interpreter', 'Latex', 'FontSize', 14)
+    title(haxs_all(2), ['Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' char(aquadoppL1.SN) ': a1, a2, and a3'], 'Interpreter', 'Latex', 'FontSize', 14)
 
     % ******* Requires cmocean toolbox *******
     set(haxs_all(1:2:end), 'Colormap', cmocean('balance'))
-    set(haxs_all(2:2:end), 'Colormap', cmocean('amp'))
+% %     set(haxs_all(2:2:end), 'Colormap', cmocean('amp'))
 

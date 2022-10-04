@@ -11,14 +11,18 @@ close all
 %%
 
 %
-dir_rawdata_parent = fullfile(data_dirpath(), 'RAW', 'Aquadopp');
+% % dirparent_data = data_dirpath();
+dirparent_data = '/project/CSIDE/ROXSI/LargeScale_Data_2022/';
+%
+dir_rawdata_parent = fullfile(dirparent_data, 'RAW', 'Aquadopp');
 
 
 %%
 
 %
 % % dir_output_parent = data_dirpath();
-dir_output_parent = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/';
+% % dir_output_parent = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/';
+dir_output_parent = '/home/omarques/Documents/MATLAB/ROXSIproc_output/';
 %
 dir_output_data_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Aquadopp_Level1');
 dir_output_figs_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Aquadopp_Level1', 'qc_plots');
@@ -32,7 +36,10 @@ lsave_fig = true;
 
 % Just to be clear: file and variable have
 % the same name (though not a requirement)
-load(fullfile(repo_dirpath(), 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROXSI2022')
+% dir_coderepo = repo_dirpath();
+dir_coderepo = '/home/omarques/Documents/MATLAB/roxsi_largescale_dataproc';
+%
+load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROXSI2022')
 
 
 %% List of Aquadopps that will be processed
@@ -67,7 +74,7 @@ Naquadopps = length(list_Aquadopp);
 %% Load atmospheric pressure
 
 %
-atm_pressure = load(fullfile(data_dirpath(), 'RAW', ...
+atm_pressure = load(fullfile(dirparent_data, 'RAW', ...
                       'noaa_mry_barometric_pressure', 'atm_pressure.mat'));
 % Make correction for the spatial variability
 atm_pressure.atm_pres = atm_pressure.atm_pres - (100*0.032);    % the correction is 0.032 dbar, and atmospheric pressure is in milibar

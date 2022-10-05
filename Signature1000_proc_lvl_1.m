@@ -287,22 +287,15 @@ for i1 = 1:Nsignatures
         [listfiles_perseg, struct_timelims] = Signature1000_filesintimelims(list_Signature{i1}(5:end), time_lims_aux);
 
         % Pre-allocate in cell arrays
-        prealloc_aux = cell(1, length(listfiles_perseg));
+        prealloc_aux = cell(length(listfiles_perseg), 1);
         %
-        sig1000.vel1 = prealloc_aux;
-        sig1000.vel2 = prealloc_aux;
-        sig1000.vel3 = prealloc_aux;
-        sig1000.vel3 = prealloc_aux;
-        %
-        sig1000.amp1 = prealloc_aux;
-        sig1000.amp2 = prealloc_aux;
-        sig1000.amp3 = prealloc_aux;
-        sig1000.amp4 = prealloc_aux;
-        %
-        sig1000.corr1 = prealloc_aux;
-        sig1000.corr2 = prealloc_aux;
-        sig1000.corr3 = prealloc_aux;
-        sig1000.corr4 = prealloc_aux;
+        list_beam_vars = {'vel1', 'vel2', 'vel3', 'vel4', ...
+                          'amp1', 'amp2', 'amp3', 'amp4', ...
+                          'corr1', 'corr2', 'corr3', 'corr4'};
+        % Loop over variables
+        for i3 = 1:length(list_beam_vars)
+            sig1000.(list_beam_vars{i3}) = prealloc_aux;
+        end
 
         % Load over all files with data in the i2'th segment
         for i3 = 1:length(listfiles_perseg)
@@ -327,13 +320,22 @@ for i1 = 1:Nsignatures
             sig1000.amp3{i2} = dataread_aux.Data.Burst_AmpBeam3(:, lin_verticalrange);
             sig1000.amp4{i2} = dataread_aux.Data.Burst_AmpBeam4(:, lin_verticalrange);
             %
-            sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(:, lin_verticalrange);
-            sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(:, lin_verticalrange);
-            sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(:, lin_verticalrange);
-            sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(:, lin_verticalrange);
+            if any(strcmp(list_beam_vars, 'corr1'))
+                sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(:, lin_verticalrange);
+                sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(:, lin_verticalrange);
+                sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(:, lin_verticalrange);
+                sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(:, lin_verticalrange);
+            end
             
         end
 
+
+        % Concatenate cell arrays into matrices (loop over variables)
+        for i3 = 1:length(list_cat_vars)
+            sig1000.(list_cat_vars{i3}) = cat(1, sig1000.(list_cat_vars{i3}){:});
+        end
+
+        %
         toc(totalRunTime)
         disp('---- partially done ----')
         keyboard

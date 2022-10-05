@@ -40,6 +40,38 @@ lsave_file = true;
 lsave_fig = true;
 
 
+%% Define time limits and time step for processing velocity data. Since
+% there are a lot of Signature1000, it seems appropriate to break
+% it apart in smaller chunks of time. Roughly speaking,
+% files with 1/4 of a day (6 hours) will be around 300 MB.
+%
+% Note that the pressure (and heading/tilt/pitch/temperature) are
+% still loaded for the full timeseries (for general QC) and only
+% the processing of velocity will be within these time limits.
+%
+% Note that in the definition I will use, each file will have data
+% starting and including the first time limit of each segment
+% (given by time_lims_proc) and ending just before (not including)
+% the next time limit.
+%
+% Note these time limits are "real times" -- i.e. they should be
+% compared to clock-drift-corrected timestamps.
+
+%
+time_beginend_proc = [datetime(2022, 06, 29, 00, 00, 00), ...
+                      datetime(2022, 06, 29, 12, 00, 00)];
+time_beginend_proc.TimeZone = 'America/Los_Angeles';
+
+%
+dtstep_proc = hours(6);
+
+%
+time_lims_proc = time_beginend_proc(1) : dtstep_proc : time_beginend_proc(2);
+
+%
+Ndatasegments = length(time_lims_proc) - 1;
+
+
 %% Load ADCP deployment information
 
 % Just to be clear: file and variable have
@@ -51,13 +83,13 @@ load(fullfile(repo_dirpath(), 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_R
 
 % All Signatures
 list_Signature = {'A01_103043', ...
-                 'B10_103045', ...
-                 'B13_103046', ...
-                 'B15_103056', ...
-                 'B17_101923', ...
-                 'C01_102128', ...
-                 'X05_100231', ...
-                 'X11_101941'};
+                  'B10_103045', ...
+                  'B13_103046', ...
+                  'B15_103056', ...
+                  'B17_101923', ...
+                  'C01_102128', ...
+                  'X05_100231', ...
+                  'X11_101941'};
 
 % Just a test
 % % list_Signature = {'A01_103043'};
@@ -65,6 +97,13 @@ list_Signature = {'A01_103043', ...
 %
 Nsignatures = length(list_Signature);
 
+
+%%
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
 
 %%
 % -------------------------------------
@@ -194,6 +233,127 @@ for i1 = 1:Nsignatures
     %
     sig1000.latitude = info_mooringtable.latitude;
     sig1000.longitude = info_mooringtable.longitude;
+
+
+    %% Get trimming times for the deployment period of this Signature
+
+    %
+    ind_row_match = find(strcmp(deploymentInfo_ROXSI2022.SN, list_Signature{i1}(5:end)));
+    
+    %
+    time_1 = deploymentInfo_ROXSI2022.time_begin_trim(ind_row_match);
+    time_2 = deploymentInfo_ROXSI2022.time_end_trim(ind_row_match);
+
+    %
+    time_1 = datetime(datenum(time_1, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
+    time_2 = datetime(datenum(time_2, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
+
+% %     %
+% %     lin_deployment = (senAQDP_aux.time >= time_1) & (senAQDP_aux.time <= time_2);
+
+
+
+
+    %%
+
+
+    %
+    for i2 = 1:Ndatasegments
+
+% %         % For B10 (deployed later than planned), only start
+% %         % getting the files when there is data in the deployment
+% %         if strcmp(list_Signature{i1}(1:3), 'B10')
+% %             % If the latest time stamp if before the beginning of the B10
+% %             % deployment then, skip and go to next file
+% %             if max(dataread_aux.Burst_Time) < datenum(2022, 06, 24, 07, 38, 00)    % based on trimming at 40 min mark
+% %                 %
+% %                 warning(['Skipping file ' list_dir_aux(i2).name ' because ' ...
+% %                          'the data is from before the deployment.'])
+% %                 %
+% %                 continue
+% %             end 
+% %         end
+
+
+        % If the time segment is a time that is fully outside the
+        % deployment trimming edges, than skip this time segment
+        if (time_1 > time_lims_proc(i2+1)) || (time_2 <= time_lims_proc(i2))
+            continue
+        end 
+       
+        %
+        time_lims_aux = datenum(time_lims_proc(i2:(i2+1)));
+        
+        [listfiles_perseg, struct_timelims] = Signature1000_filesintimelims(list_Signature{i1}(5:end), time_lims_aux);
+
+        % Pre-allocate in cell arrays
+        prealloc_aux = cell(1, length(listfiles_perseg));
+        %
+        sig1000.vel1 = prealloc_aux;
+        sig1000.vel2 = prealloc_aux;
+        sig1000.vel3 = prealloc_aux;
+        sig1000.vel3 = prealloc_aux;
+        %
+        sig1000.amp1 = prealloc_aux;
+        sig1000.amp2 = prealloc_aux;
+        sig1000.amp3 = prealloc_aux;
+        sig1000.amp4 = prealloc_aux;
+        %
+        sig1000.corr1 = prealloc_aux;
+        sig1000.corr2 = prealloc_aux;
+        sig1000.corr3 = prealloc_aux;
+        sig1000.corr4 = prealloc_aux;
+
+        % Load over all files with data in the i2'th segment
+        for i3 = 1:length(listfiles_perseg)
+
+            %
+            dataread_aux = load(fullfile(dir_rawdata_parent, ...
+                                         list_Signature{i1}, ...
+                                         'converted', ...
+                                         listfiles_perseg(i3)));
+
+            % Dummy/for code development
+            lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
+
+            %
+            sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(:, lin_verticalrange);
+            sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(:, lin_verticalrange);
+            sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(:, lin_verticalrange);
+            sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(:, lin_verticalrange);
+            %
+            sig1000.amp1{i2} = dataread_aux.Data.Burst_AmpBeam1(:, lin_verticalrange);
+            sig1000.amp2{i2} = dataread_aux.Data.Burst_AmpBeam2(:, lin_verticalrange);
+            sig1000.amp3{i2} = dataread_aux.Data.Burst_AmpBeam3(:, lin_verticalrange);
+            sig1000.amp4{i2} = dataread_aux.Data.Burst_AmpBeam4(:, lin_verticalrange);
+            %
+            sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(:, lin_verticalrange);
+            sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(:, lin_verticalrange);
+            sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(:, lin_verticalrange);
+            sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(:, lin_verticalrange);
+            
+        end
+
+        toc(totalRunTime)
+        disp('---- partially done ----')
+        keyboard
+
+
+        %%
+
+
+
+    end
+
+
+
+    %%
+
+    toc(totalRunTime)
+    disp('---- partially done ----')
+    keyboard
+
+
 
     %%
     % ---------------------------------------------------------------
@@ -325,22 +485,6 @@ for i1 = 1:Nsignatures
     sig1000.zhab = sig1000.zhab(lin_verticalrange);
 
 
-    %% Get trimming times for the deployment period of this Signature
-
-    %
-    ind_row_match = find(strcmp(deploymentInfo_ROXSI2022.SN, list_Signature{i1}(5:end)));
-    
-    %
-    time_1 = deploymentInfo_ROXSI2022.time_begin_trim(ind_row_match);
-    time_2 = deploymentInfo_ROXSI2022.time_end_trim(ind_row_match);
-
-    %
-    time_1 = datetime(datenum(time_1, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', sig1000.dtime.TimeZone);
-    time_2 = datetime(datenum(time_2, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', sig1000.dtime.TimeZone);
-
-% %     %
-% %     lin_deployment = (senAQDP_aux.time >= time_1) & (senAQDP_aux.time <= time_2);
-
 
     %%
     % ---------------------------------------------------------------
@@ -349,70 +493,68 @@ for i1 = 1:Nsignatures
 
     %%
 
-    disp('--- Making first QC plot with timeseries of scalars ---')
-
-    %
-    fig_L1_QC_tilt = figure;
-    set(fig_L1_QC_tilt, 'units', 'normalized')
-    set(fig_L1_QC_tilt, 'Position', [0.2, 0.2, 0.4, 0.6])
-        %
-        haxs_1 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.73, 0.8, 0.17]);
-        haxs_2 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.52, 0.8, 0.17]);
-        haxs_3 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.31, 0.8, 0.17]);
-        haxs_4 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.10, 0.8, 0.17]);
-        %
-        haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
-        hold(haxs_all, 'on')
-        %
-        plot(haxs_1, sig1000.dtime, sig1000.pressure, '-k')
-        plot(haxs_2, sig1000.dtime, sig1000.heading, '-k')
-        plot(haxs_3, sig1000.dtime, sig1000.pitch, '-k')
-        plot(haxs_4, sig1000.dtime, sig1000.roll, '-k')
-
-    %
-    set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
-                  'XGrid', 'on', 'YGrid', 'on')
-    %
-    set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
-    %
-    lin_deployment = (sig1000.dtime >= time_1) & (sig1000.dtime <= time_2);
-    %
-    pres_sub_aux = sig1000.pressure(lin_deployment);
-    ylim(haxs_1, [min(pres_sub_aux), max(pres_sub_aux)])
-% %     ylim(haxs_2, [0, 360])
-    ylim(haxs_3, [-6, 6])
-    ylim(haxs_4, [-6, 6])
-
-
-    %
-    ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-    %
-    title(haxs_1, ['ROXSI 2022: Aquadopp ' char(sig1000.mooringID) ' - SN ' ...
-                   char(sig1000.SN) ': pressure, heading, pitch, and roll'], ...
-                  'Interpreter', 'Latex', 'FontSize', 20)
-    %
-    linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
-
-
-    %
-    for i2 = 1:length(haxs_all)
-        ylims_aux = ylim(haxs_all(i2));
-        %
-        plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
-        plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
-        %
-        ylim(haxs_all(i2), ylims_aux)
-    end
+% %     disp('--- Making first QC plot with timeseries of scalars ---')
+% % 
+% %     %
+% %     fig_L1_QC_tilt = figure;
+% %     set(fig_L1_QC_tilt, 'units', 'normalized')
+% %     set(fig_L1_QC_tilt, 'Position', [0.2, 0.2, 0.4, 0.6])
+% %         %
+% %         haxs_1 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.73, 0.8, 0.17]);
+% %         haxs_2 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.52, 0.8, 0.17]);
+% %         haxs_3 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.31, 0.8, 0.17]);
+% %         haxs_4 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.10, 0.8, 0.17]);
+% %         %
+% %         haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
+% %         hold(haxs_all, 'on')
+% %         %
+% %         plot(haxs_1, sig1000.dtime, sig1000.pressure, '-k')
+% %         plot(haxs_2, sig1000.dtime, sig1000.heading, '-k')
+% %         plot(haxs_3, sig1000.dtime, sig1000.pitch, '-k')
+% %         plot(haxs_4, sig1000.dtime, sig1000.roll, '-k')
+% % 
+% %     %
+% %     set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+% %                   'XGrid', 'on', 'YGrid', 'on')
+% %     %
+% %     set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
+% %     %
+% %     lin_deployment = (sig1000.dtime >= time_1) & (sig1000.dtime <= time_2);
+% %     %
+% %     pres_sub_aux = sig1000.pressure(lin_deployment);
+% %     ylim(haxs_1, [min(pres_sub_aux), max(pres_sub_aux)])
+% % % %     ylim(haxs_2, [0, 360])
+% %     ylim(haxs_3, [-6, 6])
+% %     ylim(haxs_4, [-6, 6])
+% % 
+% % 
+% %     %
+% %     ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
+% %     ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% %     ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% %     ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% %     %
+% %     title(haxs_1, ['ROXSI 2022: Aquadopp ' char(sig1000.mooringID) ' - SN ' ...
+% %                    char(sig1000.SN) ': pressure, heading, pitch, and roll'], ...
+% %                   'Interpreter', 'Latex', 'FontSize', 20)
+% %     %
+% %     linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
+% % 
+% % 
+% %     %
+% %     for i2 = 1:length(haxs_all)
+% %         ylims_aux = ylim(haxs_all(i2));
+% %         %
+% %         plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
+% %         plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
+% %         %
+% %         ylim(haxs_all(i2), ylims_aux)
+% %     end
 
 
     %%
 
-% %     toc(totalRunTime)
-% %     disp('---- partially done ----')
-% %     keyboard
+
 
     %%
     % ---------------------------------------------------------------
@@ -421,23 +563,46 @@ for i1 = 1:Nsignatures
 
     %%
 
-    % Pre-allocate in cell arrays
-    prealloc_aux = cell(1, Nfiles);
+
+
+    %%
+
+
     %
-    sig1000.vel1 = prealloc_aux;
-    sig1000.vel2 = prealloc_aux;
-    sig1000.vel3 = prealloc_aux;
-    sig1000.vel3 = prealloc_aux;
-    %
-    sig1000.amp1 = prealloc_aux;
-    sig1000.amp2 = prealloc_aux;
-    sig1000.amp3 = prealloc_aux;
-    sig1000.amp4 = prealloc_aux;
-    %
-    sig1000.corr1 = prealloc_aux;
-    sig1000.corr2 = prealloc_aux;
-    sig1000.corr3 = prealloc_aux;
-    sig1000.corr4 = prealloc_aux;
+    for i2 = 1:Ndatasegments
+
+        %
+        time_lims_aux = datenum(time_lims_proc(i2:(i2+1)));
+
+        %
+        listfiles_perseg = Signature1000_filesintimelims(list_Signature{i1}(5:end), time_lims_aux);
+
+        % Load all data in that segment
+        for i3 = 1:length(listfiles_perseg)
+
+            bla = load(fullfile(dir_rawdata_parent, ...
+                                list_Signature{i1}, ...
+                                'converted', ...
+                                listfiles_perseg(i3)));
+
+            toc(totalRunTime)
+            disp('---- partially done ----')
+            keyboard
+            
+            
+        end
+    end
+
+
+
+    %%
+
+    toc(totalRunTime)
+    disp('---- partially done ----')
+    keyboard
+
+    %%
+
 
 
     %% Start looping over files again

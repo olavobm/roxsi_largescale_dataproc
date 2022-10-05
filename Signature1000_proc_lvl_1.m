@@ -1,5 +1,15 @@
 %% Script that process ROXSI's large-scale array Signature1000
 % data from RAW to level 1.
+% 
+%
+% Signature1000 filenames have different formats
+% (which is a bit problematic), but function Signature_orderfiles.m
+% takes care of that..
+%
+% All Signatures (ADCPs) were programmed to start
+% sampling at 2022/06/21 18:00:00 (local). Signature
+% SN 103045, at B10, was only deployed later due to
+% weather conditions.
 
 clear
 close all
@@ -50,7 +60,7 @@ list_Signature = {'A01_103043', ...
                  'X11_101941'};
 
 % Just a test
-list_Signature = {'A01_103043'};
+% % list_Signature = {'A01_103043'};
 
 %
 Nsignatures = length(list_Signature);
@@ -116,6 +126,18 @@ atmpresanomaly.units = 'dbar';
 %
 totalRunTime = tic;
 
+% % 
+% % %% Fields to be deleters
+
+%%
+
+list_Data_fields = {'Burst_Time', ...
+                    'Burst_VelBeam1', 'Burst_VelBeam2', 'Burst_VelBeam3', 'Burst_VelBeam4', ...
+                    'Burst_AmpBeam1', 'Burst_AmpBeam2', 'Burst_AmpBeam3', 'Burst_AmpBeam4', ...
+                    'Burst_Heading', 'Burst_Pitch', 'Burst_Roll', ...
+                    'Burst_Temperature', 'Burst_Pressure'};
+
+
 %% Display on the screen:
 
 %
@@ -129,26 +151,383 @@ end
 
 
 
-%% Process RAW Signature1000 data
-
-%
-list_senfile_vars = ["time", "heading", "pitch", "roll", "pressure", "temperature"];
-
-%
-tic
-% Loop over Aquadopps in the list
-for i = 1:Nsignatures
+% Loop over Signature1000's in the list
+for i1 = 1:Nsignatures
 
 
+    %%
+    %
+    disp(' '), disp(' ')
+    disp(['----- Start processing raw Signature1000 data: ' list_Signature{i1} ' -----'])
 
+
+    %% Get the Signature1000 files in the correct order
+
+    %
+    dir_data_aux = fullfile(dir_rawdata_parent, list_Signature{i1}, 'converted');
+    %
+    list_dir_aux = Signature_orderfiles(dir_data_aux, list_Signature{i1}(1:3));
+
+% %     % Check the first few and last files
+% % 
+% %     list_dir_aux(1).name
+% %     list_dir_aux(2).name
+% %     list_dir_aux(3).name
+% %     %
+% %     list_dir_aux(end-3).name
+% %     list_dir_aux(end-2).name
+% %     list_dir_aux(end-1).name
+% %     list_dir_aux(end).name
+
+    %
+    Nfiles = length(list_dir_aux);
+
+
+    %% First add basic metadata to structure variable
+
+    %
+    sig1000.SN = convertCharsToStrings(list_Signature{i1}(5:end));
+    sig1000.mooringID = convertCharsToStrings(list_Signature{i1}(1:3));
+
+    % Latitude/longitude
+    info_mooringtable = ROXSI_mooringlocation(sig1000.mooringID, "ADCP");
+    %
+    sig1000.latitude = info_mooringtable.latitude;
+    sig1000.longitude = info_mooringtable.longitude;
+
+    %%
+    % ---------------------------------------------------------------
+    % -------- NOW GET HEADING AND TILT AND DO FIRST QC PLOT --------
+    % ---------------------------------------------------------------
+
+    %% First get the pressure timeseries (and heading, pitch, and
+    % roll only to ???? trimming??? clock drift???
+
+    % Pre-allocate in cell arrays
+    prealloc_aux = cell(1, Nfiles);
+    %
+    sig1000.timedatenum = prealloc_aux;
+    sig1000.pressure = prealloc_aux;
+    sig1000.temperature = prealloc_aux;
+    %
+    sig1000.heading = prealloc_aux;
+    sig1000.pitch = prealloc_aux;
+    sig1000.roll = prealloc_aux;
+
+    tic
+    % Loop over files
+    for i2 = 1:Nfiles
+
+        %% Load data in file i2'th
+        %
+        dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(i2).name));
+
+        % 
+        %% Get configuration metadata when loading the first data file
+
+        if i2==1
+            sig1000.Config = dataread_aux.Config;
+        end
+
+        %% Delete variables...
+
+        %
+        dataread_aux = rmfield(dataread_aux, {'Units', 'Descriptions'});
+        %
+        list_fields_in_Data = fieldnames(dataread_aux.Data);
+        %
+        for i3 = 1:length(list_fields_in_Data)
+            %
+            if ~any(strcmp(list_fields_in_Data{i3}, list_Data_fields))
+                dataread_aux.Data = rmfield(dataread_aux.Data, list_fields_in_Data{i3});
+            end
+        end
+
+
+        %% Put time, pressure (which is already in dbar),
+        % heading, pitch, and roll in output data structure
+
+        %
+        sig1000.timedatenum{i2} = dataread_aux.Data.Burst_Time;
+        sig1000.pressure{i2} = dataread_aux.Data.Burst_Pressure;
+        sig1000.temperature{i2} = dataread_aux.Data.Burst_Temperature;
+        %
+        sig1000.heading{i2} = dataread_aux.Data.Burst_Heading;
+        sig1000.pitch{i2} = dataread_aux.Data.Burst_Pitch;
+        sig1000.roll{i2} = dataread_aux.Data.Burst_Roll;
+
+        %%
+        clear dataread_aux
+
+    end
+    
+
+    % Concatenate cell array into a long column vector
+    sig1000.timedatenum = cat(1, sig1000.timedatenum{:});
+    sig1000.pressure = cat(1, sig1000.pressure{:});
+    sig1000.temperature = cat(1, sig1000.temperature{:});
+    %
+    sig1000.heading = cat(1, sig1000.heading{:});
+    sig1000.pitch = cat(1, sig1000.pitch{:});
+    sig1000.roll = cat(1, sig1000.roll{:});
+
+
+    disp('--- Done getting timeseries of scalar variables ---')
+
+
+    %% Convert time to date time
+
+    %
+    sig1000.dtime = datetime(sig1000.timedatenum, 'ConvertFrom', 'datenum');
+    sig1000.dtime.TimeZone = 'America/Los_Angeles';
+    disp('Done converting datenum to date time')
+
+
+    %% As opposed to Aquadopps, Signatures don't have
+    % a customizable pressure offset (i.e. the measured pressure is
+    % the water pressure (+- atmospheric variability????).
+    %
+    % Apply correction due to atmospheric pressure variability.
+
+
+    %% Calculate bottom depth assuming the pressure is hydrostatic
+
+    %
+    sig1000.bottomdepthfrompres = 1e4*sig1000.pressure ./ (1030*9.8);
+
+
+    %% Construct height above the bottom of bin centers
+    % (assuming the ADCP is at the bottom)
+
+    % In meters
+    sig1000.transducerHAB = ((12.44 + 10.53)/2)/100;
+
+    % In meters
+    sig1000.binsize = sig1000.Config.Burst_CellSize;
+    
+    % Height of cell centers relative to transducer
+    cellcenter_first_bin = sig1000.Config.Burst_BlankingDistance + ...
+                                         (sig1000.Config.Burst_CellSize/2);
+    %
+    sig1000.cellcenter = cellcenter_first_bin + ...
+                        (0:1:(double(sig1000.Config.Burst_NCells) - 1)) .* sig1000.binsize;
+
+    %
+    sig1000.zhab = sig1000.transducerHAB + sig1000.cellcenter;
+
+
+    %% Find all bins that are entirely below the maximum bottom depth
+
+    %
+    lin_verticalrange = ((sig1000.zhab + (sig1000.binsize/2)) < ...
+                         max(sig1000.bottomdepthfrompres));
+    %
+    sig1000.zhab = sig1000.zhab(lin_verticalrange);
+
+
+    %% Get trimming times for the deployment period of this Signature
+
+    %
+    ind_row_match = find(strcmp(deploymentInfo_ROXSI2022.SN, list_Signature{i1}(5:end)));
+    
+    %
+    time_1 = deploymentInfo_ROXSI2022.time_begin_trim(ind_row_match);
+    time_2 = deploymentInfo_ROXSI2022.time_end_trim(ind_row_match);
+
+    %
+    time_1 = datetime(datenum(time_1, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', sig1000.dtime.TimeZone);
+    time_2 = datetime(datenum(time_2, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', sig1000.dtime.TimeZone);
+
+% %     %
+% %     lin_deployment = (senAQDP_aux.time >= time_1) & (senAQDP_aux.time <= time_2);
+
+
+    %%
+    % ---------------------------------------------------------------
+    % ------------- DO QC ON PRESSURE, HEADING, AND TILT ------------
+    % ---------------------------------------------------------------
+
+    %%
+
+    disp('--- Making first QC plot with timeseries of scalars ---')
+
+    %
+    fig_L1_QC_tilt = figure;
+    set(fig_L1_QC_tilt, 'units', 'normalized')
+    set(fig_L1_QC_tilt, 'Position', [0.2, 0.2, 0.4, 0.6])
+        %
+        haxs_1 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.73, 0.8, 0.17]);
+        haxs_2 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.52, 0.8, 0.17]);
+        haxs_3 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.31, 0.8, 0.17]);
+        haxs_4 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.10, 0.8, 0.17]);
+        %
+        haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
+        hold(haxs_all, 'on')
+        %
+        plot(haxs_1, sig1000.dtime, sig1000.pressure, '-k')
+        plot(haxs_2, sig1000.dtime, sig1000.heading, '-k')
+        plot(haxs_3, sig1000.dtime, sig1000.pitch, '-k')
+        plot(haxs_4, sig1000.dtime, sig1000.roll, '-k')
+
+    %
+    set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+                  'XGrid', 'on', 'YGrid', 'on')
+    %
+    set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
+    %
+    lin_deployment = (sig1000.dtime >= time_1) & (sig1000.dtime <= time_2);
+    %
+    pres_sub_aux = sig1000.pressure(lin_deployment);
+    ylim(haxs_1, [min(pres_sub_aux), max(pres_sub_aux)])
+% %     ylim(haxs_2, [0, 360])
+    ylim(haxs_3, [-6, 6])
+    ylim(haxs_4, [-6, 6])
+
+
+    %
+    ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+    %
+    title(haxs_1, ['ROXSI 2022: Aquadopp ' char(sig1000.mooringID) ' - SN ' ...
+                   char(sig1000.SN) ': pressure, heading, pitch, and roll'], ...
+                  'Interpreter', 'Latex', 'FontSize', 20)
+    %
+    linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
+
+
+    %
+    for i2 = 1:length(haxs_all)
+        ylims_aux = ylim(haxs_all(i2));
+        %
+        plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
+        plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
+        %
+        ylim(haxs_all(i2), ylims_aux)
+    end
+
+
+    %%
+
+% %     toc(totalRunTime)
+% %     disp('---- partially done ----')
+% %     keyboard
+
+    %%
+    % ---------------------------------------------------------------
+    % ----------------------- NOW GET VELOCITY ----------------------
+    % ---------------------------------------------------------------
+
+    %%
+
+    % Pre-allocate in cell arrays
+    prealloc_aux = cell(1, Nfiles);
+    %
+    sig1000.vel1 = prealloc_aux;
+    sig1000.vel2 = prealloc_aux;
+    sig1000.vel3 = prealloc_aux;
+    sig1000.vel3 = prealloc_aux;
+    %
+    sig1000.amp1 = prealloc_aux;
+    sig1000.amp2 = prealloc_aux;
+    sig1000.amp3 = prealloc_aux;
+    sig1000.amp4 = prealloc_aux;
+    %
+    sig1000.corr1 = prealloc_aux;
+    sig1000.corr2 = prealloc_aux;
+    sig1000.corr3 = prealloc_aux;
+    sig1000.corr4 = prealloc_aux;
+
+
+    %% Start looping over files again
+
+    %
+    for i2 = 1:Nfiles
+
+
+        %% Load data in file i2'th
+        dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(i2).name));
+
+
+        %% Get metadata
+
+        %
+        if i2==1
+
+            %
+            sig1000.NBeams = sig1000.Config.Burst_NBeams;
+            
+            % in seconds
+            sig1000.samplingtime = 1./sig1000.Config.Burst_SamplingRate;
+
+        end
+
+
+        %% For B10 (deployed later than planned), only start
+        % getting the files when there is data in the deployment
+        if strcmp(list_Signature{i1}(1:3), 'B10')
+
+            % If the latest time stamp if before the beginning of the B10
+            % deployment then, skip and go to next file
+            if max(dataread_aux.Burst_Time) < datenum(2022, 06, 24, 07, 38, 00)    % based on trimming at 40 min mark
+                %
+                warning(['Skipping file ' list_dir_aux(i2).name ' because ' ...
+                         'the data is from before the deployment.'])
+                %
+                continue
+            end
+
+        end
+
+        %% First get velocity 
+        
+        %
+        sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(:, lin_verticalrange);
+        sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(:, lin_verticalrange);
+        sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(:, lin_verticalrange);
+        sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(:, lin_verticalrange);
+        %
+        sig1000.amp1{i2} = dataread_aux.Data.Burst_AmpBeam1(:, lin_verticalrange);
+        sig1000.amp2{i2} = dataread_aux.Data.Burst_AmpBeam2(:, lin_verticalrange);
+        sig1000.amp3{i2} = dataread_aux.Data.Burst_AmpBeam3(:, lin_verticalrange);
+        sig1000.amp4{i2} = dataread_aux.Data.Burst_AmpBeam4(:, lin_verticalrange);
+        %
+        sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(:, lin_verticalrange);
+        sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(:, lin_verticalrange);
+        sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(:, lin_verticalrange);
+        sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(:, lin_verticalrange);
+
+        %
+        toc(totalRunTime)
+        disp('---- partially done ----')
+        keyboard
+
+    end
+
+
+    %%
+    
+    
+    toc(totalRunTime)
+    disp('---- partially done ----')
+    keyboard
 
 
 end
 
+    %%
 
 
 
+    %% Rotate along-beam velocity to xyz components (this is a 4x4 matrix)
 
+
+    %% Rotate velocity to account for tilt (HOW TO DO THIS EFFICIENTLY?
+    % COMBINE ROTATIONS??)
+
+
+    %% Rotate horizontal velocities
 
 
 

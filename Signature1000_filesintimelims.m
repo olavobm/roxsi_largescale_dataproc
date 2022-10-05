@@ -1,4 +1,4 @@
-function list_files = Signature1000_filesintimelims(sigSN, time_lims)
+function [list_files, sigTimeSplit] = Signature1000_filesintimelims(sigSN, time_lims)
 %% list_files = SIGNATURE1000_FILESINTIMELIMS(dirfiles, time_lims)
 %
 %   inputs
@@ -7,6 +7,7 @@ function list_files = Signature1000_filesintimelims(sigSN, time_lims)
 %
 %   outputs
 %       - list_files:
+%       - sigTimeSplit: the structure variable
 %
 %
 %
@@ -47,16 +48,24 @@ end
 %%
 
 %
-lafter_begin = (sigTimeSplit.(list_fields{lmatchSN}).timelims.time_begin >= time_lims(1));
-lbefore_end = (sigTimeSplit.(list_fields{lmatchSN}).timelims.time_begin <= time_lims(2));
+lfiles_edge_1_inlims = (time_lims(1) >= sigTimeSplit.(list_fields{lmatchSN}).timelims.time_begin) & ...
+                       (time_lims(1) <  sigTimeSplit.(list_fields{lmatchSN}).timelims.time_end);
+%
+lfiles_edge_2_inlims = (time_lims(2) >= sigTimeSplit.(list_fields{lmatchSN}).timelims.time_begin) & ...
+                       (time_lims(2) <  sigTimeSplit.(list_fields{lmatchSN}).timelims.time_end);
+%
+lfiles_fully_inlims = (time_lims(1) <= sigTimeSplit.(list_fields{lmatchSN}).timelims.time_begin) & ...
+                      (time_lims(2) >  sigTimeSplit.(list_fields{lmatchSN}).timelims.time_end);
 
 %
-ind_first = find(lafter_begin, 1, 'first');
-ind_last = find(lbefore_end, 1, 'last');
+lfiles_withdata_inlims = lfiles_edge_1_inlims | lfiles_edge_2_inlims | lfiles_fully_inlims;
+
+%
+ind_first = find(lfiles_withdata_inlims, 1, 'first');
+ind_last = find(lfiles_withdata_inlims, 1, 'last');
 
 
 %%
-
 
 list_files = sigTimeSplit.(list_fields{lmatchSN}).timelims.filenames(ind_first:ind_last);
 

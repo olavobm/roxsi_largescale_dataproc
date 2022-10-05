@@ -70,7 +70,7 @@ for i1 = 1:length(list_Sig1000)
     time_end_string = strings(Nfiles, 1);
 
     % Loop over files
-    for i2 = 1:5%Nfiles
+    for i2 = 1:Nfiles
     
         %
         filenames(i2) = dirfiles(i2).name;

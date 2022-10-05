@@ -130,7 +130,7 @@ disp('------------------------------ Done with getting time limits -------------
 
 %
 disp(' '), disp(' ')
-disp('*** The total time to run the data processing was:')
+disp('*** The total time to run this script was:')
 %
 toc(totalRunTime)
 

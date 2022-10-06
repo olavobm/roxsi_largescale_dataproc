@@ -323,16 +323,16 @@ for i1 = 1:Nsignatures
     %% First get the pressure timeseries (and heading, pitch, and
     % roll only to ???? trimming??? clock drift???
 
-    % Pre-allocate in cell arrays
-    prealloc_aux = cell(1, Nfiles);
-    %
-    sig1000.timedatenum = prealloc_aux;
-    sig1000.pressure = prealloc_aux;
-    sig1000.temperature = prealloc_aux;
-    %
-    sig1000.heading = prealloc_aux;
-    sig1000.pitch = prealloc_aux;
-    sig1000.roll = prealloc_aux;
+% %     % Pre-allocate in cell arrays
+% %     prealloc_aux = cell(1, Nfiles);
+% %     %
+% %     sig1000.timedatenum = prealloc_aux;
+% %     sig1000.pressure = prealloc_aux;
+% %     sig1000.temperature = prealloc_aux;
+% %     %
+% %     sig1000.heading = prealloc_aux;
+% %     sig1000.pitch = prealloc_aux;
+% %     sig1000.roll = prealloc_aux;
 
 % %     %
 % %     disp('--- Load all scalar variables ---')
@@ -345,13 +345,6 @@ for i1 = 1:Nsignatures
 % %         %
 % %         dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(i2).name));
 % % 
-% %         % 
-% %         %% Get configuration metadata when loading the first data file
-% % 
-% %         if i2==1
-% %             sig1000.Config = dataread_aux.Config;
-% %         end
-
 % %         %% Delete variables...
 % % 
 % %         %
@@ -576,6 +569,17 @@ for i1 = 1:Nsignatures
 % % %         list_beam_vars = {'vel1', 'vel2', 'vel3', 'vel4', ...
 % % %                           'amp1', 'amp2', 'amp3', 'amp4', ...
 % % %                           'corr1', 'corr2', 'corr3', 'corr4'};
+
+        % ------------------------------------------------
+        sig1000.timedatenum = prealloc_aux;
+        sig1000.pressure = prealloc_aux;
+        sig1000.temperature = prealloc_aux;
+        %
+        sig1000.heading = prealloc_aux;
+        sig1000.pitch = prealloc_aux;
+        sig1000.roll = prealloc_aux;
+        % ------------------------------------------------
+
         %
         sig1000.timednum_fourbeams = prealloc_aux;
         %
@@ -603,8 +607,21 @@ for i1 = 1:Nsignatures
                                          'converted', ...
                                          listfiles_perseg(i3)));
 
-% %             % Dummy/for code development
-% %             lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
+            % ------------------------------------------------
+            %  Get all scalars in the same way as velocity
+            % (INSTEAD OF THE CODE HIGHER UP)
+            %
+            sig1000.timedatenum{i2} = dataread_aux.Data.Burst_Time;
+            sig1000.pressure{i2} = dataread_aux.Data.Burst_Pressure;
+            sig1000.temperature{i2} = dataread_aux.Data.Burst_Temperature;
+            %
+            sig1000.heading{i2} = dataread_aux.Data.Burst_Heading;
+            sig1000.pitch{i2} = dataread_aux.Data.Burst_Pitch;
+            sig1000.roll{i2} = dataread_aux.Data.Burst_Roll;
+            % ------------------------------------------------
+
+            % Dummy/for code development
+            lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
 
             %
             sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(:, lin_verticalrange);
@@ -640,6 +657,17 @@ for i1 = 1:Nsignatures
             end
             
         end
+
+        % ------------------------------------------------
+        % Concatenate cell array into a long column vector
+        sig1000.timedatenum = cat(1, sig1000.timedatenum{:});
+        sig1000.pressure = cat(1, sig1000.pressure{:});
+        sig1000.temperature = cat(1, sig1000.temperature{:});
+        %
+        sig1000.heading = cat(1, sig1000.heading{:});
+        sig1000.pitch = cat(1, sig1000.pitch{:});
+        sig1000.roll = cat(1, sig1000.roll{:});
+        % ------------------------------------------------
 
         % Concatenate cell arrays into matrices (loop over variables)
         for i3 = 1:length(list_beam_vars)
@@ -774,11 +802,24 @@ for i1 = 1:Nsignatures
                                           sig1000.amp5_raw(:, i2), ...
                                           sig1000.timednum_fourbeams);
         end
-        disp('Done with 5th beam interpolation. It took:') 
+        disp('Done with 5th beam interpolation.') 
         toc
     end
     
-    keyboard
+
+    %% Transpose matrices so that row dimension is along bins
+
+    %
+    list_transpose = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+                      'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
+                      'corr1', 'corr2', 'corr3', 'corr4', 'corr5'};
+
+    %
+    for i2 = 1:length(list_transpose)
+        if isfield(sig1000, list_transpose{i2})
+            sig1000.(list_transpose{i2}) = sig1000.(list_transpose{i2}).';
+        end
+    end
 
     %% Compute magnetic-ENU 3 components of velocity
     % (using library ADCPtools)
@@ -800,8 +841,12 @@ for i1 = 1:Nsignatures
         disp('Using 5 beams')
 
         %
-        [u, v, w, w5] = janus5beam2earth(head, ptch, roll, theta, ...
-                                         b1, b2, b3, b4, b5);
+        [sig1000.Ue, sig1000.Vn, ...
+         sig1000.Wup, sig1000.Wbeam5] = ...
+                janus5beam2earth((sig1000.heading - 90), ...
+                                 sig1000.roll, -sig1000.pitch, ...
+                                 -sig1000.vel1, -sig1000.vel2, ...
+                                 -sig1000.vel3, -sig1000.vel4, -sig1000.vel5);
 
     % 
     else
@@ -819,6 +864,7 @@ for i1 = 1:Nsignatures
     disp('--- Done with coordinate transformation to magnetic ENU. It took: ---')
     toc
 
+    keyboard
 
     %% NaN data at/above the ocean surface
 

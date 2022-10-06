@@ -387,57 +387,57 @@ for i1 = 1:Nsignatures
 % % %     disp('--- Done getting timeseries of scalar variables ---')
 % % % 
 % % % 
-% % %     %% Convert time to date time
-% % % 
-% % %     %
-% % %     sig1000.dtime = datetime(sig1000.timedatenum, 'ConvertFrom', 'datenum');
-% % %     sig1000.dtime.TimeZone = 'America/Los_Angeles';
-% % %     disp('Done converting datenum to date time')
-% % % 
-% % % 
-% % %     %% As opposed to Aquadopps, Signatures don't have
-% % %     % a customizable pressure offset (i.e. the measured pressure is
-% % %     % the water pressure (+- atmospheric variability????).
-% % %     %
-% % %     % Apply correction due to atmospheric pressure variability.
-% % % 
-% % % 
-% % %     %% Calculate bottom depth assuming the pressure is hydrostatic
-% % % 
-% % %     %
-% % %     sig1000.bottomdepthfrompres = 1e4*sig1000.pressure ./ (1030*9.8);
-% % % 
-% % % 
-% % %     %% Construct height above the bottom of bin centers
-% % %     % (assuming the ADCP is at the bottom)
-% % % 
-% % %     % In meters -- NEED TO CHECK/FIX THIS!!!!
-% % %     sig1000.transducerHAB = ((12.44 + 10.53)/2)/100;
-% % % 
-% % %     % In meters
-% % %     sig1000.binsize = sig1000.Config.Burst_CellSize;
-% % %     
-% % %     % Height of cell centers relative to transducer
-% % %     cellcenter_first_bin = sig1000.Config.Burst_BlankingDistance + ...
-% % %                                          (sig1000.Config.Burst_CellSize/2);
-% % %     %
-% % %     sig1000.cellcenter = cellcenter_first_bin + ...
-% % %                         (0:1:(double(sig1000.Config.Burst_NCells) - 1)) .* sig1000.binsize;
-% % % 
-% % %     %
-% % %     sig1000.zhab = sig1000.transducerHAB + sig1000.cellcenter;
-% % % 
-% % % 
-% % %     %% Find all bins that are entirely below the maximum bottom depth
-% % % 
-% % % % %     %
-% % % % %     lin_verticalrange = ((sig1000.zhab + (sig1000.binsize/2)) < ...
-% % % % %                          max(sig1000.bottomdepthfrompres));
-% % %     % Or dummy for code developing purposes
-% % %     lin_verticalrange = true(1, length(sig1000.zhab));
-% % % 
-% % %     %
-% % %     sig1000.zhab = sig1000.zhab(lin_verticalrange);
+    %% Convert time to date time
+
+    %
+% %     sig1000.dtime = datetime(sig1000.timedatenum, 'ConvertFrom', 'datenum');
+% %     sig1000.dtime.TimeZone = 'America/Los_Angeles';
+% %     disp('Done converting datenum to date time')
+
+
+    %% As opposed to Aquadopps, Signatures don't have
+    % a customizable pressure offset (i.e. the measured pressure is
+    % the water pressure (+- atmospheric variability????).
+    %
+    % Apply correction due to atmospheric pressure variability.
+
+
+    %% Calculate bottom depth assuming the pressure is hydrostatic
+
+    %
+    sig1000.bottomdepthfrompres = 1e4*sig1000.pressure ./ (1030*9.8);
+
+
+    %% Construct height above the bottom of bin centers
+    % (assuming the ADCP is at the bottom)
+
+    % In meters -- NEED TO CHECK/FIX THIS!!!!
+    sig1000.transducerHAB = ((12.44 + 10.53)/2)/100;
+
+    % In meters
+    sig1000.binsize = sig1000.Config.Burst_CellSize;
+    
+    % Height of cell centers relative to transducer
+    cellcenter_first_bin = sig1000.Config.Burst_BlankingDistance + ...
+                                         (sig1000.Config.Burst_CellSize/2);
+    %
+    sig1000.cellcenter = cellcenter_first_bin + ...
+                        (0:1:(double(sig1000.Config.Burst_NCells) - 1)) .* sig1000.binsize;
+
+    %
+    sig1000.zhab = sig1000.transducerHAB + sig1000.cellcenter;
+
+
+    %% Find all bins that are entirely below the maximum bottom depth
+
+% %     %
+% %     lin_verticalrange = ((sig1000.zhab + (sig1000.binsize/2)) < ...
+% %                          max(sig1000.bottomdepthfrompres));
+    % Or dummy for code developing purposes
+    lin_verticalrange = true(1, length(sig1000.zhab));
+
+    %
+    sig1000.zhab = sig1000.zhab(lin_verticalrange);
 % % % 
 % % % 
 % % %     %%

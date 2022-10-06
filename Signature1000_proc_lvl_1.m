@@ -308,6 +308,15 @@ for i1 = 1:Nsignatures
     % -------- NOW GET HEADING AND TILT AND DO FIRST QC PLOT --------
     % ---------------------------------------------------------------
 
+    %% Load Configuration from first file
+
+    % Just the Config structure variable
+    dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(1).name), 'Config');
+
+    %
+    sig1000.Config = dataread_aux.Config;
+    
+
     %% First get the pressure timeseries (and heading, pitch, and
     % roll only to ???? trimming??? clock drift???
 
@@ -322,71 +331,71 @@ for i1 = 1:Nsignatures
     sig1000.pitch = prealloc_aux;
     sig1000.roll = prealloc_aux;
 
-% % %     %
-% % %     disp('--- Load all scalar variables ---')
-% % % 
-% % %     tic
-% % %     % Loop over files
-% % %     for i2 = 1:Nfiles
-% % % 
-% % %         %% Load data in file i2'th
-% % %         %
-% % %         dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(i2).name));
-% % % 
-% % %         % 
-% % %         %% Get configuration metadata when loading the first data file
-% % % 
-% % %         if i2==1
-% % %             sig1000.Config = dataread_aux.Config;
-% % %         end
-% % % 
-% % %         %% Delete variables...
-% % % 
-% % %         %
-% % %         dataread_aux = rmfield(dataread_aux, {'Units', 'Descriptions'});
-% % %         %
-% % %         list_fields_in_Data = fieldnames(dataread_aux.Data);
-% % %         %
-% % %         for i3 = 1:length(list_fields_in_Data)
-% % %             %
-% % %             if ~any(strcmp(list_fields_in_Data{i3}, list_Data_fields))
-% % %                 dataread_aux.Data = rmfield(dataread_aux.Data, list_fields_in_Data{i3});
-% % %             end
-% % %         end
-% % % 
-% % % 
-% % %         %% Put time, pressure (which is already in dbar),
-% % %         % heading, pitch, and roll in output data structure
-% % % 
-% % %         %
-% % %         sig1000.timedatenum{i2} = dataread_aux.Data.Burst_Time;
-% % %         sig1000.pressure{i2} = dataread_aux.Data.Burst_Pressure;
-% % %         sig1000.temperature{i2} = dataread_aux.Data.Burst_Temperature;
-% % %         %
-% % %         sig1000.heading{i2} = dataread_aux.Data.Burst_Heading;
-% % %         sig1000.pitch{i2} = dataread_aux.Data.Burst_Pitch;
-% % %         sig1000.roll{i2} = dataread_aux.Data.Burst_Roll;
-% % % 
-% % %         %%
-% % %         clear dataread_aux
-% % % 
-% % %     end
-% % %     disp('--- Done with getting all scalar variables ---')
-% % %     toc
-% % % 
-% % %     % Concatenate cell array into a long column vector
-% % %     sig1000.timedatenum = cat(1, sig1000.timedatenum{:});
-% % %     sig1000.pressure = cat(1, sig1000.pressure{:});
-% % %     sig1000.temperature = cat(1, sig1000.temperature{:});
-% % %     %
-% % %     sig1000.heading = cat(1, sig1000.heading{:});
-% % %     sig1000.pitch = cat(1, sig1000.pitch{:});
-% % %     sig1000.roll = cat(1, sig1000.roll{:});
-% % % 
-% % % 
-% % %     disp('--- Done getting timeseries of scalar variables ---')
-% % % 
-% % % 
+% %     %
+% %     disp('--- Load all scalar variables ---')
+% % 
+% %     tic
+% %     % Loop over files
+% %     for i2 = 1:Nfiles
+
+% %         %% Load data in file i2'th
+% %         %
+% %         dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(i2).name));
+% % 
+% %         % 
+% %         %% Get configuration metadata when loading the first data file
+% % 
+% %         if i2==1
+% %             sig1000.Config = dataread_aux.Config;
+% %         end
+
+% %         %% Delete variables...
+% % 
+% %         %
+% %         dataread_aux = rmfield(dataread_aux, {'Units', 'Descriptions'});
+% %         %
+% %         list_fields_in_Data = fieldnames(dataread_aux.Data);
+% %         %
+% %         for i3 = 1:length(list_fields_in_Data)
+% %             %
+% %             if ~any(strcmp(list_fields_in_Data{i3}, list_Data_fields))
+% %                 dataread_aux.Data = rmfield(dataread_aux.Data, list_fields_in_Data{i3});
+% %             end
+% %         end
+% % 
+% % 
+% %         %% Put time, pressure (which is already in dbar),
+% %         % heading, pitch, and roll in output data structure
+% % 
+% %         %
+% %         sig1000.timedatenum{i2} = dataread_aux.Data.Burst_Time;
+% %         sig1000.pressure{i2} = dataread_aux.Data.Burst_Pressure;
+% %         sig1000.temperature{i2} = dataread_aux.Data.Burst_Temperature;
+% %         %
+% %         sig1000.heading{i2} = dataread_aux.Data.Burst_Heading;
+% %         sig1000.pitch{i2} = dataread_aux.Data.Burst_Pitch;
+% %         sig1000.roll{i2} = dataread_aux.Data.Burst_Roll;
+% % 
+% %         %%
+% %         clear dataread_aux
+% % 
+% %     end
+% %     disp('--- Done with getting all scalar variables ---')
+% %     toc
+% % 
+% %     % Concatenate cell array into a long column vector
+% %     sig1000.timedatenum = cat(1, sig1000.timedatenum{:});
+% %     sig1000.pressure = cat(1, sig1000.pressure{:});
+% %     sig1000.temperature = cat(1, sig1000.temperature{:});
+% %     %
+% %     sig1000.heading = cat(1, sig1000.heading{:});
+% %     sig1000.pitch = cat(1, sig1000.pitch{:});
+% %     sig1000.roll = cat(1, sig1000.roll{:});
+% % 
+% % 
+% %     disp('--- Done getting timeseries of scalar variables ---')
+
+
     %% Convert time to date time
 
     %
@@ -405,7 +414,7 @@ for i1 = 1:Nsignatures
     %% Calculate bottom depth assuming the pressure is hydrostatic
 
     %
-    sig1000.bottomdepthfrompres = 1e4*sig1000.pressure ./ (1030*9.8);
+    %sig1000.bottomdepthfrompres = 1e4*sig1000.pressure ./ (1030*9.8);
 
 
     %% Construct height above the bottom of bin centers

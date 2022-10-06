@@ -645,13 +645,13 @@ for i1 = 1:Nsignatures
 
         %
         time_lims_plt = get(haxs(1), 'XLim');
-        time_xticks = linspace(time_lims_plt(1), time_lims_plt(2), 4);
+        time_xticks = linspace(time_lims_plt(1), time_lims_plt(2), 3);
         %
         set(haxs, 'XTick', time_xticks)
         set(haxs(1:end-2), 'XTickLabel', [])
 
         %
-        exportgraphics(hfig_quickview, fullfile(pwd, ['sig_quickview' list_Signature{i1} '.png']), 'Resolution', 300)
+        exportgraphics(hfig_quickview, fullfile(pwd, ['sig_quickview_' list_Signature{i1} '_' num2str(i2, '%.3d') '.png']), 'Resolution', 300)
 
 
         %%

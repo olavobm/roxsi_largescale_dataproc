@@ -119,8 +119,11 @@ Nsignatures = length(list_Signature);
 %% The list of ADCPs processed with either 4 or 5 beams
 
 %
-list_4beams = {'B10', 'B13', 'B15', 'B17', 'X11'};    % B10 has 5th beam, but on HR mode (up to 4 meters above the transducer). Others did the echosounder.
-list_5beams = {'A01', 'C01', 'X05'};
+% % list_4beams = {'B10', 'B13', 'B15', 'B17', 'X11'};    % B10 has 5th beam, but on HR mode (up to 4 meters above the transducer). Others did the echosounder.
+% % list_5beams = {'A01', 'C01', 'X05'};
+%
+list_4beams = {'B10'};    % B10 has 5th beam, but on HR mode (up to 4 meters above the transducer). Others did the echosounder.
+list_5beams = {'A01', 'B13', 'B15', 'B17', 'C01', 'X05', 'X11'};
 
 % Check all of the list of Signatures is in either of the
 % lists for processing with 4 or 5 beams
@@ -701,18 +704,17 @@ for i1 = 1:Nsignatures
         set(haxs(1:end-2), 'XTickLabel', [])
 
         %
-        exportgraphics(hfig_quickview, fullfile(pwd, ['sig_quickview_' list_Signature{i1} '_' num2str(i2, '%.3d') '.png']), 'Resolution', 300)
+% %         exportgraphics(hfig_quickview, fullfile(pwd, ['sig_quickview_' list_Signature{i1} '_' num2str(i2, '%.3d') '.png']), 'Resolution', 300)
 
 
         %%
-        %
-        pause(10)
+% %         %
+% %         pause(10)
+% %         %
+% %         close(hfig_quickview)
 
-        %
-        close(hfig_quickview)
-
-        % DEBUGGING / QUICK PLOTS -- remove variables from previous loop
-        sig1000 = rmfield(sig1000, list_beam_vars);
+% %         % DEBUGGING / QUICK PLOTS -- remove variables from previous loop
+% %         sig1000 = rmfield(sig1000, list_beam_vars);
 
     end
 

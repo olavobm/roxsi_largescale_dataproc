@@ -759,7 +759,7 @@ for i1 = 1:Nsignatures
               'other 4 beams ---'])
 
         %
-        sig1000.vel5 = NaN(size(sig1000.v1));
+        sig1000.vel5 = NaN(size(sig1000.vel1));
         sig1000.amp5 = sig1000.vel5;
 
         % Loop over bins of the 5th beam

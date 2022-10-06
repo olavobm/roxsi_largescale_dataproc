@@ -74,8 +74,9 @@ lsave_fig = true;
 
 % -----------------------------------
 %
-time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00); ...
-                  datetime(2022, 07, 03, 18, 00, 00), datetime(2022, 07, 04, 00, 00, 00)];
+% % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00); ...
+% %                   datetime(2022, 07, 03, 18, 00, 00), datetime(2022, 07, 04, 00, 00, 00)];
+time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00)];
 time_lims_proc.TimeZone = 'America/Los_Angeles';
 
 %
@@ -105,11 +106,37 @@ list_Signature = {'A01_103043', ...
                   'X11_101941'};
 
 % % % Just a test
-% % list_Signature = {'A01_103043'};
+list_Signature = {'A01_103043'};
 
 %
 Nsignatures = length(list_Signature);
 
+
+%% The list of ADCPs processed with either 4 or 5 beams
+
+%
+list_4beams = {'B10', 'B13', 'B15', 'B17', 'X11'};    % B10 has 5th beam, but on HR mode (up to 4 meters above the transducer). Others did the echosounder.
+list_5beams = {'A01', 'C01', 'X05'};
+
+% Check all of the list of Signatures is in either of the
+% lists for processing with 4 or 5 beams
+for i = 1:length(list_Signature)
+
+    %
+    linanylist = any(contains(list_4beams, list_Signature{i}(1:3))) || ...
+                 any(contains(list_5beams, list_Signature{i}(1:3)));
+
+    %
+    if ~linanylist
+
+        error(['Signature ' list_Signature{i} ' is not present in ' ...
+               'any of the lists specifying velocity processing.'])
+
+    end
+
+end
+
+    
 
 %%
 % -------------------------------------------------------------------------
@@ -291,191 +318,198 @@ for i1 = 1:Nsignatures
     sig1000.pitch = prealloc_aux;
     sig1000.roll = prealloc_aux;
 
-    tic
-    % Loop over files
-    for i2 = 1:Nfiles
-
-        %% Load data in file i2'th
-        %
-        dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(i2).name));
-
-        % 
-        %% Get configuration metadata when loading the first data file
-
-        if i2==1
-            sig1000.Config = dataread_aux.Config;
-        end
-
-        %% Delete variables...
-
-        %
-        dataread_aux = rmfield(dataread_aux, {'Units', 'Descriptions'});
-        %
-        list_fields_in_Data = fieldnames(dataread_aux.Data);
-        %
-        for i3 = 1:length(list_fields_in_Data)
-            %
-            if ~any(strcmp(list_fields_in_Data{i3}, list_Data_fields))
-                dataread_aux.Data = rmfield(dataread_aux.Data, list_fields_in_Data{i3});
-            end
-        end
-
-
-        %% Put time, pressure (which is already in dbar),
-        % heading, pitch, and roll in output data structure
-
-        %
-        sig1000.timedatenum{i2} = dataread_aux.Data.Burst_Time;
-        sig1000.pressure{i2} = dataread_aux.Data.Burst_Pressure;
-        sig1000.temperature{i2} = dataread_aux.Data.Burst_Temperature;
-        %
-        sig1000.heading{i2} = dataread_aux.Data.Burst_Heading;
-        sig1000.pitch{i2} = dataread_aux.Data.Burst_Pitch;
-        sig1000.roll{i2} = dataread_aux.Data.Burst_Roll;
-
-        %%
-        clear dataread_aux
-
-    end
-    
-
-    % Concatenate cell array into a long column vector
-    sig1000.timedatenum = cat(1, sig1000.timedatenum{:});
-    sig1000.pressure = cat(1, sig1000.pressure{:});
-    sig1000.temperature = cat(1, sig1000.temperature{:});
-    %
-    sig1000.heading = cat(1, sig1000.heading{:});
-    sig1000.pitch = cat(1, sig1000.pitch{:});
-    sig1000.roll = cat(1, sig1000.roll{:});
-
-
-    disp('--- Done getting timeseries of scalar variables ---')
-
-
-    %% Convert time to date time
-
-    %
-    sig1000.dtime = datetime(sig1000.timedatenum, 'ConvertFrom', 'datenum');
-    sig1000.dtime.TimeZone = 'America/Los_Angeles';
-    disp('Done converting datenum to date time')
-
-
-    %% As opposed to Aquadopps, Signatures don't have
-    % a customizable pressure offset (i.e. the measured pressure is
-    % the water pressure (+- atmospheric variability????).
-    %
-    % Apply correction due to atmospheric pressure variability.
-
-
-    %% Calculate bottom depth assuming the pressure is hydrostatic
-
-    %
-    sig1000.bottomdepthfrompres = 1e4*sig1000.pressure ./ (1030*9.8);
-
-
-    %% Construct height above the bottom of bin centers
-    % (assuming the ADCP is at the bottom)
-
-    % In meters -- NEED TO CHECK/FIX THIS!!!!
-    sig1000.transducerHAB = ((12.44 + 10.53)/2)/100;
-
-    % In meters
-    sig1000.binsize = sig1000.Config.Burst_CellSize;
-    
-    % Height of cell centers relative to transducer
-    cellcenter_first_bin = sig1000.Config.Burst_BlankingDistance + ...
-                                         (sig1000.Config.Burst_CellSize/2);
-    %
-    sig1000.cellcenter = cellcenter_first_bin + ...
-                        (0:1:(double(sig1000.Config.Burst_NCells) - 1)) .* sig1000.binsize;
-
-    %
-    sig1000.zhab = sig1000.transducerHAB + sig1000.cellcenter;
-
-
-    %% Find all bins that are entirely below the maximum bottom depth
-
-    %
-    lin_verticalrange = ((sig1000.zhab + (sig1000.binsize/2)) < ...
-                         max(sig1000.bottomdepthfrompres));
-    %
-    sig1000.zhab = sig1000.zhab(lin_verticalrange);
-
-
-    %%
-    % ---------------------------------------------------------------
-    % ------------- DO QC ON PRESSURE, HEADING, AND TILT ------------
-    % ---------------------------------------------------------------
-
-    %%
-
-    disp('--- Making first QC plot with timeseries of scalars ---')
-
-    %
-    fig_L1_QC_tilt = figure;
-    set(fig_L1_QC_tilt, 'units', 'normalized')
-    set(fig_L1_QC_tilt, 'Position', [0.2, 0.2, 0.4, 0.6])
-        %
-        haxs_1 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.73, 0.8, 0.17]);
-        haxs_2 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.52, 0.8, 0.17]);
-        haxs_3 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.31, 0.8, 0.17]);
-        haxs_4 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.10, 0.8, 0.17]);
-        %
-        haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
-        hold(haxs_all, 'on')
-        %
-        plot(haxs_1, sig1000.dtime, sig1000.pressure, '-k')
-        plot(haxs_2, sig1000.dtime, sig1000.heading, '-k')
-        plot(haxs_3, sig1000.dtime, sig1000.pitch, '-k')
-        plot(haxs_4, sig1000.dtime, sig1000.roll, '-k')
-
-    %
-    set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
-                  'XGrid', 'on', 'YGrid', 'on')
-    %
-    set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
-    %
-    lin_deployment = (sig1000.dtime >= time_1) & (sig1000.dtime <= time_2);
-    %
-    pres_sub_aux = sig1000.pressure(lin_deployment);
-    ylim(haxs_1, [min(pres_sub_aux), max(pres_sub_aux)])
-% %     ylim(haxs_2, [0, 360])
-    ylim(haxs_3, [-6, 6])
-    ylim(haxs_4, [-6, 6])
-
-
-    %
-    ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-    %
-    title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
-                   char(sig1000.SN) ': pressure, heading, pitch, and roll'], ...
-                  'Interpreter', 'Latex', 'FontSize', 16)
-    %
-    linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
-
-
-    %
-    for i2 = 1:length(haxs_all)
-        ylims_aux = ylim(haxs_all(i2));
-        %
-        plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
-        plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
-        %
-        ylim(haxs_all(i2), ylims_aux)
-    end
-
-
-    %
-    exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_pres_tilt_' list_Signature{i1} '.png']), 'Resolution', 300)
-
-    %
-    pause(10)
-
-    %
-    close(fig_L1_QC_tilt)
+% % %     %
+% % %     disp('--- Load all scalar variables ---')
+% % % 
+% % %     tic
+% % %     % Loop over files
+% % %     for i2 = 1:Nfiles
+% % % 
+% % %         %% Load data in file i2'th
+% % %         %
+% % %         dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(i2).name));
+% % % 
+% % %         % 
+% % %         %% Get configuration metadata when loading the first data file
+% % % 
+% % %         if i2==1
+% % %             sig1000.Config = dataread_aux.Config;
+% % %         end
+% % % 
+% % %         %% Delete variables...
+% % % 
+% % %         %
+% % %         dataread_aux = rmfield(dataread_aux, {'Units', 'Descriptions'});
+% % %         %
+% % %         list_fields_in_Data = fieldnames(dataread_aux.Data);
+% % %         %
+% % %         for i3 = 1:length(list_fields_in_Data)
+% % %             %
+% % %             if ~any(strcmp(list_fields_in_Data{i3}, list_Data_fields))
+% % %                 dataread_aux.Data = rmfield(dataread_aux.Data, list_fields_in_Data{i3});
+% % %             end
+% % %         end
+% % % 
+% % % 
+% % %         %% Put time, pressure (which is already in dbar),
+% % %         % heading, pitch, and roll in output data structure
+% % % 
+% % %         %
+% % %         sig1000.timedatenum{i2} = dataread_aux.Data.Burst_Time;
+% % %         sig1000.pressure{i2} = dataread_aux.Data.Burst_Pressure;
+% % %         sig1000.temperature{i2} = dataread_aux.Data.Burst_Temperature;
+% % %         %
+% % %         sig1000.heading{i2} = dataread_aux.Data.Burst_Heading;
+% % %         sig1000.pitch{i2} = dataread_aux.Data.Burst_Pitch;
+% % %         sig1000.roll{i2} = dataread_aux.Data.Burst_Roll;
+% % % 
+% % %         %%
+% % %         clear dataread_aux
+% % % 
+% % %     end
+% % %     disp('--- Done with getting all scalar variables ---')
+% % %     toc
+% % % 
+% % %     % Concatenate cell array into a long column vector
+% % %     sig1000.timedatenum = cat(1, sig1000.timedatenum{:});
+% % %     sig1000.pressure = cat(1, sig1000.pressure{:});
+% % %     sig1000.temperature = cat(1, sig1000.temperature{:});
+% % %     %
+% % %     sig1000.heading = cat(1, sig1000.heading{:});
+% % %     sig1000.pitch = cat(1, sig1000.pitch{:});
+% % %     sig1000.roll = cat(1, sig1000.roll{:});
+% % % 
+% % % 
+% % %     disp('--- Done getting timeseries of scalar variables ---')
+% % % 
+% % % 
+% % %     %% Convert time to date time
+% % % 
+% % %     %
+% % %     sig1000.dtime = datetime(sig1000.timedatenum, 'ConvertFrom', 'datenum');
+% % %     sig1000.dtime.TimeZone = 'America/Los_Angeles';
+% % %     disp('Done converting datenum to date time')
+% % % 
+% % % 
+% % %     %% As opposed to Aquadopps, Signatures don't have
+% % %     % a customizable pressure offset (i.e. the measured pressure is
+% % %     % the water pressure (+- atmospheric variability????).
+% % %     %
+% % %     % Apply correction due to atmospheric pressure variability.
+% % % 
+% % % 
+% % %     %% Calculate bottom depth assuming the pressure is hydrostatic
+% % % 
+% % %     %
+% % %     sig1000.bottomdepthfrompres = 1e4*sig1000.pressure ./ (1030*9.8);
+% % % 
+% % % 
+% % %     %% Construct height above the bottom of bin centers
+% % %     % (assuming the ADCP is at the bottom)
+% % % 
+% % %     % In meters -- NEED TO CHECK/FIX THIS!!!!
+% % %     sig1000.transducerHAB = ((12.44 + 10.53)/2)/100;
+% % % 
+% % %     % In meters
+% % %     sig1000.binsize = sig1000.Config.Burst_CellSize;
+% % %     
+% % %     % Height of cell centers relative to transducer
+% % %     cellcenter_first_bin = sig1000.Config.Burst_BlankingDistance + ...
+% % %                                          (sig1000.Config.Burst_CellSize/2);
+% % %     %
+% % %     sig1000.cellcenter = cellcenter_first_bin + ...
+% % %                         (0:1:(double(sig1000.Config.Burst_NCells) - 1)) .* sig1000.binsize;
+% % % 
+% % %     %
+% % %     sig1000.zhab = sig1000.transducerHAB + sig1000.cellcenter;
+% % % 
+% % % 
+% % %     %% Find all bins that are entirely below the maximum bottom depth
+% % % 
+% % % % %     %
+% % % % %     lin_verticalrange = ((sig1000.zhab + (sig1000.binsize/2)) < ...
+% % % % %                          max(sig1000.bottomdepthfrompres));
+% % %     % Or dummy for code developing purposes
+% % %     lin_verticalrange = true(1, length(sig1000.zhab));
+% % % 
+% % %     %
+% % %     sig1000.zhab = sig1000.zhab(lin_verticalrange);
+% % % 
+% % % 
+% % %     %%
+% % %     % ---------------------------------------------------------------
+% % %     % ------------- DO QC ON PRESSURE, HEADING, AND TILT ------------
+% % %     % ---------------------------------------------------------------
+% % % 
+% % %     %%
+% % % 
+% % %     disp('--- Making first QC plot with timeseries of scalars ---')
+% % % 
+% % %     %
+% % %     fig_L1_QC_tilt = figure;
+% % %     set(fig_L1_QC_tilt, 'units', 'normalized')
+% % %     set(fig_L1_QC_tilt, 'Position', [0.2, 0.2, 0.4, 0.6])
+% % %         %
+% % %         haxs_1 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.73, 0.8, 0.17]);
+% % %         haxs_2 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.52, 0.8, 0.17]);
+% % %         haxs_3 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.31, 0.8, 0.17]);
+% % %         haxs_4 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.10, 0.8, 0.17]);
+% % %         %
+% % %         haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
+% % %         hold(haxs_all, 'on')
+% % %         %
+% % %         plot(haxs_1, sig1000.dtime, sig1000.pressure, '-k')
+% % %         plot(haxs_2, sig1000.dtime, sig1000.heading, '-k')
+% % %         plot(haxs_3, sig1000.dtime, sig1000.pitch, '-k')
+% % %         plot(haxs_4, sig1000.dtime, sig1000.roll, '-k')
+% % % 
+% % %     %
+% % %     set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+% % %                   'XGrid', 'on', 'YGrid', 'on')
+% % %     %
+% % %     set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
+% % %     %
+% % %     lin_deployment = (sig1000.dtime >= time_1) & (sig1000.dtime <= time_2);
+% % %     %
+% % %     pres_sub_aux = sig1000.pressure(lin_deployment);
+% % %     ylim(haxs_1, [min(pres_sub_aux), max(pres_sub_aux)])
+% % % % %     ylim(haxs_2, [0, 360])
+% % %     ylim(haxs_3, [-6, 6])
+% % %     ylim(haxs_4, [-6, 6])
+% % % 
+% % % 
+% % %     %
+% % %     ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     %
+% % %     title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
+% % %                    char(sig1000.SN) ': pressure, heading, pitch, and roll'], ...
+% % %                   'Interpreter', 'Latex', 'FontSize', 16)
+% % %     %
+% % %     linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
+% % % 
+% % % 
+% % %     %
+% % %     for i2 = 1:length(haxs_all)
+% % %         ylims_aux = ylim(haxs_all(i2));
+% % %         %
+% % %         plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
+% % %         plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
+% % %         %
+% % %         ylim(haxs_all(i2), ylims_aux)
+% % %     end
+% % % 
+% % % 
+% % %     %
+% % %     exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_pres_tilt_' list_Signature{i1} '.png']), 'Resolution', 300)
+% % % 
+% % %     %
+% % %     pause(10)
+% % % 
+% % %     %
+% % %     close(fig_L1_QC_tilt)
 
 
     %%
@@ -670,9 +704,58 @@ for i1 = 1:Nsignatures
     end
 
 
+    %% Interpolate 5th beam to the same timestamps as the other 4
+keyboard
+    %
+    if any(contains(list_5beams, list_Signature{i1}(1:3)))
+        %
+        disp(['--- 5 beams will be used for velocity transformation. ' ...
+              'First will interpolate 5th beam to time stamps of ' ...
+              'other 4 beams ---'])
+        %
+
+
+    end
+    
 
     %% Compute magnetic-ENU 3 components of velocity
+    % (using library ADCPtools)
+    %
+    % Compute ENU velocities in different ways depending
+    % whether 4 or 5 beams should be used (check the preamble
+    % of this script. The preamble also makes sure that
+    % all Signatures being processed are in the processing lists)
 
+    %
+    disp('--- Converting along-beam velocities to magnetic ENU ---')
+
+    tic
+    % If the i1'th Signature is in the 5-beam list
+    if any(contains(list_5beams, list_Signature{i1}(1:3)))
+        % Compute velocity using 5 beams
+
+        %
+        disp('Using 5 beams')
+
+        %
+        [u, v, w, w5] = janus5beam2earth(head, ptch, roll, theta, ...
+                                         b1, b2, b3, b4, b5);
+
+    % 
+    else
+        % Or use 4 beams instead
+
+        %
+        disp('Using 4 beams')
+
+        %
+        [u, v, w] = janus2earth(head, ptch, roll, theta, b1, b2, b3, b4);
+
+    end
+
+    %
+    disp('--- Done with coordinate transformation to magnetic ENU. It took: ---')
+    toc
 
 
     %% NaN data at/above the ocean surface

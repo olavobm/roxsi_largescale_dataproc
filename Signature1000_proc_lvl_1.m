@@ -597,10 +597,12 @@ for i1 = 1:Nsignatures
                 pcolor(haxs(8), time_plt_aux, sig1000.zhab, sig1000.amp4(indsplt_aux, :).')
 
         %
-        shadeAll
+        for i3 = 1:length(haxs)
+            shading(haxs(i3), 'flat')
+        end
 
-        %
-        callCbrewer([], haxs(1:2:7))
+% %         %
+% %         callCbrewer([], haxs(1:2:7))
 
         %
         set(haxs, 'FontSize', 16, 'Box', 'on', ...
@@ -620,7 +622,7 @@ for i1 = 1:Nsignatures
         set(hfig_quickview, 'Position', [0.4, 0.63, 0.38, 0.3])
 
         %
-        linkallaxes('xy')
+        linkaxes(haxs, 'xy')
 
         %
         exportgraphics(hfig_quickview, fullfile(pwd, ['sig_quickview' list_Signature{i1} '.png']), 'Resolution', 300)

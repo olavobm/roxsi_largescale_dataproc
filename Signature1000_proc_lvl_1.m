@@ -60,19 +60,26 @@ lsave_fig = true;
 % Note these time limits are "real times" -- i.e. they should be
 % compared to clock-drift-corrected timestamps.
 
+% -----------------------------------
+% % %
+% % time_beginend_proc = [datetime(2022, 06, 29, 00, 00, 00), ...
+% %                       datetime(2022, 06, 29, 06, 00, 00)];
+% % time_beginend_proc.TimeZone = 'America/Los_Angeles';
+% % 
+% % %
+% % dtstep_proc = hours(6);
+% % 
+% % %
+% % time_lims_proc = time_beginend_proc(1) : dtstep_proc : time_beginend_proc(2);
+
+% -----------------------------------
 %
-time_beginend_proc = [datetime(2022, 06, 29, 00, 00, 00), ...
-                      datetime(2022, 06, 29, 06, 00, 00)];
-time_beginend_proc.TimeZone = 'America/Los_Angeles';
+time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00); ...
+                  datetime(2022, 07, 03, 18, 00, 00), datetime(2022, 07, 04, 00, 00, 00)];
+time_lims_proc.TimeZone = 'America/Los_Angeles';
 
 %
-dtstep_proc = hours(6);
-
-%
-time_lims_proc = time_beginend_proc(1) : dtstep_proc : time_beginend_proc(2);
-
-%
-Ndatasegments = length(time_lims_proc) - 1;
+Ndatasegments = size(time_lims_proc, 1);
 
 
 %% Load ADCP deployment information
@@ -87,18 +94,18 @@ load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROX
 
 %% List of Signatures that will be processed
 
-% All Signatures
-list_Signature = {'A01_103043', ...
-                  'B10_103045', ...
-                  'B13_103046', ...
-                  'B15_103056', ...
-                  'B17_101923', ...
-                  'C01_102128', ...
-                  'X05_100231', ...
-                  'X11_101941'};
+% % % All Signatures
+% % list_Signature = {'A01_103043', ...
+% %                   'B10_103045', ...
+% %                   'B13_103046', ...
+% %                   'B15_103056', ...
+% %                   'B17_101923', ...
+% %                   'C01_102128', ...
+% %                   'X05_100231', ...
+% %                   'X11_101941'};
 
 % Just a test
-% % list_Signature = {'A01_103043'};
+list_Signature = {'A01_103043'};
 
 %
 Nsignatures = length(list_Signature);
@@ -403,63 +410,73 @@ for i1 = 1:Nsignatures
 
     %%
 
-% %     disp('--- Making first QC plot with timeseries of scalars ---')
-% % 
-% %     %
-% %     fig_L1_QC_tilt = figure;
-% %     set(fig_L1_QC_tilt, 'units', 'normalized')
-% %     set(fig_L1_QC_tilt, 'Position', [0.2, 0.2, 0.4, 0.6])
-% %         %
-% %         haxs_1 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.73, 0.8, 0.17]);
-% %         haxs_2 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.52, 0.8, 0.17]);
-% %         haxs_3 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.31, 0.8, 0.17]);
-% %         haxs_4 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.10, 0.8, 0.17]);
-% %         %
-% %         haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
-% %         hold(haxs_all, 'on')
-% %         %
-% %         plot(haxs_1, sig1000.dtime, sig1000.pressure, '-k')
-% %         plot(haxs_2, sig1000.dtime, sig1000.heading, '-k')
-% %         plot(haxs_3, sig1000.dtime, sig1000.pitch, '-k')
-% %         plot(haxs_4, sig1000.dtime, sig1000.roll, '-k')
-% % 
-% %     %
-% %     set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
-% %                   'XGrid', 'on', 'YGrid', 'on')
-% %     %
-% %     set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
-% %     %
-% %     lin_deployment = (sig1000.dtime >= time_1) & (sig1000.dtime <= time_2);
-% %     %
-% %     pres_sub_aux = sig1000.pressure(lin_deployment);
-% %     ylim(haxs_1, [min(pres_sub_aux), max(pres_sub_aux)])
-% % % %     ylim(haxs_2, [0, 360])
-% %     ylim(haxs_3, [-6, 6])
-% %     ylim(haxs_4, [-6, 6])
-% % 
-% % 
-% %     %
-% %     ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
-% %     ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-% %     ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-% %     ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-% %     %
-% %     title(haxs_1, ['ROXSI 2022: Aquadopp ' char(sig1000.mooringID) ' - SN ' ...
-% %                    char(sig1000.SN) ': pressure, heading, pitch, and roll'], ...
-% %                   'Interpreter', 'Latex', 'FontSize', 20)
-% %     %
-% %     linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
-% % 
-% % 
-% %     %
-% %     for i2 = 1:length(haxs_all)
-% %         ylims_aux = ylim(haxs_all(i2));
-% %         %
-% %         plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
-% %         plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
-% %         %
-% %         ylim(haxs_all(i2), ylims_aux)
-% %     end
+    disp('--- Making first QC plot with timeseries of scalars ---')
+
+    %
+    fig_L1_QC_tilt = figure;
+    set(fig_L1_QC_tilt, 'units', 'normalized')
+    set(fig_L1_QC_tilt, 'Position', [0.2, 0.2, 0.4, 0.6])
+        %
+        haxs_1 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.73, 0.8, 0.17]);
+        haxs_2 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.52, 0.8, 0.17]);
+        haxs_3 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.31, 0.8, 0.17]);
+        haxs_4 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.10, 0.8, 0.17]);
+        %
+        haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
+        hold(haxs_all, 'on')
+        %
+        plot(haxs_1, sig1000.dtime, sig1000.pressure, '-k')
+        plot(haxs_2, sig1000.dtime, sig1000.heading, '-k')
+        plot(haxs_3, sig1000.dtime, sig1000.pitch, '-k')
+        plot(haxs_4, sig1000.dtime, sig1000.roll, '-k')
+
+    %
+    set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+                  'XGrid', 'on', 'YGrid', 'on')
+    %
+    set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
+    %
+    lin_deployment = (sig1000.dtime >= time_1) & (sig1000.dtime <= time_2);
+    %
+    pres_sub_aux = sig1000.pressure(lin_deployment);
+    ylim(haxs_1, [min(pres_sub_aux), max(pres_sub_aux)])
+% %     ylim(haxs_2, [0, 360])
+    ylim(haxs_3, [-6, 6])
+    ylim(haxs_4, [-6, 6])
+
+
+    %
+    ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+    %
+    title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
+                   char(sig1000.SN) ': pressure, heading, pitch, and roll'], ...
+                  'Interpreter', 'Latex', 'FontSize', 20)
+    %
+    linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
+
+
+    %
+    for i2 = 1:length(haxs_all)
+        ylims_aux = ylim(haxs_all(i2));
+        %
+        plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
+        plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
+        %
+        ylim(haxs_all(i2), ylims_aux)
+    end
+
+
+    %
+    exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_pres_tilt_' list_Signature{i1} '.png']), 'Resolution', 300)
+
+    %
+    pause(10)
+
+    %
+    close(fig_L1_QC_tilt)
 
 
     %%
@@ -491,12 +508,12 @@ for i1 = 1:Nsignatures
 
         % If the time segment is a time that is fully outside the
         % deployment trimming edges, than skip this time segment
-        if (time_1 > time_lims_proc(i2+1)) || (time_2 <= time_lims_proc(i2))
+        if (time_1 >= time_lims_proc(i2, 2)) || (time_2 < time_lims_proc(i2, 1))
             continue
         end 
        
         %
-        time_lims_aux = datenum(time_lims_proc(i2:(i2+1)));
+        time_lims_aux = datenum(time_lims_proc(i2, :));
         %
         [listfiles_perseg, struct_timelims] = Signature1000_filesintimelims(list_Signature{i1}(5:end), time_lims_aux);
 
@@ -605,12 +622,14 @@ for i1 = 1:Nsignatures
 % %         callCbrewer([], haxs(1:2:7))
 
         %
-        set(haxs, 'FontSize', 16, 'Box', 'on', ...
-                  'YLim', [0, (sig1000.zhab(end) + 1)])
+% %         set(haxs, 'FontSize', 16, 'Box', 'on', ...
+% %                   'YLim', [0, (sig1000.zhab(end) + 1)])
+        set(haxs, 'Box', 'on', 'YLim', [0, (sig1000.zhab(end) + 1)])
         set(haxs(1:2:7), 'CLim', 0.1.*[-1, 1])
-        set(haxs(2:2:8), 'CLim', [40, 80])
         %
-        set(haxs(1:end-2), 'XTickLabel', []) 
+        ampclrlims = get(haxs(2), 'CLim');
+        set(haxs(2:2:8), 'CLim', [40, (ampclrlims(2)+10)])
+        %
         set(haxs, 'Color', 0.6.*[1, 1, 1])
 
         %
@@ -625,6 +644,13 @@ for i1 = 1:Nsignatures
         linkaxes(haxs, 'xy')
 
         %
+        time_lims_plt = get(haxs(1), 'XLim');
+        time_xticks = linspace(time_lims_plt(1), time_lims_plt(2), 4);
+        %
+        set(haxs, 'XTick', time_xticks)
+        set(haxs(1:end-2), 'XTickLabel', [])
+
+        %
         exportgraphics(hfig_quickview, fullfile(pwd, ['sig_quickview' list_Signature{i1} '.png']), 'Resolution', 300)
 
 
@@ -635,12 +661,13 @@ for i1 = 1:Nsignatures
         %
         close(hfig_quickview)
 
-        %
-        clear sig1000
+        % DEBUGGING / QUICK PLOTS -- remove variables from previous loop
+        sig1000 = rmfield(sig1000, list_beam_vars);
 
     end
 
-
+    %
+    clear sig1000
 
     %%
 

@@ -625,12 +625,12 @@ for i1 = 1:Nsignatures
             if any(contains(list_5beams, list_Signature{i1}(1:3)))
     
                 %
-                sig1000.timednum_beam5{i2} = dataread_aux.Data.IBurst_Time(:, lin_verticalrange);
-                %
                 sig1000.vel5{i2} = dataread_aux.Data.vel5(:, lin_verticalrange);
                 sig1000.amp5{i2} = dataread_aux.Data.amp5(:, lin_verticalrange);
                 sig1000.corr5{i2} = dataread_aux.Data.corr5(:, lin_verticalrange);
-        
+    
+                %
+                sig1000.timednum_beam5{i2} = dataread_aux.Data.IBurst_Time;
             end
             
         end
@@ -651,7 +651,7 @@ for i1 = 1:Nsignatures
             sig1000.corr5 = cat(1, sig1000.corr5{:});
         end
 
-        
+
         %% Quick pcolor plot to check the data
 
         %

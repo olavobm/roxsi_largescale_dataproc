@@ -15,8 +15,10 @@ dir_otherlibraries = fullfile(dir_thisfunction, '..');
 
 %%
 
+%
 addpath(genpath(fullfile(dir_otherlibraries, 'cmocean')))
 addpath(genpath(fullfile(dir_otherlibraries, 'ADCPtools')))
+addpath(genpath(fullfile(dir_otherlibraries, 'wafo')))
 
 
 

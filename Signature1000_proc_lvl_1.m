@@ -577,6 +577,8 @@ for i1 = 1:Nsignatures
 % % %                           'amp1', 'amp2', 'amp3', 'amp4', ...
 % % %                           'corr1', 'corr2', 'corr3', 'corr4'};
         %
+        sig1000.timednum_fourbeams = prealloc_aux;
+        %
         list_beam_vars = {'vel1', 'vel2', 'vel3', 'vel4', ...
                           'amp1', 'amp2', 'amp3', 'amp4'};
         % Loop over variables
@@ -584,8 +586,12 @@ for i1 = 1:Nsignatures
             sig1000.(list_beam_vars{i3}) = prealloc_aux;
         end
         %
-        sig1000.timednum_fourbeams = prealloc_aux;
-        sig1000.timednum_beam5 = prealloc_aux;
+        if any(contains(list_5beams, list_Signature{i1}(1:3)))
+            sig1000.timednum_beam5 = prealloc_aux;
+            sig1000.vel5_raw = prealloc_aux;
+            sig1000.amp5_raw = prealloc_aux;
+            sig1000.corr5_raw = prealloc_aux;
+        end
         
 
         % Load over all files with data in the i2'th segment
@@ -625,9 +631,9 @@ for i1 = 1:Nsignatures
             if any(contains(list_5beams, list_Signature{i1}(1:3)))
     
                 %
-                sig1000.vel5{i2} = dataread_aux.Data.IBurst_VelBeam5(:, lin_verticalrange);
-                sig1000.amp5{i2} = dataread_aux.Data.IBurst_AmpBeam5(:, lin_verticalrange);
-                sig1000.corr5{i2} = dataread_aux.Data.IBurst_CorBeam5(:, lin_verticalrange);
+                sig1000.vel5_raw{i2} = dataread_aux.Data.IBurst_VelBeam5(:, lin_verticalrange);
+                sig1000.amp5_raw{i2} = dataread_aux.Data.IBurst_AmpBeam5(:, lin_verticalrange);
+                sig1000.corr5_raw{i2} = dataread_aux.Data.IBurst_CorBeam5(:, lin_verticalrange);
     
                 %
                 sig1000.timednum_beam5{i2} = dataread_aux.Data.IBurst_Time;
@@ -646,9 +652,9 @@ for i1 = 1:Nsignatures
             %
             sig1000.timednum_beam5 = cat(1, sig1000.timednum_beam5{:});
             %
-            sig1000.vel5 = cat(1, sig1000.vel5{:});
-            sig1000.amp5 = cat(1, sig1000.amp5{:});
-            sig1000.corr5 = cat(1, sig1000.corr5{:});
+            sig1000.vel5 = cat(1, sig1000.vel5_raw{:});
+            sig1000.amp5 = cat(1, sig1000.amp5_raw{:});
+            sig1000.corr5 = cat(1, sig1000.corr5_raw{:});
         end
 
 
@@ -743,21 +749,36 @@ for i1 = 1:Nsignatures
 
 
     %% Interpolate 5th beam to the same timestamps as the other 4
-keyboard
+
     %
     if any(contains(list_5beams, list_Signature{i1}(1:3)))
+        tic
         %
         disp(['--- 5 beams will be used for velocity transformation. ' ...
               'First will interpolate 5th beam to time stamps of ' ...
               'other 4 beams ---'])
 
+        %
+        sig1000.vel5 = NaN(size(sig1000.v1));
+        sig1000.amp5 = sig1000.vel5;
+
         % Loop over bins of the 5th beam
         for i2 = 1:size(sig1000.vel5, 2)
             
-
+            %
+            sig1000.vel5(:, i2) = interp1(sig1000.timednum_beam5, ...
+                                          sig1000.vel5_raw(:, i2), ...
+                                          sig1000.timednum_fourbeams);
+            %
+            sig1000.amp5(:, i2) = interp1(sig1000.timednum_beam5, ...
+                                          sig1000.amp5_raw(:, i2), ...
+                                          sig1000.timednum_fourbeams);
         end
+        disp('Done with 5th beam interpolation. It took:') 
+        toc
     end
     
+    keyboard
 
     %% Compute magnetic-ENU 3 components of velocity
     % (using library ADCPtools)

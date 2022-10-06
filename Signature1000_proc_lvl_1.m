@@ -625,9 +625,9 @@ for i1 = 1:Nsignatures
             if any(contains(list_5beams, list_Signature{i1}(1:3)))
     
                 %
-                sig1000.vel5{i2} = dataread_aux.Data.vel5(:, lin_verticalrange);
-                sig1000.amp5{i2} = dataread_aux.Data.amp5(:, lin_verticalrange);
-                sig1000.corr5{i2} = dataread_aux.Data.corr5(:, lin_verticalrange);
+                sig1000.vel5{i2} = dataread_aux.Data.IBurst_VelBeam5(:, lin_verticalrange);
+                sig1000.amp5{i2} = dataread_aux.Data.IBurst_AmpBeam5(:, lin_verticalrange);
+                sig1000.corr5{i2} = dataread_aux.Data.IBurst_CorBeam5(:, lin_verticalrange);
     
                 %
                 sig1000.timednum_beam5{i2} = dataread_aux.Data.IBurst_Time;

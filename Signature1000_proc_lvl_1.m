@@ -376,7 +376,7 @@ for i1 = 1:Nsignatures
     %% Construct height above the bottom of bin centers
     % (assuming the ADCP is at the bottom)
 
-    % In meters
+    % In meters -- NEED TO CHECK/FIX THIS!!!!
     sig1000.transducerHAB = ((12.44 + 10.53)/2)/100;
 
     % In meters
@@ -400,7 +400,6 @@ for i1 = 1:Nsignatures
                          max(sig1000.bottomdepthfrompres));
     %
     sig1000.zhab = sig1000.zhab(lin_verticalrange);
-
 
 
     %%
@@ -481,7 +480,11 @@ for i1 = 1:Nsignatures
 
     %%
 
+    %
+    sig1000.coordsystem = 'ENU';
 
+    % In clockwise degrees from the true north
+    sig1000.magdec = 12.86;
 
     %%
     % ---------------------------------------------------------------
@@ -666,10 +669,199 @@ for i1 = 1:Nsignatures
 
     end
 
+
+
+    %% Compute magnetic-ENU 3 components of velocity
+
+
+
+    %% NaN data at/above the ocean surface
+
+% %     %
+% %     zhab_halfstep = aquadoppL1.zhab + (aquadoppL1.binsize/2);
+% %     Nbins = length(aquadoppL1.zhab);
+% %     %
+% %     ind_abovesurface = 1:(size(aquadoppL1.Ue, 1) * size(aquadoppL1.Ue, 2));
+% %     ind_abovesurface = reshape(ind_abovesurface, size(aquadoppL1.Ue, 1), size(aquadoppL1.Ue, 2));
+% %     %
+% %     for i2 = 1:length(aquadoppL1.pressure)
+% %         %
+% %         ind_above_aux = find((zhab_halfstep < aquadoppL1.bottomdepthfrompres(i2)), 1, 'last');
+% %         %
+% %         ind_abovesurface(1:ind_above_aux, i2) = NaN;
+% %     end
+% %     %
+% %     ind_abovesurface = ind_abovesurface(:);
+% %     ind_abovesurface = ind_abovesurface(~isnan(ind_abovesurface));
+% %     %
+% %     aquadoppL1.Ue(ind_abovesurface) = NaN;
+% %     aquadoppL1.Vn(ind_abovesurface) = NaN;
+% %     aquadoppL1.Wup(ind_abovesurface) = NaN;
+% %     %
+% %     aquadoppL1.a1(ind_abovesurface) = NaN;
+% %     aquadoppL1.a2(ind_abovesurface) = NaN;
+% %     aquadoppL1.a3(ind_abovesurface) = NaN;
+
+
+    %% Rotate horizontal velocity from magnetic to true north
+
     %
-    clear sig1000
+    disp(['----- Rotating horizontal velocity to ' ...
+          sig1000.coordsystem ', with mag. declination of ' ...
+          num2str(sig1000.magdec, '%.2f') ' degrees -----'])
+
+    %
+    rotMatrix = [cosd(sig1000.magdec), sind(sig1000.magdec); ...
+                 -sind(sig1000.magdec), cosd(sig1000.magdec)];
+
+% %     % Check the rotation (i.e. velocity aligned with magnetic north
+% %     % should have a small zonal component and large meridional
+% %     % component in a geographical north coordinate system)
+% %     rotMatrix * [0; 1]
+
+    %
+    for i2 = 1:size(sig1000.Ue, 1)
+        %
+        uv_aux = [sig1000.Ue(i2, :); sig1000.Vn(i2, :)];
+        %
+        uv_rot_aux = rotMatrix * uv_aux;
+
+        %
+        sig1000.Ue(i2, :) = uv_aux(1, :);
+        sig1000.Vn(i2, :) = uv_aux(2, :);
+    end
+
+    
+    %% Filter out velocity where amplitude is below a threshold value
+
+% %     %
+% %     disp('----- Removing velocity where backscatter is smaller than threshold value -----')
+% % 
+% %     %
+% %     aquadoppL1.backscatterTH = 30;
+% % 
+% %     %
+% %     l_belowTH = (aquadoppL1.a1 <= aquadoppL1.backscatterTH) | ...
+% %                 (aquadoppL1.a2 <= aquadoppL1.backscatterTH) | ...
+% %                 (aquadoppL1.a3 <= aquadoppL1.backscatterTH);
+% %     %
+% %     aquadoppL1.Ue(l_belowTH) = NaN;
+% %     aquadoppL1.Vn(l_belowTH) = NaN;
+% %     aquadoppL1.Wup(l_belowTH) = NaN;
+
 
     %%
+    % ----------------------------------------------------
+    % Turn all vectors into column vectors so that Matlab
+    % can quickly displace the structure variable in the 
+    % command window (Matlab displays first elements of
+    % row vectors, and it takes longer)
+%     list_fields_aux = fieldnames(aquadoppL1);
+%     %
+%     for i2 = 1:length(list_fields_aux)
+%         %
+%         if isvector(aquadoppL1.(list_fields_aux{i2})) && ...
+%            ~isstruct(aquadoppL1.(list_fields_aux{i2})) && ...
+%            ~ischar(aquadoppL1.(list_fields_aux{i2}))
+%             %
+%             aquadoppL1.(list_fields_aux{i2}) = aquadoppL1.(list_fields_aux{i2})(:);
+%         end
+%     end
+
+    %% Compute low-frequency velocity?
+
+
+    %% Add README
+
+    %
+    time_dataproc = datetime('now', 'TimeZone', 'Local');
+    time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
+    % Add a general README
+    sig1000.README = ['Level 1 Signature1000 data from ROXSI 2022. The data is from Signature ' ...
+                         ' with serial number SN and deployed at mooring site mooringID. ' ...
+                         'Data processed by script ' mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
+                         'Horizontal velocity components are relative to ??????, where the magnetic ' ...
+                         'decliation was taken from www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml. Data ' ...
+                         'in the Level 1 structure has been trimmed for the deployment ' ...
+                         'period, as defined in the table deploymentInfo_ROXSI2022.mat. ' ...
+                         'Pressure is in dbar, where atmospheric pressure has been removed.'];
+
+
+    %%
+
+
+    % ----------------------------------------------------
+    % Save level 1 data and QC figures
+
+    %
+    if lsave_file
+        %
+        disp('----- Saving level 1 data -----')
+
+        %
+        str_filename = ['roxsi_signature_L1_' list_Signature{i1}(1:3) '_' char(list_Signature{i1}.SN)];
+        %
+        save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'sig1000wavewave', '-v7.3')
+    end
+
+    %
+    if lsave_fig
+% %         %
+% %         disp('----- Saving level 1 QC plot figures -----')
+% % 
+% %         %
+% %         str_filename = ['roxsi_aquadopp_L1_' list_Signature{i1}(1:3) '_' char(sig1000.SN) '_QC_1'];
+% %         % Save figure as *.png
+% %         exportgraphics(fig_L1_QC_tilt, fullfile(dir_output_figs_L1, [str_filename '.png']), 'Resolution', 300)
+% % 
+% %         %
+% %         str_filename = ['roxsi_aquadopp_L1_' list_Signature{i1}(1:3) '_' char(sig1000.SN) '_QC_2'];
+% %         % Save figure as *.png
+% %         exportgraphics(fig_L1_QC, fullfile(dir_output_figs_L1, [str_filename '.png']), 'Resolution', 300)
+    
+    end
+
+
+    %%
+
+
+    % ----------------------------------------------------
+    %
+    disp(['----- DONE with Signature data proc: ' list_Signature{i1} ' -----'])
+    disp(['Total run time so far is:'])
+    %
+    toc(totalRunTime)
+
+
+
+    %%
+
+% %     % Clear some variables to avoid issues in the next loop iteration
+% %     close(fig_L1_QC_tilt), close(fig_L1_QC)
+% %     clear aquadoppL1 header_aux beamAQDP_aux senAQDP_aux
+    %
+    clear sig1000
+%%
+
+%
+disp('###################### Done with data processing for all Signature1000 ######################')
+
+%
+disp(' '), disp(' ')
+disp('*** The total time to run the data processing was:')
+%
+toc(totalRunTime)
+
+% Close the log file
+diary('off');
+
+
+
+
+
+
+
+
 
 
 

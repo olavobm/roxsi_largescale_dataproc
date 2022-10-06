@@ -584,7 +584,8 @@ for i1 = 1:Nsignatures
             sig1000.(list_beam_vars{i3}) = prealloc_aux;
         end
         %
-        time_vel_aux = prealloc_aux;
+        sig1000.timednum_fourbeams = prealloc_aux;
+        sig1000.timednum_beam5 = prealloc_aux;
         
 
         % Load over all files with data in the i2'th segment
@@ -618,7 +619,19 @@ for i1 = 1:Nsignatures
             end
 
             %
-            time_vel_aux{i2} = dataread_aux.Data.Burst_Time;
+            sig1000.timednum_fourbeams{i2} = dataread_aux.Data.Burst_Time;
+
+            % Get the 5th beam
+            if any(contains(list_5beams, list_Signature{i1}(1:3)))
+    
+                %
+                sig1000.timednum_beam5{i2} = dataread_aux.Data.IBurst_Time(:, lin_verticalrange);
+                %
+                sig1000.vel5{i2} = dataread_aux.Data.vel5(:, lin_verticalrange);
+                sig1000.amp5{i2} = dataread_aux.Data.amp5(:, lin_verticalrange);
+                sig1000.corr5{i2} = dataread_aux.Data.corr5(:, lin_verticalrange);
+        
+            end
             
         end
 
@@ -626,9 +639,19 @@ for i1 = 1:Nsignatures
         for i3 = 1:length(list_beam_vars)
             sig1000.(list_beam_vars{i3}) = cat(1, sig1000.(list_beam_vars{i3}){:});
         end
-        time_vel_aux = cat(1, time_vel_aux{:});
+        sig1000.timednum_fourbeams = cat(1, sig1000.timednum_fourbeams{:});
 
+        % Concatenate 5th beam data
+        if any(contains(list_5beams, list_Signature{i1}(1:3)))
+            %
+            sig1000.timednum_beam5 = cat(1, sig1000.timednum_beam5{:});
+            %
+            sig1000.vel5 = cat(1, sig1000.vel5{:});
+            sig1000.amp5 = cat(1, sig1000.amp5{:});
+            sig1000.corr5 = cat(1, sig1000.corr5{:});
+        end
 
+        
         %% Quick pcolor plot to check the data
 
         %
@@ -636,7 +659,7 @@ for i1 = 1:Nsignatures
         indsplt_aux = 1:(8*60*1);
 
         %
-        time_plt_aux = datetime(time_vel_aux(indsplt_aux), 'ConvertFrom', 'datenum');
+        time_plt_aux = datetime(sig1000.timednum_fourbeams(indsplt_aux), 'ConvertFrom', 'datenum');
 
         %
         hfig_quickview = figure;
@@ -727,9 +750,12 @@ keyboard
         disp(['--- 5 beams will be used for velocity transformation. ' ...
               'First will interpolate 5th beam to time stamps of ' ...
               'other 4 beams ---'])
-        %
 
+        % Loop over bins of the 5th beam
+        for i2 = 1:size(sig1000.vel5, 2)
+            
 
+        end
     end
     
 

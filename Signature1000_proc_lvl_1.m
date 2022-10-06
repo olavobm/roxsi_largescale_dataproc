@@ -652,9 +652,9 @@ for i1 = 1:Nsignatures
             %
             sig1000.timednum_beam5 = cat(1, sig1000.timednum_beam5{:});
             %
-            sig1000.vel5 = cat(1, sig1000.vel5_raw{:});
-            sig1000.amp5 = cat(1, sig1000.amp5_raw{:});
-            sig1000.corr5 = cat(1, sig1000.corr5_raw{:});
+            sig1000.vel5_raw = cat(1, sig1000.vel5_raw{:});
+            sig1000.amp5_raw = cat(1, sig1000.amp5_raw{:});
+            sig1000.corr5_raw = cat(1, sig1000.corr5_raw{:});
         end
 
 

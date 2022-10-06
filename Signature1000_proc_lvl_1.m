@@ -23,7 +23,10 @@ close all
 %%
 
 %
-dir_rawdata_parent = fullfile(data_dirpath(), 'RAW', 'Signature1000');
+% % dirparent_data = data_dirpath();
+dirparent_data = '/project/CSIDE/ROXSI/LargeScale_Data_2022/';
+%
+dir_rawdata_parent = fullfile(dirparent_data, 'RAW', 'Signature1000');
 
 
 %%
@@ -59,7 +62,7 @@ lsave_fig = true;
 
 %
 time_beginend_proc = [datetime(2022, 06, 29, 00, 00, 00), ...
-                      datetime(2022, 06, 29, 12, 00, 00)];
+                      datetime(2022, 06, 29, 06, 00, 00)];
 time_beginend_proc.TimeZone = 'America/Los_Angeles';
 
 %
@@ -76,7 +79,10 @@ Ndatasegments = length(time_lims_proc) - 1;
 
 % Just to be clear: file and variable have
 % the same name (though not a requirement)
-load(fullfile(repo_dirpath(), 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROXSI2022')
+%
+% dir_coderepo = repo_dirpath();
+dir_coderepo = '/home/omarques/Documents/MATLAB/roxsi_largescale_dataproc';
+load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROXSI2022')
 
 
 %% List of Signatures that will be processed
@@ -114,7 +120,7 @@ Nsignatures = length(list_Signature);
 %% Load atmospheric pressure
 
 %
-atm_pressure = load(fullfile(data_dirpath(), 'RAW', ...
+atm_pressure = load(fullfile(dirparent_data, 'RAW', ...
                       'noaa_mry_barometric_pressure', 'atm_pressure.mat'));
 % Make correction for the spatial variability
 atm_pressure.atm_pres = atm_pressure.atm_pres - (100*0.032);    % the correction is 0.032 dbar, and atmospheric pressure is in milibar
@@ -253,107 +259,9 @@ for i1 = 1:Nsignatures
 
 
 
-
     %%
 
 
-    %
-    for i2 = 1:Ndatasegments
-
-% %         % For B10 (deployed later than planned), only start
-% %         % getting the files when there is data in the deployment
-% %         if strcmp(list_Signature{i1}(1:3), 'B10')
-% %             % If the latest time stamp if before the beginning of the B10
-% %             % deployment then, skip and go to next file
-% %             if max(dataread_aux.Burst_Time) < datenum(2022, 06, 24, 07, 38, 00)    % based on trimming at 40 min mark
-% %                 %
-% %                 warning(['Skipping file ' list_dir_aux(i2).name ' because ' ...
-% %                          'the data is from before the deployment.'])
-% %                 %
-% %                 continue
-% %             end 
-% %         end
-
-
-        % If the time segment is a time that is fully outside the
-        % deployment trimming edges, than skip this time segment
-        if (time_1 > time_lims_proc(i2+1)) || (time_2 <= time_lims_proc(i2))
-            continue
-        end 
-       
-        %
-        time_lims_aux = datenum(time_lims_proc(i2:(i2+1)));
-        
-        [listfiles_perseg, struct_timelims] = Signature1000_filesintimelims(list_Signature{i1}(5:end), time_lims_aux);
-
-        % Pre-allocate in cell arrays
-        prealloc_aux = cell(length(listfiles_perseg), 1);
-        %
-        list_beam_vars = {'vel1', 'vel2', 'vel3', 'vel4', ...
-                          'amp1', 'amp2', 'amp3', 'amp4', ...
-                          'corr1', 'corr2', 'corr3', 'corr4'};
-        % Loop over variables
-        for i3 = 1:length(list_beam_vars)
-            sig1000.(list_beam_vars{i3}) = prealloc_aux;
-        end
-
-        % Load over all files with data in the i2'th segment
-        for i3 = 1:length(listfiles_perseg)
-
-            %
-            dataread_aux = load(fullfile(dir_rawdata_parent, ...
-                                         list_Signature{i1}, ...
-                                         'converted', ...
-                                         listfiles_perseg(i3)));
-
-            % Dummy/for code development
-            lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
-
-            %
-            sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(:, lin_verticalrange);
-            sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(:, lin_verticalrange);
-            sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(:, lin_verticalrange);
-            sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(:, lin_verticalrange);
-            %
-            sig1000.amp1{i2} = dataread_aux.Data.Burst_AmpBeam1(:, lin_verticalrange);
-            sig1000.amp2{i2} = dataread_aux.Data.Burst_AmpBeam2(:, lin_verticalrange);
-            sig1000.amp3{i2} = dataread_aux.Data.Burst_AmpBeam3(:, lin_verticalrange);
-            sig1000.amp4{i2} = dataread_aux.Data.Burst_AmpBeam4(:, lin_verticalrange);
-            %
-            if any(strcmp(list_beam_vars, 'corr1'))
-                sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(:, lin_verticalrange);
-                sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(:, lin_verticalrange);
-                sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(:, lin_verticalrange);
-                sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(:, lin_verticalrange);
-            end
-            
-        end
-
-
-        % Concatenate cell arrays into matrices (loop over variables)
-        for i3 = 1:length(list_cat_vars)
-            sig1000.(list_cat_vars{i3}) = cat(1, sig1000.(list_cat_vars{i3}){:});
-        end
-
-        %
-        toc(totalRunTime)
-        disp('---- partially done ----')
-        keyboard
-
-
-        %%
-
-
-
-    end
-
-
-
-    %%
-
-    toc(totalRunTime)
-    disp('---- partially done ----')
-    keyboard
 
 
 
@@ -563,627 +471,763 @@ for i1 = 1:Nsignatures
     % ----------------------- NOW GET VELOCITY ----------------------
     % ---------------------------------------------------------------
 
-    %%
-
-
-
-    %%
-
-
     %
     for i2 = 1:Ndatasegments
 
+% %         % For B10 (deployed later than planned), only start
+% %         % getting the files when there is data in the deployment
+% %         if strcmp(list_Signature{i1}(1:3), 'B10')
+% %             % If the latest time stamp if before the beginning of the B10
+% %             % deployment then, skip and go to next file
+% %             if max(dataread_aux.Burst_Time) < datenum(2022, 06, 24, 07, 38, 00)    % based on trimming at 40 min mark
+% %                 %
+% %                 warning(['Skipping file ' list_dir_aux(i2).name ' because ' ...
+% %                          'the data is from before the deployment.'])
+% %                 %
+% %                 continue
+% %             end 
+% %         end
+
+
+        % If the time segment is a time that is fully outside the
+        % deployment trimming edges, than skip this time segment
+        if (time_1 > time_lims_proc(i2+1)) || (time_2 <= time_lims_proc(i2))
+            continue
+        end 
+       
         %
         time_lims_aux = datenum(time_lims_proc(i2:(i2+1)));
-
         %
-        listfiles_perseg = Signature1000_filesintimelims(list_Signature{i1}(5:end), time_lims_aux);
+        [listfiles_perseg, struct_timelims] = Signature1000_filesintimelims(list_Signature{i1}(5:end), time_lims_aux);
 
-        % Load all data in that segment
+        % Pre-allocate in cell arrays
+        prealloc_aux = cell(length(listfiles_perseg), 1);
+% % %         %
+% % %         list_beam_vars = {'vel1', 'vel2', 'vel3', 'vel4', ...
+% % %                           'amp1', 'amp2', 'amp3', 'amp4', ...
+% % %                           'corr1', 'corr2', 'corr3', 'corr4'};
+        %
+        list_beam_vars = {'vel1', 'vel2', 'vel3', 'vel4', ...
+                          'amp1', 'amp2', 'amp3', 'amp4'};
+        % Loop over variables
+        for i3 = 1:length(list_beam_vars)
+            sig1000.(list_beam_vars{i3}) = prealloc_aux;
+        end
+        %
+        time_vel_aux = prealloc_aux;
+        
+
+        % Load over all files with data in the i2'th segment
         for i3 = 1:length(listfiles_perseg)
 
-            bla = load(fullfile(dir_rawdata_parent, ...
-                                list_Signature{i1}, ...
-                                'converted', ...
-                                listfiles_perseg(i3)));
+            %
+            dataread_aux = load(fullfile(dir_rawdata_parent, ...
+                                         list_Signature{i1}, ...
+                                         'converted', ...
+                                         listfiles_perseg(i3)));
 
-            toc(totalRunTime)
-            disp('---- partially done ----')
-            keyboard
-            
-            
-        end
-    end
-
-
-
-    %%
-
-    toc(totalRunTime)
-    disp('---- partially done ----')
-    keyboard
-
-    %%
-
-
-
-    %% Start looping over files again
-
-    %
-    for i2 = 1:Nfiles
-
-
-        %% Load data in file i2'th
-        dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(i2).name));
-
-
-        %% Get metadata
-
-        %
-        if i2==1
+% %             % Dummy/for code development
+% %             lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
 
             %
-            sig1000.NBeams = sig1000.Config.Burst_NBeams;
-            
-            % in seconds
-            sig1000.samplingtime = 1./sig1000.Config.Burst_SamplingRate;
-
-        end
-
-
-        %% For B10 (deployed later than planned), only start
-        % getting the files when there is data in the deployment
-        if strcmp(list_Signature{i1}(1:3), 'B10')
-
-            % If the latest time stamp if before the beginning of the B10
-            % deployment then, skip and go to next file
-            if max(dataread_aux.Burst_Time) < datenum(2022, 06, 24, 07, 38, 00)    % based on trimming at 40 min mark
-                %
-                warning(['Skipping file ' list_dir_aux(i2).name ' because ' ...
-                         'the data is from before the deployment.'])
-                %
-                continue
+            sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(:, lin_verticalrange);
+            sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(:, lin_verticalrange);
+            sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(:, lin_verticalrange);
+            sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(:, lin_verticalrange);
+            %
+            sig1000.amp1{i2} = dataread_aux.Data.Burst_AmpBeam1(:, lin_verticalrange);
+            sig1000.amp2{i2} = dataread_aux.Data.Burst_AmpBeam2(:, lin_verticalrange);
+            sig1000.amp3{i2} = dataread_aux.Data.Burst_AmpBeam3(:, lin_verticalrange);
+            sig1000.amp4{i2} = dataread_aux.Data.Burst_AmpBeam4(:, lin_verticalrange);
+            %
+            if any(strcmp(list_beam_vars, 'corr1'))
+                sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(:, lin_verticalrange);
+                sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(:, lin_verticalrange);
+                sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(:, lin_verticalrange);
+                sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(:, lin_verticalrange);
             end
 
-        end
-
-        %% First get velocity 
-        
-        %
-        sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(:, lin_verticalrange);
-        sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(:, lin_verticalrange);
-        sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(:, lin_verticalrange);
-        sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(:, lin_verticalrange);
-        %
-        sig1000.amp1{i2} = dataread_aux.Data.Burst_AmpBeam1(:, lin_verticalrange);
-        sig1000.amp2{i2} = dataread_aux.Data.Burst_AmpBeam2(:, lin_verticalrange);
-        sig1000.amp3{i2} = dataread_aux.Data.Burst_AmpBeam3(:, lin_verticalrange);
-        sig1000.amp4{i2} = dataread_aux.Data.Burst_AmpBeam4(:, lin_verticalrange);
-        %
-        sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(:, lin_verticalrange);
-        sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(:, lin_verticalrange);
-        sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(:, lin_verticalrange);
-        sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(:, lin_verticalrange);
-
-        %
-        toc(totalRunTime)
-        disp('---- partially done ----')
-        keyboard
-
-    end
-
-
-    %%
-    
-    
-    toc(totalRunTime)
-    disp('---- partially done ----')
-    keyboard
-
-
-end
-
-    %%
-
-
-
-    %% Rotate along-beam velocity to xyz components (this is a 4x4 matrix)
-
-
-    %% Rotate velocity to account for tilt (HOW TO DO THIS EFFICIENTLY?
-    % COMBINE ROTATIONS??)
-
-
-    %% Rotate horizontal velocities
-
-
-
-%%
-return
-
-
-
-%% Process RAW Signature1000 data
-
-%
-list_senfile_vars = ["time", "heading", "pitch", "roll", "pressure", "temperature"];
-
-%
-tic
-% Loop over Aquadopps in the list
-for i = 1:Nsignatures
-
-    % ----------------------------------------------------
-    %
-    disp(' '), disp(' ')
-    disp(['----- Start processing raw Aquadopp data: ' list_Signature{i} ' -----'])
-
-    % ----------------------------------------------------
-    % Get header
-    file_header_aux = dir(fullfile(dir_rawdata_parent, list_Signature{i}, '*.hdr'));
-
-    % E12 has extra files (E1202.hdr, E1202.PRF, E1202.ssl). From header
-    % file, it seems these belong to this deployment, but these were not
-    % used (some kind of error?). But all the data seems to be in E1203.*
-    if strcmp(list_Signature{i}, 'E12_11150')
-        file_header_aux = dir(fullfile(dir_rawdata_parent, list_Signature{i}, 'E1203.hdr'));
-    end
-
-    %
-    disp('----- Loading header file -----')
-
-    %
-    header_aux = Aquadopp_read_header(fullfile(file_header_aux.folder, file_header_aux.name));
-
-    % ----------------------------------------------------
-    %
-    file_sen_aux = dir(fullfile(dir_rawdata_parent, list_Signature{i}, '*.sen'));
-
-    %
-    senAQDP_aux = Aquadopp_read_senfile(fullfile(file_sen_aux.folder, file_sen_aux.name), list_senfile_vars);
-
-    %
-    disp('----- Correcting for clock drift -----')
-
-    % Now correct for clock drift
-    time_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
-                                            list_Signature{i}(5:end), ...
-                                            datenum(senAQDP_aux.time, "yyyy/mm/dd HH:MM:SS"));
-    %
-    senAQDP_aux.time = datetime(time_aux, ...
-                                    'ConvertFrom', 'datenum', ...
-                                    'TimeZone', 'America/Los_Angeles');
-
-    % ----------------------------------------------------
-    % Load velocity and backscatter data
-
-    disp('----- Loading velocity data -----')
-
-    %
-    file_noextension_aux = file_sen_aux.name(1:(strfind(file_sen_aux.name, '.') - 1));
-
-    %
-    beamAQDP_aux = Aquadopp_read_beamdata(fullfile(dir_rawdata_parent, list_Signature{i}, file_noextension_aux), ...
-                                          ["a1", "a2", "a3", "v1", "v2", "v3"]);
-
-
-    % ----------------------------------------------------
-    % Trim for when instrument was in the water
-
-    %
-    ind_row_match = find(strcmp(deploymentInfo_ROXSI2022.SN, list_Signature{i}(5:end)));
-    
-    %
-    time_1 = deploymentInfo_ROXSI2022.time_begin_trim(ind_row_match);
-    time_2 = deploymentInfo_ROXSI2022.time_end_trim(ind_row_match);
-
-    %
-    time_1 = datetime(datenum(time_1, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', senAQDP_aux.time.TimeZone);
-    time_2 = datetime(datenum(time_2, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', senAQDP_aux.time.TimeZone);
-
-    %
-    lin_deployment = (senAQDP_aux.time >= time_1) & (senAQDP_aux.time <= time_2);
-
-    %
-    disp(['----- Trimmed data between deployment and recovery: between ' datestr(time_1) ' and ' datestr(time_2) ' -----'])
-
-
-    % ----------------------------------------------------
-    % Start adding data into level 1 data structure
-    
-    %
-    lmatch_ontable = strcmp(deploymentInfo_ROXSI2022.SN, list_Signature{i}(5:end));
-
-    %
-    aquadoppL1.SN = convertCharsToStrings(list_Signature{i}(5:end));
-    %
-    aquadoppL1.mooringID = deploymentInfo_ROXSI2022.mooringID(lmatch_ontable);
-
-    % Latitude/longitude
-    info_mooringtable = ROXSI_mooringlocation(aquadoppL1.mooringID, "ADCP");
-    %
-    aquadoppL1.latitude = info_mooringtable.latitude;
-    aquadoppL1.longitude = info_mooringtable.longitude;
-
-    %
-    aquadoppL1.header = header_aux.header;
-
-    % Both of these are in seconds
-    aquadoppL1.samplingtime = header_aux.profileInterval;
-    aquadoppL1.averagingtime = header_aux.averageInterval;
-
-    % In meters
-    aquadoppL1.binsize = header_aux.binsize;
-
-    % In meters
-    aquadoppL1.cellcenter = header_aux.cellcenter;
-
-    % Height of the transducers above the bottom (in meters)
-    if strcmp(aquadoppL1.mooringID, "B02at")
-        %
-        aquadoppL1.transducerHAB = 1;   % PLACEHOLDER VALUE until we take the measurement (1 m seems like a reasonable guess)
-    %
-    else
-        % Based on top and bottom of the transducers
-        % from the ADCP mount schematics on Solidworks:
-        aquadoppL1.transducerHAB = ((12.44 + 10.53)/2)/100;
-    end
-
-    % ----------------------------------------------------
-    % Create (time-constant) height above the bottom vector
-    aquadoppL1.zhab = aquadoppL1.transducerHAB + aquadoppL1.cellcenter;
-
-    % ----------------------------------------------------
-    % Put all the raw data in a single structure that will be saved
-
-    %
-    aquadoppL1.timezone = senAQDP_aux.time.TimeZone;
-    %
-    aquadoppL1.dtime = senAQDP_aux.time(lin_deployment).';
-    aquadoppL1.heading = senAQDP_aux.heading(lin_deployment).';
-    aquadoppL1.pitch = senAQDP_aux.pitch(lin_deployment).';
-    aquadoppL1.roll = senAQDP_aux.roll(lin_deployment).';
-
-    %
-    aquadoppL1.pressureoffset = deploymentInfo_ROXSI2022.pressure_offset(ind_row_match);
-    
-    % Applies pressure offset set when programming
-    % the Aquadopp (should be 1, but there are a
-    % couple that seem to have been set to 0).
-    aquadoppL1.pressure = senAQDP_aux.pressure(lin_deployment).' - aquadoppL1.pressureoffset;
-
-    % ------------------------------
-    % Correct for the atmospheric pressure variability
-
-    %
-    disp('----- Making small correction to pressure due to atmospheric pressure variability -----')
-
-    %
-    atm_anomaly_interp = interp1(atmpresanomaly.dtime, ...
-                                 atmpresanomaly.atm_anomaly, ...
-                                 aquadoppL1.dtime);
-    
-    %
-    aquadoppL1.pressure = aquadoppL1.pressure - atm_anomaly_interp;
-
-    % ------------------------------
-
-    %
-    aquadoppL1.temperature = senAQDP_aux.temperature(lin_deployment).';
-
-    % ----------------------------------------------------
-    % Trim the data in the vertical using maximum pressure
-
-    %
-    disp('----- Computing SSH from pressure and NaNing data above the surface -----')
-
-% % 
-% %     % One very simple and quick selection
-% %     aquadoppL1.ptrimTH = max(aquadoppL1.pressure) + (2 * aquadoppL1.binsize);
-
-    % Compute depth from hydrostatic pressure 
-    aquadoppL1.bottomdepthfrompres = 1e4*aquadoppL1.pressure ./ (1030*9.8);
-
-    % Find all bins that are below the maximum bottom depth
-    lin_verticalrange = ((aquadoppL1.zhab + (aquadoppL1.binsize/2)) < ...
-                         max(aquadoppL1.bottomdepthfrompres));
-    %
-    aquadoppL1.zhab = aquadoppL1.zhab(lin_verticalrange);
-
-    % ----------------------------------------------------
-    %
-    aquadoppL1.coordsystem = 'ENU';    % sort of because that's not true yet
-
-    % In clockwise degrees from the true north
-    aquadoppL1.magdec = 12.86;
-
-    % At this point, Ue and Vn are relative to the MAGNETIC north
-    aquadoppL1.Ue = beamAQDP_aux.v1(lin_verticalrange, lin_deployment);
-    aquadoppL1.Vn = beamAQDP_aux.v2(lin_verticalrange, lin_deployment);
-    aquadoppL1.Wup = beamAQDP_aux.v3(lin_verticalrange, lin_deployment);
-    %
-    aquadoppL1.a1 = beamAQDP_aux.a1(lin_verticalrange, lin_deployment);
-    aquadoppL1.a2 = beamAQDP_aux.a2(lin_verticalrange, lin_deployment);
-    aquadoppL1.a3 = beamAQDP_aux.a3(lin_verticalrange, lin_deployment);
-
-    % ----------------------------------------------------
-    % NaN values above the surface at every time
-    %
-    zhab_halfstep = aquadoppL1.zhab + (aquadoppL1.binsize/2);
-    Nbins = length(aquadoppL1.zhab);
-    %
-    ind_abovesurface = 1:(size(aquadoppL1.Ue, 1) * size(aquadoppL1.Ue, 2));
-    ind_abovesurface = reshape(ind_abovesurface, size(aquadoppL1.Ue, 1), size(aquadoppL1.Ue, 2));
-    %
-    for i2 = 1:length(aquadoppL1.pressure)
-        %
-        ind_above_aux = find((zhab_halfstep < aquadoppL1.bottomdepthfrompres(i2)), 1, 'last');
-        %
-        ind_abovesurface(1:ind_above_aux, i2) = NaN;
-    end
-    %
-    ind_abovesurface = ind_abovesurface(:);
-    ind_abovesurface = ind_abovesurface(~isnan(ind_abovesurface));
-    %
-    aquadoppL1.Ue(ind_abovesurface) = NaN;
-    aquadoppL1.Vn(ind_abovesurface) = NaN;
-    aquadoppL1.Wup(ind_abovesurface) = NaN;
-    %
-    aquadoppL1.a1(ind_abovesurface) = NaN;
-    aquadoppL1.a2(ind_abovesurface) = NaN;
-    aquadoppL1.a3(ind_abovesurface) = NaN;
-
-
-    % ----------------------------------------------------
-    % Rotate horizontal velocity from magnetic to true north
-
-    %
-    disp(['----- Rotating horizontal velocity to ' ...
-          aquadoppL1.coordsystem ', with mag. declination of ' ...
-          num2str(aquadoppL1.magdec, '%.2f') ' degrees -----'])
-
-    %
-    rotMatrix = [cosd(aquadoppL1.magdec), sind(aquadoppL1.magdec); ...
-                 -sind(aquadoppL1.magdec), cosd(aquadoppL1.magdec)];
-
-% %     % Check the rotation (i.e. velocity aligned with magnetic north
-% %     % should have a small zonal component and large meridional
-% %     % component in a geographical north coordinate system)
-% %     rotMatrix * [0; 1]
-
-    %
-    for i2 = 1:size(aquadoppL1.Ue, 1)
-        %
-        uv_aux = [aquadoppL1.Ue(i2, :); aquadoppL1.Vn(i2, :)];
-        %
-        uv_rot_aux = rotMatrix * uv_aux;
-
-        %
-        aquadoppL1.Ue(i2, :) = uv_aux(1, :);
-        aquadoppL1.Vn(i2, :) = uv_aux(2, :);
-    end
-    
-    % ----------------------------------------------------
-    % Filter out velocity where amplitude is below a threshold value
-
-    %
-    disp('----- Removing velocity where backscatter is smaller than threshold value -----')
-
-    %
-    aquadoppL1.backscatterTH = 30;
-
-    %
-    l_belowTH = (aquadoppL1.a1 <= aquadoppL1.backscatterTH) | ...
-                (aquadoppL1.a2 <= aquadoppL1.backscatterTH) | ...
-                (aquadoppL1.a3 <= aquadoppL1.backscatterTH);
-    %
-    aquadoppL1.Ue(l_belowTH) = NaN;
-    aquadoppL1.Vn(l_belowTH) = NaN;
-    aquadoppL1.Wup(l_belowTH) = NaN;
-
-
-    % ----------------------------------------------------
-    % Turn all vectors into column vectors so that Matlab
-    % can quickly displace the structure variable in the 
-    % command window (Matlab displays first elements of
-    % row vectors, and it takes longer)
-    list_fields_aux = fieldnames(aquadoppL1);
-    %
-    for i2 = 1:length(list_fields_aux)
-        %
-        if isvector(aquadoppL1.(list_fields_aux{i2})) && ...
-           ~isstruct(aquadoppL1.(list_fields_aux{i2})) && ...
-           ~ischar(aquadoppL1.(list_fields_aux{i2}))
             %
-            aquadoppL1.(list_fields_aux{i2}) = aquadoppL1.(list_fields_aux{i2})(:);
+            time_vel_aux{i2} = dataread_aux.Data.Burst_Time;
+            
         end
+
+        % Concatenate cell arrays into matrices (loop over variables)
+        for i3 = 1:length(list_beam_vars)
+            sig1000.(list_beam_vars{i3}) = cat(1, sig1000.(list_beam_vars{i3}){:});
+        end
+        time_vel_aux = cat(1, time_vel_aux{:});
+
+
+        %% Quick pcolor plot to check the data
+
+        %
+%         indsplt_aux = 1:(8*3600);
+        indsplt_aux = 1:(8*60*1);
+
+        %
+        time_plt_aux = datetime(time_vel_aux(indsplt_aux), 'ConvertFrom', 'datenum');
+
+        %
+        hfig_quickview = figure;
+% %             %
+% %             haxs = makeSubPlots(0.1, 0.1, 0.05, ...
+% %                                 0.1, 0.15, 0.04, 2, 4);
+            %
+            haxs_1 = axes('Position', [0.1000    0.7425    0.3750    0.1575]);
+            haxs_2 = axes('Position', [0.5250    0.7425    0.3750    0.1575]);
+            haxs_3 = axes('Position', [0.1000    0.5450    0.3750    0.1575]);
+            haxs_4 = axes('Position', [0.5250    0.5450    0.3750    0.1575]);
+            haxs_5 = axes('Position', [0.1000    0.3475    0.3750    0.1575]);
+            haxs_6 = axes('Position', [0.5250    0.3475    0.3750    0.1575]);
+            haxs_7 = axes('Position', [0.1000    0.1500    0.3750    0.1575]);
+            haxs_8 = axes('Position', [0.5250    0.1500    0.3750    0.1575]);
+            %
+            haxs = [haxs_1, haxs_2, haxs_3, haxs_4, haxs_5, haxs_6, haxs_7, haxs_8];
+
+                %
+                pcolor(haxs(1), time_plt_aux, sig1000.zhab, sig1000.vel1(indsplt_aux, :).')
+                pcolor(haxs(3), time_plt_aux, sig1000.zhab, sig1000.vel2(indsplt_aux, :).')
+                pcolor(haxs(5), time_plt_aux, sig1000.zhab, sig1000.vel3(indsplt_aux, :).')
+                pcolor(haxs(7), time_plt_aux, sig1000.zhab, sig1000.vel4(indsplt_aux, :).')
+                %
+                pcolor(haxs(2), time_plt_aux, sig1000.zhab, sig1000.amp1(indsplt_aux, :).')
+                pcolor(haxs(4), time_plt_aux, sig1000.zhab, sig1000.amp2(indsplt_aux, :).')
+                pcolor(haxs(6), time_plt_aux, sig1000.zhab, sig1000.amp3(indsplt_aux, :).')
+                pcolor(haxs(8), time_plt_aux, sig1000.zhab, sig1000.amp4(indsplt_aux, :).')
+
+        %
+        shadeAll
+
+        %
+        callCbrewer([], haxs(1:2:7))
+
+        %
+        set(haxs, 'FontSize', 16, 'Box', 'on', ...
+                  'YLim', [0, (sig1000.zhab(end) + 1)])
+        set(haxs(1:2:7), 'CLim', 0.1.*[-1, 1])
+        set(haxs(2:2:8), 'CLim', [40, 80])
+        %
+        set(haxs(1:end-2), 'XTickLabel', []) 
+        set(haxs, 'Color', 0.6.*[1, 1, 1])
+
+        %
+        title(haxs(1), ['Sig1000 - ' list_Signature{i1}(1:3) ' SN ' list_Signature{i1}(5:end) ' v1, v2, v3, and v4'])
+        title(haxs(2), ['amp1, amp2, amp3, and amp4'])
+
+        %
+        set(hfig_quickview, 'units', 'normalized')
+        set(hfig_quickview, 'Position', [0.4, 0.63, 0.38, 0.3])
+
+        %
+        linkallaxes('xy')
+
+        %
+        exportgraphics(hfig_quickview, fullfile(pwd, ['sig_quickview' list_Signature{i1} '.png']), 'Resolution', 300)
+
+
+        %%
+        %
+        pause(10)
+
+        %
+        close(hfig_quickview)
+
+        %
+        clear sig1000
+
     end
 
 
-    % ----------------------------------------------------
-    % Compute averaged fields (compute 10 or 20 min averages
-    % because B02 gives data every 10 min, so only multiples
-    % of 10 min will work for all ADCPs).
 
-    %
-    disp('----- Computing averaged fields -----')
-
-    %
-    aquadoppL1.averaged.dt = 10*60;
-
-    %
-    npts_avg = aquadoppL1.averaged.dt / aquadoppL1.samplingtime;
-
-    % First average time
-    aquadoppL1.averaged.dtime = regRunMean(npts_avg, datenum(aquadoppL1.dtime), npts_avg, @rectwin);
-    aquadoppL1.averaged.dtime = datetime(aquadoppL1.averaged.dtime, 'ConvertFrom', 'datenum');
-    aquadoppL1.averaged.dtime.TimeZone = aquadoppL1.dtime.TimeZone;
-    %
-    aquadoppL1.averaged.dtime = aquadoppL1.averaged.dtime(:);
-
-    % Now average the beam data
-    prealloc_aux = NaN(size(aquadoppL1.Ue, 1), length(aquadoppL1.averaged.dtime));
-    %
-    aquadoppL1.averaged.Ue = prealloc_aux;
-    aquadoppL1.averaged.Vn = prealloc_aux;
-    aquadoppL1.averaged.Wup = prealloc_aux;
-    %
-    aquadoppL1.averaged.a1 = prealloc_aux;
-    aquadoppL1.averaged.a2 = prealloc_aux;
-    aquadoppL1.averaged.a3 = prealloc_aux;
-
-    % Loop over rows
-    for i2 = 1:length(aquadoppL1.zhab)
-        %
-        aquadoppL1.averaged.Ue(i2, :) = regRunMean(npts_avg, aquadoppL1.Ue(i2, :), npts_avg, @rectwin);
-        aquadoppL1.averaged.Vn(i2, :) = regRunMean(npts_avg, aquadoppL1.Vn(i2, :), npts_avg, @rectwin);
-        aquadoppL1.averaged.Wup(i2, :) = regRunMean(npts_avg, aquadoppL1.Wup(i2, :), npts_avg, @rectwin);
-        %
-        aquadoppL1.averaged.a1(i2, :) = regRunMean(npts_avg, aquadoppL1.a1(i2, :), npts_avg, @rectwin);
-        aquadoppL1.averaged.a2(i2, :) = regRunMean(npts_avg, aquadoppL1.a2(i2, :), npts_avg, @rectwin);
-        aquadoppL1.averaged.a3(i2, :) = regRunMean(npts_avg, aquadoppL1.a3(i2, :), npts_avg, @rectwin);
-    end
+    %%
 
 
-    % ----------------------------------------------------
-    % Add README
-    time_dataproc = datetime('now', 'TimeZone', 'Local');
-    time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
-    % Add a general README
-    aquadoppL1.README = ['Level 1 Aquadopp 1 data from ROXSI 2022. The data is from Aquadopp ' ...
-                         ' with serial number SN and deployed at mooring site mooringID. ' ...
-                         'Data processed by script ' mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
-                         'Horizontal velocity components are relative to geographic north, where the magnetic ' ...
-                         'decliation was taken from www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml. Data ' ...
-                         'in the Level 1 structure has been trimmed for the deployment ' ...
-                         'period, as defined in the table deploymentInfo_ROXSI2022.mat. ' ...
-                         'Pressure is in dbar, where atmospheric pressure has been removed.'];
+
+% % %     %% Start looping over files again
+% % % 
+% % %     %
+% % %     for i2 = 1:Nfiles
+% % % 
+% % % 
+% % %         %% Load data in file i2'th
+% % %         dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(i2).name));
+% % % 
+% % % 
+% % %         %% Get metadata
+% % % 
+% % %         %
+% % %         if i2==1
+% % % 
+% % %             %
+% % %             sig1000.NBeams = sig1000.Config.Burst_NBeams;
+% % %             
+% % %             % in seconds
+% % %             sig1000.samplingtime = 1./sig1000.Config.Burst_SamplingRate;
+% % % 
+% % %         end
+% % % 
+% % % 
+% % %         %% For B10 (deployed later than planned), only start
+% % %         % getting the files when there is data in the deployment
+% % %         if strcmp(list_Signature{i1}(1:3), 'B10')
+% % % 
+% % %             % If the latest time stamp if before the beginning of the B10
+% % %             % deployment then, skip and go to next file
+% % %             if max(dataread_aux.Burst_Time) < datenum(2022, 06, 24, 07, 38, 00)    % based on trimming at 40 min mark
+% % %                 %
+% % %                 warning(['Skipping file ' list_dir_aux(i2).name ' because ' ...
+% % %                          'the data is from before the deployment.'])
+% % %                 %
+% % %                 continue
+% % %             end
+% % % 
+% % %         end
+% % % 
+% % %         %% First get velocity 
+% % %         
+% % %         %
+% % %         sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(:, lin_verticalrange);
+% % %         sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(:, lin_verticalrange);
+% % %         sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(:, lin_verticalrange);
+% % %         sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(:, lin_verticalrange);
+% % %         %
+% % %         sig1000.amp1{i2} = dataread_aux.Data.Burst_AmpBeam1(:, lin_verticalrange);
+% % %         sig1000.amp2{i2} = dataread_aux.Data.Burst_AmpBeam2(:, lin_verticalrange);
+% % %         sig1000.amp3{i2} = dataread_aux.Data.Burst_AmpBeam3(:, lin_verticalrange);
+% % %         sig1000.amp4{i2} = dataread_aux.Data.Burst_AmpBeam4(:, lin_verticalrange);
+% % %         %
+% % %         sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(:, lin_verticalrange);
+% % %         sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(:, lin_verticalrange);
+% % %         sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(:, lin_verticalrange);
+% % %         sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(:, lin_verticalrange);
+% % % 
+% % %         %
+% % %         toc(totalRunTime)
+% % %         disp('---- partially done ----')
+% % %         keyboard
+% % % 
+% % %     end
 
 
-    %% Make QC plots, save figues and data structure
-
-    % ----------------------------------------------------
-    % Make a diagnostic plot of pressure, heading, pitch and roll
-    fig_L1_QC_tilt = figure;
-    set(fig_L1_QC_tilt, 'units', 'normalized')
-    set(fig_L1_QC_tilt, 'Position', [0.2, 0.2, 0.4, 0.6])
-        %
-        haxs_1 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.73, 0.8, 0.17]);
-        haxs_2 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.52, 0.8, 0.17]);
-        haxs_3 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.31, 0.8, 0.17]);
-        haxs_4 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.10, 0.8, 0.17]);
-        %
-        haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
-        hold(haxs_all, 'on')
-        %
-        plot(haxs_1, aquadoppL1.dtime, aquadoppL1.pressure, '-k')
-        plot(haxs_2, aquadoppL1.dtime, aquadoppL1.heading, '-k')
-        plot(haxs_3, aquadoppL1.dtime, aquadoppL1.pitch, '-k')
-        plot(haxs_4, aquadoppL1.dtime, aquadoppL1.roll, '-k')
-
-    %
-    set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
-                  'XGrid', 'on', 'YGrid', 'on')
-    %
-    set(haxs_all, 'XLim', aquadoppL1.dtime([1, end]) + [-hours(12); hours(12)])
-    %
-% %     ylim(haxs_2, [0, 360])
-    ylim(haxs_3, [-6, 6])
-    ylim(haxs_4, [-6, 6])
-
-
-    %
-    ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
-    %
-    title(haxs_1, ['ROXSI 2022: Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' ...
-                   char(aquadoppL1.SN) ': pressure, heading, pitch, and roll'], ...
-                  'Interpreter', 'Latex', 'FontSize', 20)
-    %
-    linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
-
-
-    %
-    for i2 = 1:length(haxs_all)
-        ylims_aux = ylim(haxs_all(i2));
-        %
-        plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
-        plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
-        %
-        ylim(haxs_all(i2), ylims_aux)
-    end
-
+    %%
     
-    % ----------------------------------------------------
-    % Make a diagnostic plot with pcolor
-
-    %
-    disp('----- Done with processing. Making QC plot. -----')
-    %
-    fig_L1_QC = Aquadopp_pcolor_lvl_1(aquadoppL1);
-
     
-    % ----------------------------------------------------
-    % Save level 1 data and QC figures
+% %     toc(totalRunTime)
+% %     disp('---- partially done ----')
+% %     keyboard
 
-    %
-    if lsave_file
-        %
-        disp('----- Saving level 1 data -----')
+    toc(totalRunTime)
 
-        %
-        str_filename = ['roxsi_aquadopp_L1_' list_Signature{i}(1:3) '_' char(aquadoppL1.SN)];
-        %
-        save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'aquadoppL1', '-v7.3')
-    end
 
-    %
-    if lsave_fig
-        %
-        disp('----- Saving level 1 QC plot figures -----')
-
-        %
-        str_filename = ['roxsi_aquadopp_L1_' list_Signature{i}(1:3) '_' char(aquadoppL1.SN) '_QC_1'];
-        % Save figure as *.png
-        exportgraphics(fig_L1_QC_tilt, fullfile(dir_output_figs_L1, [str_filename '.png']), 'Resolution', 300)
-
-        %
-        str_filename = ['roxsi_aquadopp_L1_' list_Signature{i}(1:3) '_' char(aquadoppL1.SN) '_QC_2'];
-        % Save figure as *.png
-        exportgraphics(fig_L1_QC, fullfile(dir_output_figs_L1, [str_filename '.png']), 'Resolution', 300)
-    
-        % Save figure as *.fig -- may not work
-        % % savefig(fig_L1_QC, fullfile(dir_output_Aquadopp, [str_filename '.fig']), 'compact')
-    end
-
-    
-    % Clear some variables to avoid issues in the next loop iteration
-    close(fig_L1_QC_tilt), close(fig_L1_QC)
-    clear aquadoppL1 header_aux beamAQDP_aux senAQDP_aux
-
-    
-    % ----------------------------------------------------
-    %
-    disp(['----- DONE with raw Aquadopp data proc: ' list_Signature{i} ' -----'])
-    %
-    toc
 end
 
-
-
-%%
-
-%
-disp('###################### Done with data processing for all Aquadopps ######################')
-
-%
-disp(' '), disp(' ')
-disp('*** The total time to run the data processing was:')
-%
 toc(totalRunTime)
+disp('---- PROCESSING FINISHED! ----')
+    
 
-% Close the log file
-diary('off');
+
+    %%
+
+
+% % % 
+% % %     %% Rotate along-beam velocity to xyz components (this is a 4x4 matrix)
+% % % 
+% % % 
+% % %     %% Rotate velocity to account for tilt (HOW TO DO THIS EFFICIENTLY?
+% % %     % COMBINE ROTATIONS??)
+% % % 
+% % % 
+% % %     %% Rotate horizontal velocities
+% % % 
+% % % 
+% % % 
+% % % %%
+% % % return
+% % % 
+% % % 
+% % % 
+% % % %% Process RAW Signature1000 data
+% % % 
+% % % %
+% % % list_senfile_vars = ["time", "heading", "pitch", "roll", "pressure", "temperature"];
+% % % 
+% % % %
+% % % tic
+% % % % Loop over Aquadopps in the list
+% % % for i = 1:Nsignatures
+% % % 
+% % %     % ----------------------------------------------------
+% % %     %
+% % %     disp(' '), disp(' ')
+% % %     disp(['----- Start processing raw Aquadopp data: ' list_Signature{i} ' -----'])
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Get header
+% % %     file_header_aux = dir(fullfile(dir_rawdata_parent, list_Signature{i}, '*.hdr'));
+% % % 
+% % %     % E12 has extra files (E1202.hdr, E1202.PRF, E1202.ssl). From header
+% % %     % file, it seems these belong to this deployment, but these were not
+% % %     % used (some kind of error?). But all the data seems to be in E1203.*
+% % %     if strcmp(list_Signature{i}, 'E12_11150')
+% % %         file_header_aux = dir(fullfile(dir_rawdata_parent, list_Signature{i}, 'E1203.hdr'));
+% % %     end
+% % % 
+% % %     %
+% % %     disp('----- Loading header file -----')
+% % % 
+% % %     %
+% % %     header_aux = Aquadopp_read_header(fullfile(file_header_aux.folder, file_header_aux.name));
+% % % 
+% % %     % ----------------------------------------------------
+% % %     %
+% % %     file_sen_aux = dir(fullfile(dir_rawdata_parent, list_Signature{i}, '*.sen'));
+% % % 
+% % %     %
+% % %     senAQDP_aux = Aquadopp_read_senfile(fullfile(file_sen_aux.folder, file_sen_aux.name), list_senfile_vars);
+% % % 
+% % %     %
+% % %     disp('----- Correcting for clock drift -----')
+% % % 
+% % %     % Now correct for clock drift
+% % %     time_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
+% % %                                             list_Signature{i}(5:end), ...
+% % %                                             datenum(senAQDP_aux.time, "yyyy/mm/dd HH:MM:SS"));
+% % %     %
+% % %     senAQDP_aux.time = datetime(time_aux, ...
+% % %                                     'ConvertFrom', 'datenum', ...
+% % %                                     'TimeZone', 'America/Los_Angeles');
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Load velocity and backscatter data
+% % % 
+% % %     disp('----- Loading velocity data -----')
+% % % 
+% % %     %
+% % %     file_noextension_aux = file_sen_aux.name(1:(strfind(file_sen_aux.name, '.') - 1));
+% % % 
+% % %     %
+% % %     beamAQDP_aux = Aquadopp_read_beamdata(fullfile(dir_rawdata_parent, list_Signature{i}, file_noextension_aux), ...
+% % %                                           ["a1", "a2", "a3", "v1", "v2", "v3"]);
+% % % 
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Trim for when instrument was in the water
+% % % 
+% % %     %
+% % %     ind_row_match = find(strcmp(deploymentInfo_ROXSI2022.SN, list_Signature{i}(5:end)));
+% % %     
+% % %     %
+% % %     time_1 = deploymentInfo_ROXSI2022.time_begin_trim(ind_row_match);
+% % %     time_2 = deploymentInfo_ROXSI2022.time_end_trim(ind_row_match);
+% % % 
+% % %     %
+% % %     time_1 = datetime(datenum(time_1, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', senAQDP_aux.time.TimeZone);
+% % %     time_2 = datetime(datenum(time_2, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', senAQDP_aux.time.TimeZone);
+% % % 
+% % %     %
+% % %     lin_deployment = (senAQDP_aux.time >= time_1) & (senAQDP_aux.time <= time_2);
+% % % 
+% % %     %
+% % %     disp(['----- Trimmed data between deployment and recovery: between ' datestr(time_1) ' and ' datestr(time_2) ' -----'])
+% % % 
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Start adding data into level 1 data structure
+% % %     
+% % %     %
+% % %     lmatch_ontable = strcmp(deploymentInfo_ROXSI2022.SN, list_Signature{i}(5:end));
+% % % 
+% % %     %
+% % %     aquadoppL1.SN = convertCharsToStrings(list_Signature{i}(5:end));
+% % %     %
+% % %     aquadoppL1.mooringID = deploymentInfo_ROXSI2022.mooringID(lmatch_ontable);
+% % % 
+% % %     % Latitude/longitude
+% % %     info_mooringtable = ROXSI_mooringlocation(aquadoppL1.mooringID, "ADCP");
+% % %     %
+% % %     aquadoppL1.latitude = info_mooringtable.latitude;
+% % %     aquadoppL1.longitude = info_mooringtable.longitude;
+% % % 
+% % %     %
+% % %     aquadoppL1.header = header_aux.header;
+% % % 
+% % %     % Both of these are in seconds
+% % %     aquadoppL1.samplingtime = header_aux.profileInterval;
+% % %     aquadoppL1.averagingtime = header_aux.averageInterval;
+% % % 
+% % %     % In meters
+% % %     aquadoppL1.binsize = header_aux.binsize;
+% % % 
+% % %     % In meters
+% % %     aquadoppL1.cellcenter = header_aux.cellcenter;
+% % % 
+% % %     % Height of the transducers above the bottom (in meters)
+% % %     if strcmp(aquadoppL1.mooringID, "B02at")
+% % %         %
+% % %         aquadoppL1.transducerHAB = 1;   % PLACEHOLDER VALUE until we take the measurement (1 m seems like a reasonable guess)
+% % %     %
+% % %     else
+% % %         % Based on top and bottom of the transducers
+% % %         % from the ADCP mount schematics on Solidworks:
+% % %         aquadoppL1.transducerHAB = ((12.44 + 10.53)/2)/100;
+% % %     end
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Create (time-constant) height above the bottom vector
+% % %     aquadoppL1.zhab = aquadoppL1.transducerHAB + aquadoppL1.cellcenter;
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Put all the raw data in a single structure that will be saved
+% % % 
+% % %     %
+% % %     aquadoppL1.timezone = senAQDP_aux.time.TimeZone;
+% % %     %
+% % %     aquadoppL1.dtime = senAQDP_aux.time(lin_deployment).';
+% % %     aquadoppL1.heading = senAQDP_aux.heading(lin_deployment).';
+% % %     aquadoppL1.pitch = senAQDP_aux.pitch(lin_deployment).';
+% % %     aquadoppL1.roll = senAQDP_aux.roll(lin_deployment).';
+% % % 
+% % %     %
+% % %     aquadoppL1.pressureoffset = deploymentInfo_ROXSI2022.pressure_offset(ind_row_match);
+% % %     
+% % %     % Applies pressure offset set when programming
+% % %     % the Aquadopp (should be 1, but there are a
+% % %     % couple that seem to have been set to 0).
+% % %     aquadoppL1.pressure = senAQDP_aux.pressure(lin_deployment).' - aquadoppL1.pressureoffset;
+% % % 
+% % %     % ------------------------------
+% % %     % Correct for the atmospheric pressure variability
+% % % 
+% % %     %
+% % %     disp('----- Making small correction to pressure due to atmospheric pressure variability -----')
+% % % 
+% % %     %
+% % %     atm_anomaly_interp = interp1(atmpresanomaly.dtime, ...
+% % %                                  atmpresanomaly.atm_anomaly, ...
+% % %                                  aquadoppL1.dtime);
+% % %     
+% % %     %
+% % %     aquadoppL1.pressure = aquadoppL1.pressure - atm_anomaly_interp;
+% % % 
+% % %     % ------------------------------
+% % % 
+% % %     %
+% % %     aquadoppL1.temperature = senAQDP_aux.temperature(lin_deployment).';
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Trim the data in the vertical using maximum pressure
+% % % 
+% % %     %
+% % %     disp('----- Computing SSH from pressure and NaNing data above the surface -----')
+% % % 
+% % % % % 
+% % % % %     % One very simple and quick selection
+% % % % %     aquadoppL1.ptrimTH = max(aquadoppL1.pressure) + (2 * aquadoppL1.binsize);
+% % % 
+% % %     % Compute depth from hydrostatic pressure 
+% % %     aquadoppL1.bottomdepthfrompres = 1e4*aquadoppL1.pressure ./ (1030*9.8);
+% % % 
+% % %     % Find all bins that are below the maximum bottom depth
+% % %     lin_verticalrange = ((aquadoppL1.zhab + (aquadoppL1.binsize/2)) < ...
+% % %                          max(aquadoppL1.bottomdepthfrompres));
+% % %     %
+% % %     aquadoppL1.zhab = aquadoppL1.zhab(lin_verticalrange);
+% % % 
+% % %     % ----------------------------------------------------
+% % %     %
+% % %     aquadoppL1.coordsystem = 'ENU';    % sort of because that's not true yet
+% % % 
+% % %     % In clockwise degrees from the true north
+% % %     aquadoppL1.magdec = 12.86;
+% % % 
+% % %     % At this point, Ue and Vn are relative to the MAGNETIC north
+% % %     aquadoppL1.Ue = beamAQDP_aux.v1(lin_verticalrange, lin_deployment);
+% % %     aquadoppL1.Vn = beamAQDP_aux.v2(lin_verticalrange, lin_deployment);
+% % %     aquadoppL1.Wup = beamAQDP_aux.v3(lin_verticalrange, lin_deployment);
+% % %     %
+% % %     aquadoppL1.a1 = beamAQDP_aux.a1(lin_verticalrange, lin_deployment);
+% % %     aquadoppL1.a2 = beamAQDP_aux.a2(lin_verticalrange, lin_deployment);
+% % %     aquadoppL1.a3 = beamAQDP_aux.a3(lin_verticalrange, lin_deployment);
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % NaN values above the surface at every time
+% % %     %
+% % %     zhab_halfstep = aquadoppL1.zhab + (aquadoppL1.binsize/2);
+% % %     Nbins = length(aquadoppL1.zhab);
+% % %     %
+% % %     ind_abovesurface = 1:(size(aquadoppL1.Ue, 1) * size(aquadoppL1.Ue, 2));
+% % %     ind_abovesurface = reshape(ind_abovesurface, size(aquadoppL1.Ue, 1), size(aquadoppL1.Ue, 2));
+% % %     %
+% % %     for i2 = 1:length(aquadoppL1.pressure)
+% % %         %
+% % %         ind_above_aux = find((zhab_halfstep < aquadoppL1.bottomdepthfrompres(i2)), 1, 'last');
+% % %         %
+% % %         ind_abovesurface(1:ind_above_aux, i2) = NaN;
+% % %     end
+% % %     %
+% % %     ind_abovesurface = ind_abovesurface(:);
+% % %     ind_abovesurface = ind_abovesurface(~isnan(ind_abovesurface));
+% % %     %
+% % %     aquadoppL1.Ue(ind_abovesurface) = NaN;
+% % %     aquadoppL1.Vn(ind_abovesurface) = NaN;
+% % %     aquadoppL1.Wup(ind_abovesurface) = NaN;
+% % %     %
+% % %     aquadoppL1.a1(ind_abovesurface) = NaN;
+% % %     aquadoppL1.a2(ind_abovesurface) = NaN;
+% % %     aquadoppL1.a3(ind_abovesurface) = NaN;
+% % % 
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Rotate horizontal velocity from magnetic to true north
+% % % 
+% % %     %
+% % %     disp(['----- Rotating horizontal velocity to ' ...
+% % %           aquadoppL1.coordsystem ', with mag. declination of ' ...
+% % %           num2str(aquadoppL1.magdec, '%.2f') ' degrees -----'])
+% % % 
+% % %     %
+% % %     rotMatrix = [cosd(aquadoppL1.magdec), sind(aquadoppL1.magdec); ...
+% % %                  -sind(aquadoppL1.magdec), cosd(aquadoppL1.magdec)];
+% % % 
+% % % % %     % Check the rotation (i.e. velocity aligned with magnetic north
+% % % % %     % should have a small zonal component and large meridional
+% % % % %     % component in a geographical north coordinate system)
+% % % % %     rotMatrix * [0; 1]
+% % % 
+% % %     %
+% % %     for i2 = 1:size(aquadoppL1.Ue, 1)
+% % %         %
+% % %         uv_aux = [aquadoppL1.Ue(i2, :); aquadoppL1.Vn(i2, :)];
+% % %         %
+% % %         uv_rot_aux = rotMatrix * uv_aux;
+% % % 
+% % %         %
+% % %         aquadoppL1.Ue(i2, :) = uv_aux(1, :);
+% % %         aquadoppL1.Vn(i2, :) = uv_aux(2, :);
+% % %     end
+% % %     
+% % %     % ----------------------------------------------------
+% % %     % Filter out velocity where amplitude is below a threshold value
+% % % 
+% % %     %
+% % %     disp('----- Removing velocity where backscatter is smaller than threshold value -----')
+% % % 
+% % %     %
+% % %     aquadoppL1.backscatterTH = 30;
+% % % 
+% % %     %
+% % %     l_belowTH = (aquadoppL1.a1 <= aquadoppL1.backscatterTH) | ...
+% % %                 (aquadoppL1.a2 <= aquadoppL1.backscatterTH) | ...
+% % %                 (aquadoppL1.a3 <= aquadoppL1.backscatterTH);
+% % %     %
+% % %     aquadoppL1.Ue(l_belowTH) = NaN;
+% % %     aquadoppL1.Vn(l_belowTH) = NaN;
+% % %     aquadoppL1.Wup(l_belowTH) = NaN;
+% % % 
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Turn all vectors into column vectors so that Matlab
+% % %     % can quickly displace the structure variable in the 
+% % %     % command window (Matlab displays first elements of
+% % %     % row vectors, and it takes longer)
+% % %     list_fields_aux = fieldnames(aquadoppL1);
+% % %     %
+% % %     for i2 = 1:length(list_fields_aux)
+% % %         %
+% % %         if isvector(aquadoppL1.(list_fields_aux{i2})) && ...
+% % %            ~isstruct(aquadoppL1.(list_fields_aux{i2})) && ...
+% % %            ~ischar(aquadoppL1.(list_fields_aux{i2}))
+% % %             %
+% % %             aquadoppL1.(list_fields_aux{i2}) = aquadoppL1.(list_fields_aux{i2})(:);
+% % %         end
+% % %     end
+% % % 
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Compute averaged fields (compute 10 or 20 min averages
+% % %     % because B02 gives data every 10 min, so only multiples
+% % %     % of 10 min will work for all ADCPs).
+% % % 
+% % %     %
+% % %     disp('----- Computing averaged fields -----')
+% % % 
+% % %     %
+% % %     aquadoppL1.averaged.dt = 10*60;
+% % % 
+% % %     %
+% % %     npts_avg = aquadoppL1.averaged.dt / aquadoppL1.samplingtime;
+% % % 
+% % %     % First average time
+% % %     aquadoppL1.averaged.dtime = regRunMean(npts_avg, datenum(aquadoppL1.dtime), npts_avg, @rectwin);
+% % %     aquadoppL1.averaged.dtime = datetime(aquadoppL1.averaged.dtime, 'ConvertFrom', 'datenum');
+% % %     aquadoppL1.averaged.dtime.TimeZone = aquadoppL1.dtime.TimeZone;
+% % %     %
+% % %     aquadoppL1.averaged.dtime = aquadoppL1.averaged.dtime(:);
+% % % 
+% % %     % Now average the beam data
+% % %     prealloc_aux = NaN(size(aquadoppL1.Ue, 1), length(aquadoppL1.averaged.dtime));
+% % %     %
+% % %     aquadoppL1.averaged.Ue = prealloc_aux;
+% % %     aquadoppL1.averaged.Vn = prealloc_aux;
+% % %     aquadoppL1.averaged.Wup = prealloc_aux;
+% % %     %
+% % %     aquadoppL1.averaged.a1 = prealloc_aux;
+% % %     aquadoppL1.averaged.a2 = prealloc_aux;
+% % %     aquadoppL1.averaged.a3 = prealloc_aux;
+% % % 
+% % %     % Loop over rows
+% % %     for i2 = 1:length(aquadoppL1.zhab)
+% % %         %
+% % %         aquadoppL1.averaged.Ue(i2, :) = regRunMean(npts_avg, aquadoppL1.Ue(i2, :), npts_avg, @rectwin);
+% % %         aquadoppL1.averaged.Vn(i2, :) = regRunMean(npts_avg, aquadoppL1.Vn(i2, :), npts_avg, @rectwin);
+% % %         aquadoppL1.averaged.Wup(i2, :) = regRunMean(npts_avg, aquadoppL1.Wup(i2, :), npts_avg, @rectwin);
+% % %         %
+% % %         aquadoppL1.averaged.a1(i2, :) = regRunMean(npts_avg, aquadoppL1.a1(i2, :), npts_avg, @rectwin);
+% % %         aquadoppL1.averaged.a2(i2, :) = regRunMean(npts_avg, aquadoppL1.a2(i2, :), npts_avg, @rectwin);
+% % %         aquadoppL1.averaged.a3(i2, :) = regRunMean(npts_avg, aquadoppL1.a3(i2, :), npts_avg, @rectwin);
+% % %     end
+% % % 
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Add README
+% % %     time_dataproc = datetime('now', 'TimeZone', 'Local');
+% % %     time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
+% % %     % Add a general README
+% % %     aquadoppL1.README = ['Level 1 Aquadopp 1 data from ROXSI 2022. The data is from Aquadopp ' ...
+% % %                          ' with serial number SN and deployed at mooring site mooringID. ' ...
+% % %                          'Data processed by script ' mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
+% % %                          'Horizontal velocity components are relative to geographic north, where the magnetic ' ...
+% % %                          'decliation was taken from www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml. Data ' ...
+% % %                          'in the Level 1 structure has been trimmed for the deployment ' ...
+% % %                          'period, as defined in the table deploymentInfo_ROXSI2022.mat. ' ...
+% % %                          'Pressure is in dbar, where atmospheric pressure has been removed.'];
+% % % 
+% % % 
+% % %     %% Make QC plots, save figues and data structure
+% % % 
+% % %     % ----------------------------------------------------
+% % %     % Make a diagnostic plot of pressure, heading, pitch and roll
+% % %     fig_L1_QC_tilt = figure;
+% % %     set(fig_L1_QC_tilt, 'units', 'normalized')
+% % %     set(fig_L1_QC_tilt, 'Position', [0.2, 0.2, 0.4, 0.6])
+% % %         %
+% % %         haxs_1 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.73, 0.8, 0.17]);
+% % %         haxs_2 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.52, 0.8, 0.17]);
+% % %         haxs_3 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.31, 0.8, 0.17]);
+% % %         haxs_4 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.10, 0.8, 0.17]);
+% % %         %
+% % %         haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
+% % %         hold(haxs_all, 'on')
+% % %         %
+% % %         plot(haxs_1, aquadoppL1.dtime, aquadoppL1.pressure, '-k')
+% % %         plot(haxs_2, aquadoppL1.dtime, aquadoppL1.heading, '-k')
+% % %         plot(haxs_3, aquadoppL1.dtime, aquadoppL1.pitch, '-k')
+% % %         plot(haxs_4, aquadoppL1.dtime, aquadoppL1.roll, '-k')
+% % % 
+% % %     %
+% % %     set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+% % %                   'XGrid', 'on', 'YGrid', 'on')
+% % %     %
+% % %     set(haxs_all, 'XLim', aquadoppL1.dtime([1, end]) + [-hours(12); hours(12)])
+% % %     %
+% % % % %     ylim(haxs_2, [0, 360])
+% % %     ylim(haxs_3, [-6, 6])
+% % %     ylim(haxs_4, [-6, 6])
+% % % 
+% % % 
+% % %     %
+% % %     ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     %
+% % %     title(haxs_1, ['ROXSI 2022: Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' ...
+% % %                    char(aquadoppL1.SN) ': pressure, heading, pitch, and roll'], ...
+% % %                   'Interpreter', 'Latex', 'FontSize', 20)
+% % %     %
+% % %     linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
+% % % 
+% % % 
+% % %     %
+% % %     for i2 = 1:length(haxs_all)
+% % %         ylims_aux = ylim(haxs_all(i2));
+% % %         %
+% % %         plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
+% % %         plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
+% % %         %
+% % %         ylim(haxs_all(i2), ylims_aux)
+% % %     end
+% % % 
+% % %     
+% % %     % ----------------------------------------------------
+% % %     % Make a diagnostic plot with pcolor
+% % % 
+% % %     %
+% % %     disp('----- Done with processing. Making QC plot. -----')
+% % %     %
+% % %     fig_L1_QC = Aquadopp_pcolor_lvl_1(aquadoppL1);
+% % % 
+% % %     
+% % %     % ----------------------------------------------------
+% % %     % Save level 1 data and QC figures
+% % % 
+% % %     %
+% % %     if lsave_file
+% % %         %
+% % %         disp('----- Saving level 1 data -----')
+% % % 
+% % %         %
+% % %         str_filename = ['roxsi_aquadopp_L1_' list_Signature{i}(1:3) '_' char(aquadoppL1.SN)];
+% % %         %
+% % %         save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'aquadoppL1', '-v7.3')
+% % %     end
+% % % 
+% % %     %
+% % %     if lsave_fig
+% % %         %
+% % %         disp('----- Saving level 1 QC plot figures -----')
+% % % 
+% % %         %
+% % %         str_filename = ['roxsi_aquadopp_L1_' list_Signature{i}(1:3) '_' char(aquadoppL1.SN) '_QC_1'];
+% % %         % Save figure as *.png
+% % %         exportgraphics(fig_L1_QC_tilt, fullfile(dir_output_figs_L1, [str_filename '.png']), 'Resolution', 300)
+% % % 
+% % %         %
+% % %         str_filename = ['roxsi_aquadopp_L1_' list_Signature{i}(1:3) '_' char(aquadoppL1.SN) '_QC_2'];
+% % %         % Save figure as *.png
+% % %         exportgraphics(fig_L1_QC, fullfile(dir_output_figs_L1, [str_filename '.png']), 'Resolution', 300)
+% % %     
+% % %         % Save figure as *.fig -- may not work
+% % %         % % savefig(fig_L1_QC, fullfile(dir_output_Aquadopp, [str_filename '.fig']), 'compact')
+% % %     end
+% % % 
+% % %     
+% % %     % Clear some variables to avoid issues in the next loop iteration
+% % %     close(fig_L1_QC_tilt), close(fig_L1_QC)
+% % %     clear aquadoppL1 header_aux beamAQDP_aux senAQDP_aux
+% % % 
+% % %     
+% % %     % ----------------------------------------------------
+% % %     %
+% % %     disp(['----- DONE with raw Aquadopp data proc: ' list_Signature{i} ' -----'])
+% % %     %
+% % %     toc
+% % % end
+% % % 
+% % % 
+% % % 
+% % % %%
+% % % 
+% % % %
+% % % disp('###################### Done with data processing for all Aquadopps ######################')
+% % % 
+% % % %
+% % % disp(' '), disp(' ')
+% % % disp('*** The total time to run the data processing was:')
+% % % %
+% % % toc(totalRunTime)
+% % % 
+% % % % Close the log file
+% % % diary('off');
 

@@ -299,7 +299,7 @@ for i = 1:Naquadopps
     aquadoppL1.temperature = senAQDP_aux.temperature(lin_deployment).';
 
     % ----------------------------------------------------
-    % Trim the data in the vertical using maximum pressure
+    % Trim the data in the vertical using the bottom depth estimate
 
     %
     disp('----- Computing SSH from pressure and NaNing data above the surface -----')
@@ -319,7 +319,7 @@ for i = 1:Naquadopps
 
     % ----------------------------------------------------
     %
-    aquadoppL1.coordsystem = 'ENU';    % sort of because that's not true yet
+    aquadoppL1.coordsystem = 'ENU';
 
     % In clockwise degrees from the true north
     aquadoppL1.magdec = 12.86;
@@ -477,7 +477,7 @@ for i = 1:Naquadopps
     time_dataproc = datetime('now', 'TimeZone', 'Local');
     time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
     % Add a general README
-    aquadoppL1.README = ['Level 1 Aquadopp 1 data from ROXSI 2022. The data is from Aquadopp ' ...
+    aquadoppL1.README = ['Level 1 Aquadopp data from ROXSI 2022. The data is from Aquadopp ' ...
                          ' with serial number SN and deployed at mooring site mooringID. ' ...
                          'Data processed by script ' mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
                          'Horizontal velocity components are relative to geographic north, where the magnetic ' ...

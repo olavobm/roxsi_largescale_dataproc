@@ -722,6 +722,9 @@ for i1 = 1:Nsignatures
             haxs_8 = axes('Position', [0.5250    0.1500    0.3750    0.1575]);
             %
             haxs = [haxs_1, haxs_2, haxs_3, haxs_4, haxs_5, haxs_6, haxs_7, haxs_8];
+            for i3 = 1:length(haxs)
+                hold(haxs(i3), 'on')
+            end
 
                 %
                 pcolor(haxs(1), time_plt_aux, sig1000.zhab, sig1000.vel1(indsplt_aux, :).')
@@ -735,7 +738,7 @@ for i1 = 1:Nsignatures
                 pcolor(haxs(8), time_plt_aux, sig1000.zhab, sig1000.amp4(indsplt_aux, :).')
 
                 for i3 = 1:length(haxs)
-                    plot(haxs(i), time_plt_aux, sig1000.pressure(indsplt_aux), '-k')
+                    plot(haxs(i3), time_plt_aux, sig1000.pressure(indsplt_aux), '-k')
                 end
 
         %
@@ -873,11 +876,14 @@ for i1 = 1:Nsignatures
         %
         [sig1000.Ue, sig1000.Vn, ...
          sig1000.Wup, sig1000.Wbeam5] = ...
-                janus5beam2earth((sig1000.heading(:) - 90), ...
-                                 sig1000.roll(:), -sig1000.pitch(:), ...
+                janus5beam2earth((sig1000.heading(:).' - 90), ...
+                                 sig1000.roll(:).', -sig1000.pitch(:).', ...
                                  25, ...
                                  -sig1000.vel1, -sig1000.vel2, ...
                                  -sig1000.vel3, -sig1000.vel4, -sig1000.vel5);
+
+
+        % make sure that column dimension is time dimension for all variables
 
     % 
     else

@@ -570,9 +570,18 @@ for i1 = 1:Nsignatures
         time_lims_aux = datenum(time_lims_proc(i2, :));
         %
         [listfiles_perseg, struct_timelims] = Signature1000_filesintimelims(list_Signature{i1}(5:end), time_lims_aux);
+        Nfilesperseg = length(listfiles_perseg);
+
+        %
+        disp(['--- Data for processing is split into ' num2str(Nfilesperseg) ' raw data files. Loading data from ---'])
+        listfiles_perseg
+
+        %
+        tic
+        % ------------------------------------------------
 
         % Pre-allocate in cell arrays
-        prealloc_aux = cell(length(listfiles_perseg), 1);
+        prealloc_aux = cell(Nfilesperseg, 1);
 % % %         %
 % % %         list_beam_vars = {'vel1', 'vel2', 'vel3', 'vel4', ...
 % % %                           'amp1', 'amp2', 'amp3', 'amp4', ...
@@ -607,7 +616,7 @@ for i1 = 1:Nsignatures
         
 
         % Load over all files with data in the i2'th segment
-        for i3 = 1:length(listfiles_perseg)
+        for i3 = 1:Nfilesperseg
 
             %
             dataread_aux = load(fullfile(dir_rawdata_parent, ...
@@ -631,6 +640,7 @@ for i1 = 1:Nsignatures
             sig1000.pitch{i3} = dataread_aux.Data.Burst_Pitch(lin_proclims_beam4time_aux);
             sig1000.roll{i3} = dataread_aux.Data.Burst_Roll(lin_proclims_beam4time_aux);
             % ------------------------------------------------
+
 
             % Dummy/for code development
             lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
@@ -670,6 +680,8 @@ for i1 = 1:Nsignatures
                 sig1000.timednum_beam5{i3} = dataread_aux.Data.IBurst_Time(lin_proclims_beam5time_aux);
             end
             
+            %
+            disp(['--- Done loading from ' num2str(i3) ' file out of ' num2str(Nfilesperseg) ' ---'])
         end
 
         % ------------------------------------------------
@@ -699,92 +711,96 @@ for i1 = 1:Nsignatures
             sig1000.corr5_raw = cat(1, sig1000.corr5_raw{:});
         end
 
+        %
+        disp(['--- Done with loading all of the data for the current time segment in: ---'])
+        toc
+
 
         %% Quick pcolor plot to check the data
 
-        %
-%         indsplt_aux = 1:(8*3600);
-%         indsplt_aux = 1:(8*60*1);    % a subset
-        indsplt_aux = 1:length(sig1000.timednum_fourbeams);   % no subset
-
-        %
-        time_plt_aux = datetime(sig1000.timednum_fourbeams(indsplt_aux), 'ConvertFrom', 'datenum');
-
-        %
-        hfig_quickview = figure;
-% %             %
-% %             haxs = makeSubPlots(0.1, 0.1, 0.05, ...
-% %                                 0.1, 0.15, 0.04, 2, 4);
-            %
-            haxs_1 = axes('Position', [0.1000    0.7425    0.3750    0.1575]);
-            haxs_2 = axes('Position', [0.5250    0.7425    0.3750    0.1575]);
-            haxs_3 = axes('Position', [0.1000    0.5450    0.3750    0.1575]);
-            haxs_4 = axes('Position', [0.5250    0.5450    0.3750    0.1575]);
-            haxs_5 = axes('Position', [0.1000    0.3475    0.3750    0.1575]);
-            haxs_6 = axes('Position', [0.5250    0.3475    0.3750    0.1575]);
-            haxs_7 = axes('Position', [0.1000    0.1500    0.3750    0.1575]);
-            haxs_8 = axes('Position', [0.5250    0.1500    0.3750    0.1575]);
-            %
-            haxs = [haxs_1, haxs_2, haxs_3, haxs_4, haxs_5, haxs_6, haxs_7, haxs_8];
-            for i3 = 1:length(haxs)
-                hold(haxs(i3), 'on')
-            end
-
-                %
-                pcolor(haxs(1), time_plt_aux, sig1000.zhab, sig1000.vel1(indsplt_aux, :).')
-                pcolor(haxs(3), time_plt_aux, sig1000.zhab, sig1000.vel2(indsplt_aux, :).')
-                pcolor(haxs(5), time_plt_aux, sig1000.zhab, sig1000.vel3(indsplt_aux, :).')
-                pcolor(haxs(7), time_plt_aux, sig1000.zhab, sig1000.vel4(indsplt_aux, :).')
-                %
-                pcolor(haxs(2), time_plt_aux, sig1000.zhab, sig1000.amp1(indsplt_aux, :).')
-                pcolor(haxs(4), time_plt_aux, sig1000.zhab, sig1000.amp2(indsplt_aux, :).')
-                pcolor(haxs(6), time_plt_aux, sig1000.zhab, sig1000.amp3(indsplt_aux, :).')
-                pcolor(haxs(8), time_plt_aux, sig1000.zhab, sig1000.amp4(indsplt_aux, :).')
-
-                for i3 = 1:length(haxs)
-                    plot(haxs(i3), time_plt_aux, sig1000.pressure(indsplt_aux), '-k')
-                end
-
-        %
-        for i3 = 1:length(haxs)
-            shading(haxs(i3), 'flat')
-        end
-        
-
 % %         %
-% %         callCbrewer([], haxs(1:2:7))
-
-        %
-% %         set(haxs, 'FontSize', 16, 'Box', 'on', ...
-% %                   'YLim', [0, (sig1000.zhab(end) + 1)])
-        set(haxs, 'Box', 'on', 'YLim', [0, (sig1000.zhab(end) + 1)])
-        set(haxs(1:2:7), 'CLim', 0.1.*[-1, 1])
-        %
-        ampclrlims = get(haxs(2), 'CLim');
-        set(haxs(2:2:8), 'CLim', [40, (ampclrlims(2)+10)])
-        %
-        set(haxs, 'Color', 0.6.*[1, 1, 1])
-
-        %
-        title(haxs(1), ['Sig1000 - ' list_Signature{i1}(1:3) ' SN ' list_Signature{i1}(5:end) ' v1, v2, v3, and v4'])
-        title(haxs(2), ['amp1, amp2, amp3, and amp4'])
-
-        %
-        set(hfig_quickview, 'units', 'normalized')
-        set(hfig_quickview, 'Position', [0.4, 0.63, 0.38, 0.3])
-
-        %
-        linkaxes(haxs, 'xy')
-
-        %
-        time_lims_plt = get(haxs(1), 'XLim');
-        time_xticks = linspace(time_lims_plt(1), time_lims_plt(2), 3);
-        %
-        set(haxs, 'XTick', time_xticks)
-        set(haxs(1:end-2), 'XTickLabel', [])
-
-        %
-% %         exportgraphics(hfig_quickview, fullfile(pwd, ['sig_quickview_' list_Signature{i1} '_' num2str(i2, '%.3d') '.png']), 'Resolution', 300)
+% % %         indsplt_aux = 1:(8*3600);
+% % %         indsplt_aux = 1:(8*60*1);    % a subset
+% %         indsplt_aux = 1:length(sig1000.timednum_fourbeams);   % no subset
+% % 
+% %         %
+% %         time_plt_aux = datetime(sig1000.timednum_fourbeams(indsplt_aux), 'ConvertFrom', 'datenum');
+% % 
+% %         %
+% %         hfig_quickview = figure;
+% % % %             %
+% % % %             haxs = makeSubPlots(0.1, 0.1, 0.05, ...
+% % % %                                 0.1, 0.15, 0.04, 2, 4);
+% %             %
+% %             haxs_1 = axes('Position', [0.1000    0.7425    0.3750    0.1575]);
+% %             haxs_2 = axes('Position', [0.5250    0.7425    0.3750    0.1575]);
+% %             haxs_3 = axes('Position', [0.1000    0.5450    0.3750    0.1575]);
+% %             haxs_4 = axes('Position', [0.5250    0.5450    0.3750    0.1575]);
+% %             haxs_5 = axes('Position', [0.1000    0.3475    0.3750    0.1575]);
+% %             haxs_6 = axes('Position', [0.5250    0.3475    0.3750    0.1575]);
+% %             haxs_7 = axes('Position', [0.1000    0.1500    0.3750    0.1575]);
+% %             haxs_8 = axes('Position', [0.5250    0.1500    0.3750    0.1575]);
+% %             %
+% %             haxs = [haxs_1, haxs_2, haxs_3, haxs_4, haxs_5, haxs_6, haxs_7, haxs_8];
+% %             for i3 = 1:length(haxs)
+% %                 hold(haxs(i3), 'on')
+% %             end
+% % 
+% %                 %
+% %                 pcolor(haxs(1), time_plt_aux, sig1000.zhab, sig1000.vel1(indsplt_aux, :).')
+% %                 pcolor(haxs(3), time_plt_aux, sig1000.zhab, sig1000.vel2(indsplt_aux, :).')
+% %                 pcolor(haxs(5), time_plt_aux, sig1000.zhab, sig1000.vel3(indsplt_aux, :).')
+% %                 pcolor(haxs(7), time_plt_aux, sig1000.zhab, sig1000.vel4(indsplt_aux, :).')
+% %                 %
+% %                 pcolor(haxs(2), time_plt_aux, sig1000.zhab, sig1000.amp1(indsplt_aux, :).')
+% %                 pcolor(haxs(4), time_plt_aux, sig1000.zhab, sig1000.amp2(indsplt_aux, :).')
+% %                 pcolor(haxs(6), time_plt_aux, sig1000.zhab, sig1000.amp3(indsplt_aux, :).')
+% %                 pcolor(haxs(8), time_plt_aux, sig1000.zhab, sig1000.amp4(indsplt_aux, :).')
+% % 
+% %                 for i3 = 1:length(haxs)
+% %                     plot(haxs(i3), time_plt_aux, sig1000.pressure(indsplt_aux), '-k')
+% %                 end
+% % 
+% %         %
+% %         for i3 = 1:length(haxs)
+% %             shading(haxs(i3), 'flat')
+% %         end
+% %         
+% % 
+% % % %         %
+% % % %         callCbrewer([], haxs(1:2:7))
+% % 
+% %         %
+% % % %         set(haxs, 'FontSize', 16, 'Box', 'on', ...
+% % % %                   'YLim', [0, (sig1000.zhab(end) + 1)])
+% %         set(haxs, 'Box', 'on', 'YLim', [0, (sig1000.zhab(end) + 1)])
+% %         set(haxs(1:2:7), 'CLim', 0.1.*[-1, 1])
+% %         %
+% %         ampclrlims = get(haxs(2), 'CLim');
+% %         set(haxs(2:2:8), 'CLim', [40, (ampclrlims(2)+10)])
+% %         %
+% %         set(haxs, 'Color', 0.6.*[1, 1, 1])
+% % 
+% %         %
+% %         title(haxs(1), ['Sig1000 - ' list_Signature{i1}(1:3) ' SN ' list_Signature{i1}(5:end) ' v1, v2, v3, and v4'])
+% %         title(haxs(2), ['amp1, amp2, amp3, and amp4'])
+% % 
+% %         %
+% %         set(hfig_quickview, 'units', 'normalized')
+% %         set(hfig_quickview, 'Position', [0.4, 0.63, 0.38, 0.3])
+% % 
+% %         %
+% %         linkaxes(haxs, 'xy')
+% % 
+% %         %
+% %         time_lims_plt = get(haxs(1), 'XLim');
+% %         time_xticks = linspace(time_lims_plt(1), time_lims_plt(2), 3);
+% %         %
+% %         set(haxs, 'XTick', time_xticks)
+% %         set(haxs(1:end-2), 'XTickLabel', [])
+% % 
+% %         %
+% % % %         exportgraphics(hfig_quickview, fullfile(pwd, ['sig_quickview_' list_Signature{i1} '_' num2str(i2, '%.3d') '.png']), 'Resolution', 300)
 
 
         %%

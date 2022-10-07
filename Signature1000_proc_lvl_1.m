@@ -83,12 +83,12 @@ lsave_fig = true;
 % % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00); ...
 % %                   datetime(2022, 07, 03, 18, 00, 00), datetime(2022, 07, 04, 00, 00, 00)];
 %
-% % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00)];    % 6 hour chunk
+time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00)];    % 6 hour chunk
 %
 % time_lims_proc = [datetime(2022, 06, 28, 00, 00, 00), datetime(2022, 07, 08, 00, 00, 00)];   % ??? days
 %
 % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 00, 05, 00)];   % 5 minutes
-time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 00, 01, 00)];   % 1 minute
+% time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 00, 01, 00)];   % 1 minute
 time_lims_proc.TimeZone = 'America/Los_Angeles';
 
 %
@@ -1017,97 +1017,97 @@ for i1 = 1:Nsignatures
 
     %% Plot to check processed velocity data
 
-    % ---------------------------------
-    %
-    hfig_procvel = figure;
-
-        % Create axes of subplots on regular grid
-        mty = 0.1;
-        mby = 0.1;
-        miy = 0.05;
-        ny = 4;
-        heighsubplot = (1 - mty - mby - (ny-1)*miy) / ny;
-        %
-        pthisy = (ny+1) - [1:ny];
-        %
-        ypos = mby + ((pthisy-1) * (heighsubplot+miy));
-        %
-        axshndls = gobjects(1, (ny*2));
-        
-        % Now create the axes
-        for i3 = 1:ny
-            axshndls((2*i3 - 1)) = axes('Position', [0.1, ypos(i3), 0.35, heighsubplot]);
-            axshndls(2*i3) = axes('Position', [0.55, ypos(i3), 0.35, heighsubplot]);
-        end
-        
-
-    % ---------------------------------
-
-    %
-    indsplt_aux = 1:length(sig1000.timednum_fourbeams);   % no subset
-    %
-    time_plt_aux = datetime(sig1000.timednum_fourbeams(indsplt_aux), 'ConvertFrom', 'datenum');
-
-    
-    % ---------------------------------
-
-        %
-        for i3 = 1:length(axshndls)
-            hold(axshndls(i3), 'on')
-        end
-
-        %
-        pcolor(axshndls(1), time_plt_aux, sig1000.zhab, sig1000.Ue(:, indsplt_aux))
-        pcolor(axshndls(3), time_plt_aux, sig1000.zhab, sig1000.Vn(:, indsplt_aux))
-        pcolor(axshndls(5), time_plt_aux, sig1000.zhab, sig1000.Wup(:, indsplt_aux))
-        pcolor(axshndls(7), time_plt_aux, sig1000.zhab, sig1000.Wbeam5(:, indsplt_aux))
-        %
-        pcolor(axshndls(2), time_plt_aux, sig1000.zhab, sig1000.amp1(:, indsplt_aux))
-        pcolor(axshndls(4), time_plt_aux, sig1000.zhab, sig1000.amp2(:, indsplt_aux))
-        pcolor(axshndls(6), time_plt_aux, sig1000.zhab, sig1000.amp3(:, indsplt_aux))
-        pcolor(axshndls(8), time_plt_aux, sig1000.zhab, sig1000.amp4(:, indsplt_aux))
-
-        for i3 = 1:length(axshndls)
-            plot(axshndls(i3), time_plt_aux, sig1000.bottomdepthfrompres(indsplt_aux), '-k')
-        end
-
-        %
-        for i3 = 1:length(axshndls)
-            shading(axshndls(i3), 'flat')
-        end
-        
-
-% %         %
-% %         callCbrewer([], haxs(1:2:7))
-
-        %
-% %         set(haxs, 'FontSize', 16, 'Box', 'on', ...
-% %                   'YLim', [0, (sig1000.zhab(end) + 1)])
-        set(axshndls, 'Box', 'on', 'YLim', [0, (sig1000.zhab(end) + 1)])
-        set(axshndls(1:2:7), 'CLim', 0.1.*[-1, 1])
-        %
-        ampclrlims = get(axshndls(2), 'CLim');
-        set(axshndls(2:2:8), 'CLim', [40, (ampclrlims(2)+10)])
-        %
-        set(axshndls, 'Color', 0.6.*[1, 1, 1])
-
-        %
-        title(axshndls(1), ['Sig1000 - ' list_Signature{i1}(1:3) ' SN ' list_Signature{i1}(5:end) ' v1, v2, v3, and v4'])
-        title(axshndls(2), ['amp1, amp2, amp3, and amp4'])
-
-        %
-        set(hfig_quickview, 'units', 'normalized')
-        set(hfig_quickview, 'Position', [0.4, 0.63, 0.38, 0.3])
-
-        %
-        linkaxes(axshndls, 'xy')
-
-        %
-        time_lims_plt = get(axshndls(1), 'XLim');
-        time_xticks = linspace(time_lims_plt(1), time_lims_plt(2), 3);
-        %
-        set(axshndls, 'XTick', time_xticks)
-        set(axshndls(1:end-2), 'XTickLabel', [])
+% % %     % ---------------------------------
+% % %     %
+% % %     hfig_procvel = figure;
+% % % 
+% % %         % Create axes of subplots on regular grid
+% % %         mty = 0.1;
+% % %         mby = 0.1;
+% % %         miy = 0.05;
+% % %         ny = 4;
+% % %         heighsubplot = (1 - mty - mby - (ny-1)*miy) / ny;
+% % %         %
+% % %         pthisy = (ny+1) - [1:ny];
+% % %         %
+% % %         ypos = mby + ((pthisy-1) * (heighsubplot+miy));
+% % %         %
+% % %         axshndls = gobjects(1, (ny*2));
+% % %         
+% % %         % Now create the axes
+% % %         for i3 = 1:ny
+% % %             axshndls((2*i3 - 1)) = axes('Position', [0.1, ypos(i3), 0.35, heighsubplot]);
+% % %             axshndls(2*i3) = axes('Position', [0.55, ypos(i3), 0.35, heighsubplot]);
+% % %         end
+% % %         
+% % % 
+% % %     % ---------------------------------
+% % % 
+% % %     %
+% % %     indsplt_aux = 1:length(sig1000.timednum_fourbeams);   % no subset
+% % %     %
+% % %     time_plt_aux = datetime(sig1000.timednum_fourbeams(indsplt_aux), 'ConvertFrom', 'datenum');
+% % % 
+% % %     
+% % %     % ---------------------------------
+% % % 
+% % %         %
+% % %         for i3 = 1:length(axshndls)
+% % %             hold(axshndls(i3), 'on')
+% % %         end
+% % % 
+% % %         %
+% % %         pcolor(axshndls(1), time_plt_aux, sig1000.zhab, sig1000.Ue(:, indsplt_aux))
+% % %         pcolor(axshndls(3), time_plt_aux, sig1000.zhab, sig1000.Vn(:, indsplt_aux))
+% % %         pcolor(axshndls(5), time_plt_aux, sig1000.zhab, sig1000.Wup(:, indsplt_aux))
+% % %         pcolor(axshndls(7), time_plt_aux, sig1000.zhab, sig1000.Wbeam5(:, indsplt_aux))
+% % %         %
+% % %         pcolor(axshndls(2), time_plt_aux, sig1000.zhab, sig1000.amp1(:, indsplt_aux))
+% % %         pcolor(axshndls(4), time_plt_aux, sig1000.zhab, sig1000.amp2(:, indsplt_aux))
+% % %         pcolor(axshndls(6), time_plt_aux, sig1000.zhab, sig1000.amp3(:, indsplt_aux))
+% % %         pcolor(axshndls(8), time_plt_aux, sig1000.zhab, sig1000.amp4(:, indsplt_aux))
+% % % 
+% % %         for i3 = 1:length(axshndls)
+% % %             plot(axshndls(i3), time_plt_aux, sig1000.bottomdepthfrompres(indsplt_aux), '-k')
+% % %         end
+% % % 
+% % %         %
+% % %         for i3 = 1:length(axshndls)
+% % %             shading(axshndls(i3), 'flat')
+% % %         end
+% % %         
+% % % 
+% % % % %         %
+% % % % %         callCbrewer([], haxs(1:2:7))
+% % % 
+% % %         %
+% % % % %         set(haxs, 'FontSize', 16, 'Box', 'on', ...
+% % % % %                   'YLim', [0, (sig1000.zhab(end) + 1)])
+% % %         set(axshndls, 'Box', 'on', 'YLim', [0, (sig1000.zhab(end) + 1)])
+% % %         set(axshndls(1:2:7), 'CLim', 0.1.*[-1, 1])
+% % %         %
+% % %         ampclrlims = get(axshndls(2), 'CLim');
+% % %         set(axshndls(2:2:8), 'CLim', [40, (ampclrlims(2)+10)])
+% % %         %
+% % %         set(axshndls, 'Color', 0.6.*[1, 1, 1])
+% % % 
+% % %         %
+% % %         title(axshndls(1), ['Sig1000 - ' list_Signature{i1}(1:3) ' SN ' list_Signature{i1}(5:end) ' v1, v2, v3, and v4'])
+% % %         title(axshndls(2), ['amp1, amp2, amp3, and amp4'])
+% % % 
+% % %         %
+% % %         set(hfig_quickview, 'units', 'normalized')
+% % %         set(hfig_quickview, 'Position', [0.4, 0.63, 0.38, 0.3])
+% % % 
+% % %         %
+% % %         linkaxes(axshndls, 'xy')
+% % % 
+% % %         %
+% % %         time_lims_plt = get(axshndls(1), 'XLim');
+% % %         time_xticks = linspace(time_lims_plt(1), time_lims_plt(2), 3);
+% % %         %
+% % %         set(axshndls, 'XTick', time_xticks)
+% % %         set(axshndls(1:end-2), 'XTickLabel', [])
 
 
 %%

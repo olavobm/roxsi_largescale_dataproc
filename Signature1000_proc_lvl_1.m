@@ -37,10 +37,12 @@ dir_rawdata_parent = fullfile(dirparent_data, 'RAW', 'Signature1000');
 
 %
 % % dir_output_parent = data_dirpath();
-dir_output_parent = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/';
+% % dir_output_parent = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/';
+dir_output_parent = '/home/omarques/Documents/MATLAB/ROXSIproc_output/';
 %
-dir_output_data_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Signature1000_Level1');
-dir_output_figs_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Signature1000_Level1', 'qc_plots');
+% dir_output_data_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Signature1000_Level1');
+% dir_output_figs_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Signature1000_Level1', 'qc_plots');
+dir_output_data_L1 = dir_output_parent;
 
 % Logical switches to save or not save data and figures
 lsave_file = true;
@@ -210,10 +212,10 @@ atmpresanomaly.units = 'dbar';
 %% Initialize a log file with what is printed to the
 % command window and timer for running the whole script
 
-% % %
-% % log_file_name = ['log_Signature_procL1_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
-% % %
-% % diary(fullfile(dir_output_data_L1, log_file_name))
+%
+log_file_name = ['log_Signature_procL1_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
+%
+diary(fullfile(dir_output_data_L1, log_file_name))
 
 %
 totalRunTime = tic;
@@ -1108,9 +1110,6 @@ for i1 = 1:Nsignatures
         set(axshndls(1:end-2), 'XTickLabel', [])
 
 
-    %%
-    continue
-
 %%
 % ----------------------------------------------------------------
 % ----------------------------------------------------------------
@@ -1120,18 +1119,18 @@ for i1 = 1:Nsignatures
 
     %% Add README
 
-    %
-    time_dataproc = datetime('now', 'TimeZone', 'Local');
-    time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
-    % Add a general README
-    sig1000.README = ['Level 1 Signature1000 data from ROXSI 2022. The data is from Signature ' ...
-                         ' with serial number SN and deployed at mooring site mooringID. ' ...
-                         'Data processed by script ' mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
-                         'Horizontal velocity components are relative to ??????, where the magnetic ' ...
-                         'decliation was taken from www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml. Data ' ...
-                         'in the Level 1 structure has been trimmed for the deployment ' ...
-                         'period, as defined in the table deploymentInfo_ROXSI2022.mat. ' ...
-                         'Pressure is in dbar, where atmospheric pressure has been removed.'];
+% %     %
+% %     time_dataproc = datetime('now', 'TimeZone', 'Local');
+% %     time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
+% %     % Add a general README
+% %     sig1000.README = ['Level 1 Signature1000 data from ROXSI 2022. The data is from Signature ' ...
+% %                          ' with serial number SN and deployed at mooring site mooringID. ' ...
+% %                          'Data processed by script ' mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
+% %                          'Horizontal velocity components are relative to ??????, where the magnetic ' ...
+% %                          'decliation was taken from www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml. Data ' ...
+% %                          'in the Level 1 structure has been trimmed for the deployment ' ...
+% %                          'period, as defined in the table deploymentInfo_ROXSI2022.mat. ' ...
+% %                          'Pressure is in dbar, where atmospheric pressure has been removed.'];
 
 
     %%
@@ -1146,9 +1145,9 @@ for i1 = 1:Nsignatures
         disp('----- Saving level 1 data -----')
 
         %
-        str_filename = ['roxsi_signature_L1_' list_Signature{i1}(1:3) '_' char(list_Signature{i1}.SN)];
+        str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN)];
         %
-        save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'sig1000wavewave', '-v7.3')
+        save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'sig1000', '-v7.3')
     end
 
     %

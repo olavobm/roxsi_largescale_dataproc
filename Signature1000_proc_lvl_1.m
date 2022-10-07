@@ -735,7 +735,7 @@ for i1 = 1:Nsignatures
                 pcolor(haxs(8), time_plt_aux, sig1000.zhab, sig1000.amp4(indsplt_aux, :).')
 
                 for i3 = 1:length(haxs)
-                    plot(haxs(i), time_plt_aux, sig1000.bottomdepthfrompres(indsplt_aux), '-k')
+                    plot(haxs(i), time_plt_aux, sig1000.pressure(indsplt_aux), '-k')
                 end
 
         %

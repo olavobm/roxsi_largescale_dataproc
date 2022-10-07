@@ -83,9 +83,9 @@ lsave_fig = true;
 % % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00); ...
 % %                   datetime(2022, 07, 03, 18, 00, 00), datetime(2022, 07, 04, 00, 00, 00)];
 %
-time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00)];    % 6 hour chunk
+% % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00)];    % 6 hour chunk
 %
-% time_lims_proc = [datetime(2022, 06, 28, 00, 00, 00), datetime(2022, 07, 08, 00, 00, 00)];   % ??? days
+time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 07, 08, 00, 00, 00)];   % around 10 days
 %
 % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 00, 05, 00)];   % 5 minutes
 % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 00, 01, 00)];   % 1 minute

@@ -1025,7 +1025,7 @@ for i1 = 1:Nsignatures
         mty = 0.1;
         mby = 0.1;
         miy = 0.05;
-        ny = 5;
+        ny = 4;
         heighsubplot = (1 - mty - mby - (ny-1)*miy) / ny;
         %
         pthisy = (ny+1) - [1:ny];

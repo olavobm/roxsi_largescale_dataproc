@@ -899,8 +899,8 @@ for i1 = 1:Nsignatures
                 janus5beam2earth((sig1000.heading(:).' - 90), ...
                                  sig1000.roll(:).', -sig1000.pitch(:).', ...
                                  25, ...
-                                 -sig1000.vel1, -sig1000.vel2, ...
-                                 -sig1000.vel3, -sig1000.vel4, -sig1000.vel5);
+                                 -sig1000.vel1, -sig1000.vel3, ...
+                                 -sig1000.vel4, -sig1000.vel2, -sig1000.vel5);
 
 
         % make sure that column dimension is time dimension for all variables
@@ -986,8 +986,6 @@ for i1 = 1:Nsignatures
         sig1000.Vn(i2, :) = uv_aux(2, :);
     end
     
-
-
 
 % %     keyboard
     

@@ -789,6 +789,12 @@ for i1 = 1:Nsignatures
 % %         % DEBUGGING / QUICK PLOTS -- remove variables from previous loop
 % %         sig1000 = rmfield(sig1000, list_beam_vars);
 
+        % #################################
+        % EVERYTHING BELOW WOULD GO IN HERE IF I WANTED TO DO ALL OF THE
+        % PROCESSING FOR SEPARATE TIME CHUNKS!
+        % #################################
+
+
     end
 
 

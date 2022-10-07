@@ -80,7 +80,12 @@ lsave_fig = true;
 %
 % % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00); ...
 % %                   datetime(2022, 07, 03, 18, 00, 00), datetime(2022, 07, 04, 00, 00, 00)];
-time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00)];
+%
+% % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00)];    % 6 hour chunk
+%
+% time_lims_proc = [datetime(2022, 06, 28, 00, 00, 00), datetime(2022, 07, 08, 00, 00, 00)];   % ??? days
+%
+time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 05, 00, 00)];   % 5 minutes
 time_lims_proc.TimeZone = 'America/Los_Angeles';
 
 %
@@ -607,53 +612,59 @@ for i1 = 1:Nsignatures
                                          'converted', ...
                                          listfiles_perseg(i3)));
 
+            %
+            lin_proclims_beam4time_aux = (dataread_aux.Data.Burst_Time >= time_lims_proc(i2, 1)) & ...
+                                         (dataread_aux.Data.Burst_Time < time_lims_proc(i2, 2));
+
             % ------------------------------------------------
             %  Get all scalars in the same way as velocity
             % (INSTEAD OF THE CODE HIGHER UP)
             %
-            sig1000.timedatenum{i2} = dataread_aux.Data.Burst_Time;
-            sig1000.pressure{i2} = dataread_aux.Data.Burst_Pressure;
-            sig1000.temperature{i2} = dataread_aux.Data.Burst_Temperature;
+            sig1000.timedatenum{i2} = dataread_aux.Data.Burst_Time(lin_proclims_beam4time_aux);
+            sig1000.pressure{i2} = dataread_aux.Data.Burst_Pressure(lin_proclims_beam4time_aux);
+            sig1000.temperature{i2} = dataread_aux.Data.Burst_Temperature(lin_proclims_beam4time_aux);
             %
-            sig1000.heading{i2} = dataread_aux.Data.Burst_Heading;
-            sig1000.pitch{i2} = dataread_aux.Data.Burst_Pitch;
-            sig1000.roll{i2} = dataread_aux.Data.Burst_Roll;
+            sig1000.heading{i2} = dataread_aux.Data.Burst_Heading(lin_proclims_beam4time_aux);
+            sig1000.pitch{i2} = dataread_aux.Data.Burst_Pitch(lin_proclims_beam4time_aux);
+            sig1000.roll{i2} = dataread_aux.Data.Burst_Roll(lin_proclims_beam4time_aux);
             % ------------------------------------------------
 
             % Dummy/for code development
             lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
 
+            % Get data from the 4 beams
+            sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
             %
-            sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(:, lin_verticalrange);
-            sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(:, lin_verticalrange);
-            sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(:, lin_verticalrange);
-            sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(:, lin_verticalrange);
-            %
-            sig1000.amp1{i2} = dataread_aux.Data.Burst_AmpBeam1(:, lin_verticalrange);
-            sig1000.amp2{i2} = dataread_aux.Data.Burst_AmpBeam2(:, lin_verticalrange);
-            sig1000.amp3{i2} = dataread_aux.Data.Burst_AmpBeam3(:, lin_verticalrange);
-            sig1000.amp4{i2} = dataread_aux.Data.Burst_AmpBeam4(:, lin_verticalrange);
+            sig1000.amp1{i2} = dataread_aux.Data.Burst_AmpBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.amp2{i2} = dataread_aux.Data.Burst_AmpBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.amp3{i2} = dataread_aux.Data.Burst_AmpBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.amp4{i2} = dataread_aux.Data.Burst_AmpBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
             %
             if any(strcmp(list_beam_vars, 'corr1'))
-                sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(:, lin_verticalrange);
-                sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(:, lin_verticalrange);
-                sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(:, lin_verticalrange);
-                sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(:, lin_verticalrange);
+                sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
+                sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
+                sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
+                sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
             end
 
             %
-            sig1000.timednum_fourbeams{i2} = dataread_aux.Data.Burst_Time;
+            sig1000.timednum_fourbeams{i2} = dataread_aux.Data.Burst_Time(lin_proclims_beam4time_aux);
 
             % Get the 5th beam
             if any(contains(list_5beams, list_Signature{i1}(1:3)))
+                %
+                lin_proclims_beam5time_aux = (dataread_aux.Data.IBurst_Time >= time_lims_proc(i2, 1)) & ...
+                                             (dataread_aux.Data.IBurst_Time < time_lims_proc(i2, 2));
+                %
+                sig1000.vel5_raw{i2} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
+                sig1000.amp5_raw{i2} = dataread_aux.Data.IBurst_AmpBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
+                sig1000.corr5_raw{i2} = dataread_aux.Data.IBurst_CorBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
     
                 %
-                sig1000.vel5_raw{i2} = dataread_aux.Data.IBurst_VelBeam5(:, lin_verticalrange);
-                sig1000.amp5_raw{i2} = dataread_aux.Data.IBurst_AmpBeam5(:, lin_verticalrange);
-                sig1000.corr5_raw{i2} = dataread_aux.Data.IBurst_CorBeam5(:, lin_verticalrange);
-    
-                %
-                sig1000.timednum_beam5{i2} = dataread_aux.Data.IBurst_Time;
+                sig1000.timednum_beam5{i2} = dataread_aux.Data.IBurst_Time(lin_proclims_beam5time_aux);
             end
             
         end
@@ -723,10 +734,15 @@ for i1 = 1:Nsignatures
                 pcolor(haxs(6), time_plt_aux, sig1000.zhab, sig1000.amp3(indsplt_aux, :).')
                 pcolor(haxs(8), time_plt_aux, sig1000.zhab, sig1000.amp4(indsplt_aux, :).')
 
+                for i3 = 1:length(haxs)
+                    plot(haxs(i), time_plt_aux, sig1000.bottomdepthfrompres(indsplt_aux), '-k')
+                end
+
         %
         for i3 = 1:length(haxs)
             shading(haxs(i3), 'flat')
         end
+        
 
 % %         %
 % %         callCbrewer([], haxs(1:2:7))
@@ -809,6 +825,13 @@ for i1 = 1:Nsignatures
 
     %% Transpose matrices so that row dimension is along bins
 
+% %     %
+% %     list_transpose = {'timedatenum', 'pressure', 'temperature', ...
+% %                       'heading', 'pitch', 'roll', ...
+% %                       'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+% %                       'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
+% %                       'corr1', 'corr2', 'corr3', 'corr4', 'corr5'};
+
     %
     list_transpose = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
                       'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
@@ -820,6 +843,7 @@ for i1 = 1:Nsignatures
             sig1000.(list_transpose{i2}) = sig1000.(list_transpose{i2}).';
         end
     end
+
 
     %% Compute magnetic-ENU 3 components of velocity
     % (using library ADCPtools)
@@ -843,8 +867,9 @@ for i1 = 1:Nsignatures
         %
         [sig1000.Ue, sig1000.Vn, ...
          sig1000.Wup, sig1000.Wbeam5] = ...
-                janus5beam2earth((sig1000.heading - 90), ...
-                                 sig1000.roll, -sig1000.pitch, ...
+                janus5beam2earth((sig1000.heading(:) - 90), ...
+                                 sig1000.roll(:), -sig1000.pitch(:), ...
+                                 25, ...
                                  -sig1000.vel1, -sig1000.vel2, ...
                                  -sig1000.vel3, -sig1000.vel4, -sig1000.vel5);
 
@@ -864,35 +889,42 @@ for i1 = 1:Nsignatures
     disp('--- Done with coordinate transformation to magnetic ENU. It took: ---')
     toc
 
-    keyboard
+
+    %% Compute bottom depth from pressure
+
+    %
+    sig1000.bottomdepthfrompres = 1e4*sig1000.pressure ./ (1030*9.8);
+
+
 
     %% NaN data at/above the ocean surface
 
-% %     %
-% %     zhab_halfstep = aquadoppL1.zhab + (aquadoppL1.binsize/2);
-% %     Nbins = length(aquadoppL1.zhab);
-% %     %
-% %     ind_abovesurface = 1:(size(aquadoppL1.Ue, 1) * size(aquadoppL1.Ue, 2));
-% %     ind_abovesurface = reshape(ind_abovesurface, size(aquadoppL1.Ue, 1), size(aquadoppL1.Ue, 2));
-% %     %
-% %     for i2 = 1:length(aquadoppL1.pressure)
-% %         %
-% %         ind_above_aux = find((zhab_halfstep < aquadoppL1.bottomdepthfrompres(i2)), 1, 'last');
-% %         %
-% %         ind_abovesurface(1:ind_above_aux, i2) = NaN;
-% %     end
-% %     %
-% %     ind_abovesurface = ind_abovesurface(:);
-% %     ind_abovesurface = ind_abovesurface(~isnan(ind_abovesurface));
-% %     %
-% %     aquadoppL1.Ue(ind_abovesurface) = NaN;
-% %     aquadoppL1.Vn(ind_abovesurface) = NaN;
-% %     aquadoppL1.Wup(ind_abovesurface) = NaN;
-% %     %
-% %     aquadoppL1.a1(ind_abovesurface) = NaN;
-% %     aquadoppL1.a2(ind_abovesurface) = NaN;
-% %     aquadoppL1.a3(ind_abovesurface) = NaN;
+    %
+    disp('----- Removing data close/above the ocean surface -----')
 
+    %
+    zhab_halfstep = sig1000.zhab + (sig1000.binsize/2);
+    Nbins = length(sig1000.zhab);
+    %
+    ind_abovesurface = 1:(size(sig1000.Ue, 1) * size(sig1000.Ue, 2));
+    ind_abovesurface = reshape(ind_abovesurface, size(sig1000.Ue, 1), size(sig1000.Ue, 2));
+    %
+    for i2 = 1:length(sig1000.timedatenum)
+        %
+        ind_above_aux = find((zhab_halfstep < sig1000.bottomdepthfrompres(i2)), 1, 'last');
+        %
+        ind_abovesurface(1:ind_above_aux, i2) = NaN;
+    end
+    %
+    ind_abovesurface = ind_abovesurface(:);
+    ind_abovesurface = ind_abovesurface(~isnan(ind_abovesurface));
+    %
+    sig1000.Ue(ind_abovesurface) = NaN;
+    sig1000.Vn(ind_abovesurface) = NaN;
+    sig1000.Wup(ind_abovesurface) = NaN;
+    sig1000.Wbeam5(ind_abovesurface) = NaN;
+    
+    
 
     %% Rotate horizontal velocity from magnetic to true north
 
@@ -921,7 +953,8 @@ for i1 = 1:Nsignatures
         sig1000.Ue(i2, :) = uv_aux(1, :);
         sig1000.Vn(i2, :) = uv_aux(2, :);
     end
-
+    
+    keyboard
     
     %% Filter out velocity where amplitude is below a threshold value
 

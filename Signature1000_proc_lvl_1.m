@@ -85,7 +85,8 @@ lsave_fig = true;
 %
 % time_lims_proc = [datetime(2022, 06, 28, 00, 00, 00), datetime(2022, 07, 08, 00, 00, 00)];   % ??? days
 %
-time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 05, 00, 00)];   % 5 minutes
+% time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 00, 05, 00)];   % 5 minutes
+time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 00, 01, 00)];   % 1 minute
 time_lims_proc.TimeZone = 'America/Los_Angeles';
 
 %
@@ -970,7 +971,7 @@ for i1 = 1:Nsignatures
 
 
 
-    keyboard
+% %     keyboard
     
     %% Filter out velocity where amplitude is below a threshold value
 
@@ -1054,15 +1055,15 @@ for i1 = 1:Nsignatures
         end
 
         %
-        pcolor(axshndls(1), time_plt_aux, sig1000.zhab, sig1000.Ue(indsplt_aux, :))
-        pcolor(axshndls(3), time_plt_aux, sig1000.zhab, sig1000.Vn(indsplt_aux, :))
-        pcolor(axshndls(5), time_plt_aux, sig1000.zhab, sig1000.Wup(indsplt_aux, :))
-        pcolor(axshndls(7), time_plt_aux, sig1000.zhab, sig1000.Wbeam5(indsplt_aux, :))
+        pcolor(axshndls(1), time_plt_aux, sig1000.zhab, sig1000.Ue(:, indsplt_aux))
+        pcolor(axshndls(3), time_plt_aux, sig1000.zhab, sig1000.Vn(:, indsplt_aux))
+        pcolor(axshndls(5), time_plt_aux, sig1000.zhab, sig1000.Wup(:, indsplt_aux))
+        pcolor(axshndls(7), time_plt_aux, sig1000.zhab, sig1000.Wbeam5(:, indsplt_aux))
         %
-        pcolor(axshndls(2), time_plt_aux, sig1000.zhab, sig1000.amp1(indsplt_aux, :))
-        pcolor(axshndls(4), time_plt_aux, sig1000.zhab, sig1000.amp2(indsplt_aux, :))
-        pcolor(axshndls(6), time_plt_aux, sig1000.zhab, sig1000.amp3(indsplt_aux, :))
-        pcolor(axshndls(8), time_plt_aux, sig1000.zhab, sig1000.amp4(indsplt_aux, :))
+        pcolor(axshndls(2), time_plt_aux, sig1000.zhab, sig1000.amp1(:, indsplt_aux))
+        pcolor(axshndls(4), time_plt_aux, sig1000.zhab, sig1000.amp2(:, indsplt_aux))
+        pcolor(axshndls(6), time_plt_aux, sig1000.zhab, sig1000.amp3(:, indsplt_aux))
+        pcolor(axshndls(8), time_plt_aux, sig1000.zhab, sig1000.amp4(:, indsplt_aux))
 
         for i3 = 1:length(axshndls)
             plot(axshndls(i3), time_plt_aux, sig1000.bottomdepthfrompres(indsplt_aux), '-k')

@@ -613,8 +613,8 @@ for i1 = 1:Nsignatures
                                          listfiles_perseg(i3)));
 
             %
-            lin_proclims_beam4time_aux = (dataread_aux.Data.Burst_Time >= time_lims_proc(i2, 1)) & ...
-                                         (dataread_aux.Data.Burst_Time < time_lims_proc(i2, 2));
+            lin_proclims_beam4time_aux = (dataread_aux.Data.Burst_Time >= datenum(time_lims_proc(i2, 1))) & ...
+                                         (dataread_aux.Data.Burst_Time <  datenum(time_lims_proc(i2, 2)));
 
             % ------------------------------------------------
             %  Get all scalars in the same way as velocity
@@ -656,8 +656,8 @@ for i1 = 1:Nsignatures
             % Get the 5th beam
             if any(contains(list_5beams, list_Signature{i1}(1:3)))
                 %
-                lin_proclims_beam5time_aux = (dataread_aux.Data.IBurst_Time >= time_lims_proc(i2, 1)) & ...
-                                             (dataread_aux.Data.IBurst_Time < time_lims_proc(i2, 2));
+                lin_proclims_beam5time_aux = (dataread_aux.Data.IBurst_Time >= datenum(time_lims_proc(i2, 1))) & ...
+                                             (dataread_aux.Data.IBurst_Time <  datenum(time_lims_proc(i2, 2)));
                 %
                 sig1000.vel5_raw{i2} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
                 sig1000.amp5_raw{i2} = dataread_aux.Data.IBurst_AmpBeam5(lin_proclims_beam5time_aux, lin_verticalrange);

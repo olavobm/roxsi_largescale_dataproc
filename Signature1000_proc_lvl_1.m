@@ -1018,7 +1018,7 @@ for i1 = 1:Nsignatures
     %
     hfig_procvel = figure;
 
-        %
+        % Create axes of subplots on regular grid
         mty = 0.1;
         mby = 0.1;
         miy = 0.05;
@@ -1029,12 +1029,12 @@ for i1 = 1:Nsignatures
         %
         ypos = mby + ((pthisy-1) * (heighsubplot+miy));
         %
-        axshndls = gobjects(1, 10);
+        axshndls = gobjects(1, (ny*2));
         
         % Now create the axes
         for i3 = 1:ny
-            axshndls((2*i - 1)) = axes('Position', [0.1, ypos(i), 0.35, heighsubplot]);
-            axshndls(2*i) = axes('Position', [0.55, ypos(i), 0.35, heighsubplot]);
+            axshndls((2*i3 - 1)) = axes('Position', [0.1, ypos(i3), 0.35, heighsubplot]);
+            axshndls(2*i3) = axes('Position', [0.55, ypos(i3), 0.35, heighsubplot]);
         end
         
 

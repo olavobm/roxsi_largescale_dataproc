@@ -620,38 +620,38 @@ for i1 = 1:Nsignatures
             %  Get all scalars in the same way as velocity
             % (INSTEAD OF THE CODE HIGHER UP)
             %
-            sig1000.timedatenum{i2} = dataread_aux.Data.Burst_Time(lin_proclims_beam4time_aux);
-            sig1000.pressure{i2} = dataread_aux.Data.Burst_Pressure(lin_proclims_beam4time_aux);
-            sig1000.temperature{i2} = dataread_aux.Data.Burst_Temperature(lin_proclims_beam4time_aux);
+            sig1000.timedatenum{i3} = dataread_aux.Data.Burst_Time(lin_proclims_beam4time_aux);
+            sig1000.pressure{i3} = dataread_aux.Data.Burst_Pressure(lin_proclims_beam4time_aux);
+            sig1000.temperature{i3} = dataread_aux.Data.Burst_Temperature(lin_proclims_beam4time_aux);
             %
-            sig1000.heading{i2} = dataread_aux.Data.Burst_Heading(lin_proclims_beam4time_aux);
-            sig1000.pitch{i2} = dataread_aux.Data.Burst_Pitch(lin_proclims_beam4time_aux);
-            sig1000.roll{i2} = dataread_aux.Data.Burst_Roll(lin_proclims_beam4time_aux);
+            sig1000.heading{i3} = dataread_aux.Data.Burst_Heading(lin_proclims_beam4time_aux);
+            sig1000.pitch{i3} = dataread_aux.Data.Burst_Pitch(lin_proclims_beam4time_aux);
+            sig1000.roll{i3} = dataread_aux.Data.Burst_Roll(lin_proclims_beam4time_aux);
             % ------------------------------------------------
 
             % Dummy/for code development
             lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
 
             % Get data from the 4 beams
-            sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
-            sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
-            sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
-            sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.vel1{i3} = dataread_aux.Data.Burst_VelBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.vel2{i3} = dataread_aux.Data.Burst_VelBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.vel3{i3} = dataread_aux.Data.Burst_VelBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.vel4{i3} = dataread_aux.Data.Burst_VelBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
             %
-            sig1000.amp1{i2} = dataread_aux.Data.Burst_AmpBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
-            sig1000.amp2{i2} = dataread_aux.Data.Burst_AmpBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
-            sig1000.amp3{i2} = dataread_aux.Data.Burst_AmpBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
-            sig1000.amp4{i2} = dataread_aux.Data.Burst_AmpBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.amp1{i3} = dataread_aux.Data.Burst_AmpBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.amp2{i3} = dataread_aux.Data.Burst_AmpBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.amp3{i3} = dataread_aux.Data.Burst_AmpBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
+            sig1000.amp4{i3} = dataread_aux.Data.Burst_AmpBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
             %
             if any(strcmp(list_beam_vars, 'corr1'))
-                sig1000.corr1{i2} = dataread_aux.Data.Burst_CorBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
-                sig1000.corr2{i2} = dataread_aux.Data.Burst_CorBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
-                sig1000.corr3{i2} = dataread_aux.Data.Burst_CorBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
-                sig1000.corr4{i2} = dataread_aux.Data.Burst_CorBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
+                sig1000.corr1{i3} = dataread_aux.Data.Burst_CorBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
+                sig1000.corr2{i3} = dataread_aux.Data.Burst_CorBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
+                sig1000.corr3{i3} = dataread_aux.Data.Burst_CorBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
+                sig1000.corr4{i3} = dataread_aux.Data.Burst_CorBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
             end
 
             %
-            sig1000.timednum_fourbeams{i2} = dataread_aux.Data.Burst_Time(lin_proclims_beam4time_aux);
+            sig1000.timednum_fourbeams{i3} = dataread_aux.Data.Burst_Time(lin_proclims_beam4time_aux);
 
             % Get the 5th beam
             if any(contains(list_5beams, list_Signature{i1}(1:3)))
@@ -659,12 +659,12 @@ for i1 = 1:Nsignatures
                 lin_proclims_beam5time_aux = (dataread_aux.Data.IBurst_Time >= datenum(time_lims_proc(i2, 1))) & ...
                                              (dataread_aux.Data.IBurst_Time <  datenum(time_lims_proc(i2, 2)));
                 %
-                sig1000.vel5_raw{i2} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
-                sig1000.amp5_raw{i2} = dataread_aux.Data.IBurst_AmpBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
-                sig1000.corr5_raw{i2} = dataread_aux.Data.IBurst_CorBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
+                sig1000.vel5_raw{i3} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
+                sig1000.amp5_raw{i3} = dataread_aux.Data.IBurst_AmpBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
+                sig1000.corr5_raw{i3} = dataread_aux.Data.IBurst_CorBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
     
                 %
-                sig1000.timednum_beam5{i2} = dataread_aux.Data.IBurst_Time(lin_proclims_beam5time_aux);
+                sig1000.timednum_beam5{i3} = dataread_aux.Data.IBurst_Time(lin_proclims_beam5time_aux);
             end
             
         end

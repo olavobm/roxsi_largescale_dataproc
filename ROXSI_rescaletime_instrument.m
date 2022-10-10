@@ -1,5 +1,5 @@
-function time_vec_corrected = ROXSI_rescaletime_instrument(table_correction, SN, time_vec)
-%% time_vec_corrected = ROXSI_RESCALETIME_INSTRUMENT(table_correction, SN, time_vec)
+function [time_vec_corrected, drift_seconds] = ROXSI_rescaletime_instrument(table_correction, SN, time_vec)
+%% [time_vec_corrected, drift_seconds] = ROXSI_RESCALETIME_INSTRUMENT(table_correction, SN, time_vec)
 %
 %   inputs
 %       - table_correction: table defined by a separate script.
@@ -9,12 +9,15 @@ function time_vec_corrected = ROXSI_rescaletime_instrument(table_correction, SN,
 %   outputs
 %       - time_vec_corrected: time vector corrected with a
 %                             linear drift assumption.
+%       - drift_seconds: number of seconds of the clock drift.
+%                        Positive means that the instrument clock was
+%                        ticking slower than the real time. If no clock
+%                        drift is available, returns NaN.
+%
 %
 % ROXSI_RESCALETIME_INSTRUMENT.m is a higher level function that calls
-% the function that corrects for clock drift.
-%
-%
-%
+% the function that corrects for clock drift. The correction, is a linear
+% scaling.
 
 
 %% Find row of the table that matches the SN input
@@ -42,6 +45,9 @@ if isnan(table_correction.clockdrift(ind_row_match))
     %
     time_vec_corrected = time_vec;
 
+    %
+    drift_seconds = NaN;
+
 else
 
     % Convert time from string to datenum
@@ -59,5 +65,9 @@ else
     time_vec_corrected = clockdrift_linear_correction(time_vec, ...
                                                       time_set_datenum, time_end_datenum, ...
                                                       -table_correction.clockdrift(ind_row_match));
+
+    %
+    drift_seconds = table_correction.clockdrift(ind_row_match);
+
 
 end

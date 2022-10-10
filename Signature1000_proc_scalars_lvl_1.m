@@ -475,9 +475,8 @@ for i1 = 1:Nsignatures
         ylim(haxs_all(i2), ylims_aux)
     end
 
-
-    %
-    exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_scalars_' list_Signature{i1} '.png']), 'Resolution', 300)
+% %     % Saved at the end of the for loop
+% %     exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_scalars_' list_Signature{i1} '.png']), 'Resolution', 300)
 
 
     %% Trim variables for the desired period where analysis will be done
@@ -557,8 +556,8 @@ for i1 = 1:Nsignatures
     xlim(haxs_all(1), xlims_aux)
     
 
-    %
-    exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_clock_' list_Signature{i1} '.png']), 'Resolution', 300)
+% %     % Save at the end of the loop
+% %     exportgraphics(fig_L1_QC_clock, fullfile(pwd, ['sig_clock_' list_Signature{i1} '.png']), 'Resolution', 300)
 
 
     %% Interpolate variables to gridded time vector (after
@@ -670,8 +669,8 @@ for i1 = 1:Nsignatures
     %
     linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
 
-    %
-    exportgraphics(fig_L1_procdata, fullfile(pwd, ['sig_scalars_proc_' list_Signature{i1} '.png']), 'Resolution', 300)
+% %     % Saved at the end of the for loop
+% %     exportgraphics(fig_L1_procdata, fullfile(pwd, ['sig_scalars_proc_' list_Signature{i1} '.png']), 'Resolution', 300)
 
 
 %%
@@ -718,30 +717,29 @@ for i1 = 1:Nsignatures
 
     %
     if lsave_fig
-% %         %
-% %         disp('----- Saving level 1 QC plot figures -----')
-% % 
-% %         %
-% %         str_filename = ['roxsi_aquadopp_L1_' list_Signature{i1}(1:3) '_' char(sig1000.SN) '_QC_1'];
-% %         % Save figure as *.png
-% %         exportgraphics(fig_L1_QC_tilt, fullfile(dir_output_figs_L1, [str_filename '.png']), 'Resolution', 300)
-% % 
-% %         %
-% %         str_filename = ['roxsi_aquadopp_L1_' list_Signature{i1}(1:3) '_' char(sig1000.SN) '_QC_2'];
-% %         % Save figure as *.png
-% %         exportgraphics(fig_L1_QC, fullfile(dir_output_figs_L1, [str_filename '.png']), 'Resolution', 300)
-    
+        %
+        disp('----- Saving level 1 QC plot figures -----')
+
+        % Save figures as *.png
+        %
+        exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_scalars_' list_Signature{i1} '.png']), 'Resolution', 300)
+        %
+        exportgraphics(fig_L1_QC_clock, fullfile(pwd, ['sig_clock_' list_Signature{i1} '.png']), 'Resolution', 300)
+        %
+        exportgraphics(fig_L1_procdata, fullfile(pwd, ['sig_scalars_proc_' list_Signature{i1} '.png']), 'Resolution', 300)
+
     end
 
 
     %%
 
-% %     % Clear some variables to avoid issues in the next loop iteration
-% %     close(fig_L1_QC_tilt), close(fig_L1_QC)
-% %     clear aquadoppL1 header_aux beamAQDP_aux senAQDP_aux
+    % Clear some variables to avoid issues in the next loop iteration
+    close(fig_L1_QC_tilt)
+    close(fig_L1_QC_clock)
+    close(fig_L1_procdata)
     %
     clear sig1000
-
+    
 
     %%
     

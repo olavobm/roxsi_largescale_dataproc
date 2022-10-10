@@ -262,17 +262,6 @@ for i1 = 1:Nsignatures
     %
     list_dir_aux = Signature_orderfiles(dir_data_aux, list_Signature{i1}(1:3));
 
-% %     % Check the first few and last files
-% % 
-% %     list_dir_aux(1).name
-% %     list_dir_aux(2).name
-% %     list_dir_aux(3).name
-% %     %
-% %     list_dir_aux(end-3).name
-% %     list_dir_aux(end-2).name
-% %     list_dir_aux(end-1).name
-% %     list_dir_aux(end).name
-
     %
     Nfiles = length(list_dir_aux);
 
@@ -308,10 +297,12 @@ for i1 = 1:Nsignatures
 
 
 
-    %%
+    %% Define trimming edges as time processing edges
 
-
-
+    %
+    time_lims_proc = [time_1, time_2];
+    %
+    Ndatasegments = size(time_lims_proc, 1);
 
 
     %%
@@ -881,9 +872,40 @@ for i1 = 1:Nsignatures
     % whether 4 or 5 beams should be used (check the preamble
     % of this script. The preamble also makes sure that
     % all Signatures being processed are in the processing lists)
+    %
+    % Very long timeseries (e.g. a couple of weeks of 8 Hz
+    % Signature1000 data (need to be broken into smaller chunks
+    % otherwise janus5beam2earth will use all memory and crash Matlab).
+
+    %
+    npts_rot_TH = 1000000;
+    Npts_alldata = length(sig1000.timedatenum);
+    %
+    if Npts_alldata<=npts_rot_TH
+        indbreak_rot = [1; Npts_alldata];
+    else
+        %
+        inds_edges_breakrot = 1 : npts_rot_TH : Npts_alldata;
+        if (inds_edges_breakrot(end)~=Npts_alldata)
+            inds_edges_breakrot = [inds_edges_breakrot, Npts_alldata];
+        end
+        %
+        indbreak_rot = [inds_edges_breakrot(1:end-1); ...
+                        (inds_edges_breakrot(2:end) - 1)];
+        % The last one shouldn't have 1 subtracted. Add again
+        indbreak_rot(2, end) = indbreak_rot(2, end) + 1;
+    end
+
 
     %
     disp('--- Converting along-beam velocities to magnetic ENU ---')
+
+    %
+    sig1000.Ue = NaN(size(sig1000.vel1));
+    sig1000.Vn = NaN(size(sig1000.vel1));
+    sig1000.Wup = NaN(size(sig1000.vel1));
+    sig1000.Wbeam5 = NaN(size(sig1000.vel1));
+
 
     tic
     % If the i1'th Signature is in the 5-beam list
@@ -894,16 +916,26 @@ for i1 = 1:Nsignatures
         disp('Using 5 beams')
 
         %
-        [sig1000.Ue, sig1000.Vn, ...
-         sig1000.Wup, sig1000.Wbeam5] = ...
-                janus5beam2earth((sig1000.heading(:).' - 90), ...
-                                 sig1000.roll(:).', -sig1000.pitch(:).', ...
-                                 25, ...
-                                 -sig1000.vel1, -sig1000.vel3, ...
-                                 -sig1000.vel4, -sig1000.vel2, -sig1000.vel5);
+        for i2 = size(indbreak_rot, 2)
 
+            %
+            ind_sub_aux = indbreak_rot(i2, 1) : indbreak_rot(i2, 2);
 
-        % make sure that column dimension is time dimension for all variables
+            %
+            [sig1000.Ue(:, ind_sub_aux), ...
+             sig1000.Vn(:, ind_sub_aux), ...
+             sig1000.Wup(:, ind_sub_aux), ...
+             sig1000.Wbeam5(:, ind_sub_aux)] = ...
+                    janus5beam2earth((sig1000.heading(ind_sub_aux).' - 90), ...
+                                     sig1000.roll(ind_sub_aux).', -sig1000.pitch(ind_sub_aux).', ...
+                                     25, ...
+                                     -sig1000.vel1(:, ind_sub_aux), -sig1000.vel3(:, ind_sub_aux), ...
+                                     -sig1000.vel4(:, ind_sub_aux), -sig1000.vel2(:, ind_sub_aux), ...
+                                     -sig1000.vel5(:, ind_sub_aux));
+    
+    
+            % make sure that column dimension is time dimension for all variables
+        end
 
     % 
     else

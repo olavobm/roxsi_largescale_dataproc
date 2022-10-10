@@ -262,7 +262,7 @@ for i1 = 1:Nsignatures
     %%
     %
     disp(' '), disp(' ')
-    disp(['----- Start processing raw Signature1000 data of: ' list_Signature{i1} ' -----'])
+    disp(['----- Start processing raw Signature1000 data from: ' list_Signature{i1} ' -----'])
 
 
     %% Get the Signature1000 files in the correct order
@@ -329,6 +329,7 @@ for i1 = 1:Nsignatures
     prealloc_aux = cell(1, Nfiles);
     %
     sig1000.timedatenum = prealloc_aux;
+    sig1000.dtime = prealloc_aux;    % variable not filled  in the loop
     sig1000.pressure = prealloc_aux;
     sig1000.temperature = prealloc_aux;
     %
@@ -396,13 +397,20 @@ for i1 = 1:Nsignatures
 
     %% Do clock drift correction
 
+    %
+    disp('----- Correcting for clock drift -----')
+
+    % Now correct for clock drift
+    time_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
+                                            list_Signature{i1}(5:end), ...
+                                            sig1000.timedatenum);
+
 
     %% Convert time to date time
 
     %
-% %     sig1000.dtime = datetime(sig1000.timedatenum, 'ConvertFrom', 'datenum');
-% %     sig1000.dtime.TimeZone = 'America/Los_Angeles';
-% %     disp('Done converting datenum to date time')
+    sig1000.dtime = datetime(time_aux, 'ConvertFrom', 'datenum', ...
+                                       'TimeZone', 'America/Los_Angeles');
 
 
     %% Apply (small) correction due to atmospheric pressure variability.

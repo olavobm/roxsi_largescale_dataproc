@@ -512,6 +512,7 @@ for i1 = 1:Nsignatures
 
     %% Includes temperature and plot pitch and roll on same subplot
 
+
     %
     disp('--- QC plot with timeseries of scalar variables ---')
 
@@ -568,7 +569,7 @@ for i1 = 1:Nsignatures
     title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
                    char(sig1000.SN) ': pressure, temperature, heading, ' ...
                    'pitch (blue), and roll (red)'], ...
-                  'Interpreter', 'Latex', 'FontSize', 16)
+                  'Interpreter', 'Latex', 'FontSize', 12)
     %
     linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
 
@@ -608,7 +609,13 @@ for i1 = 1:Nsignatures
 
     %% Check clock
 
-    %
+    % Check for something that should never happen at this point
+    if any(isnan(sig1000.timedatenum))
+        warning(['###### Signature ' list_Signature{i1} ' has ' ...
+                 'invalid (NaN) timestamps ######'])
+    end
+
+    % Now do a plot for cheching diff(time)
     disp('--- QC plot checking diff time ---')
 
     %
@@ -630,7 +637,7 @@ for i1 = 1:Nsignatures
         plot(haxs_2, inds_difftime, seconds(diff(sig1000.dtime)), '-k')
 
     %
-    set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+    set(haxs_all, 'FontSize', 12, 'Box', 'on', ...
                   'XGrid', 'on', 'YGrid', 'on')
     %
     set(haxs_all, 'XLim', [0, (inds_time(end) + 1)])
@@ -645,18 +652,17 @@ for i1 = 1:Nsignatures
                    char(sig1000.SN) ': time and diff(time) (in seconds)'], ...
                   'Interpreter', 'Latex', 'FontSize', 16)
     %
-    linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
+    linkaxes(haxs_all, 'x')
 
 
+    % Plot horizontal lines for trimming edges
+    xlims_aux = xlim(haxs_all(1));
     %
-    for i2 = 1:length(haxs_all)
-        ylims_aux = ylim(haxs_all(i2));
-        %
-        plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
-        plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
-        %
-        ylim(haxs_all(i2), ylims_aux)
-    end
+    plot(haxs_all(1), xlims_aux, [time_1, time_1], '--r')
+    plot(haxs_all(1), xlims_aux, [time_2, time_2], '--r')
+    %
+    xlim(haxs_all(i2), xlims_aux)
+    
 
 
     %
@@ -666,26 +672,47 @@ for i1 = 1:Nsignatures
     %% Interpolate variables to gridded time vector (after
     % making sure there are no major issues above)
 
-% %     %
-% % %     dtime_grid = 
-% %     %
-% %     Nlengthtimeseries = length(sig1000.dtime);
-% %     %
-% % %     list_variables_interp = {};
-% %     %
-% %     for i2 = 1:length(list_variables_aux)
-% %         %
-% %         if length(sig1000.(list_variables_aux{i2})) == Nlengthtimeseries
-% %             %
-% % %             interp1(sig1000.dtime, sig1000.(list_variables_aux{i2}), dtime_grid)
-% % % %              = sig1000.(list_variables_aux{i2})(lin_deployment);
-% %         end
-% %     end
-% % % 
-% %   
-% %     % Now replace the original time by gridded time
-% % % %     sig1000.dtime = dtime_grid;
-% % 
+    %
+    disp('--- Gridding scalar variables to a time grid ---')
+
+    % As time edges of the grid, round to the whole minute (done in a more
+    % complicated way so that it doesn't rely on Matlab versions newer than
+    % at least 2021b)
+    dtime_edge_1 = datetime(sig1000.dtime(1).Year, sig1000.dtime(1).Month, sig1000.dtime(1).Day, ...
+                            sig1000.dtime(1).Hour, (sig1000.dtime(1).Minute + 1), 00);
+    dtime_edge_2 = datetime(sig1000.dtime(end).Year, sig1000.dtime(end).Month, sig1000.dtime(end).Day, ...
+                            sig1000.dtime(end).Hour, sig1000.dtime(end).Minute, 00);
+    %
+    df_sampling = sig1000.Config.Burst_SamplingRate;    % in Hertz
+
+    %
+    dtime_grid = dtime_edge_1 : seconds(1/df_sampling) : dtime_edge_2;
+
+    dtime_grid.TimeZone
+
+    %
+    Nlengthtimeseries = length(sig1000.dtime);
+    list_time_vars = {'timedatenum', 'dtime'};
+
+    %
+    for i2 = 1:length(list_variables_aux)
+
+        % Only interpolate fields that are NOT contained in list_time_vars
+        % and are vectors of the correct length
+        if ~any(contains(list_time_vars, list_variables_aux{i2})) && ...
+           (length(sig1000.(list_variables_aux{i2})) == Nlengthtimeseries)
+           
+            %
+            sig1000.(list_variables_aux{i2}) = ...
+                            interp1(sig1000.dtime, ...              
+                                    sig1000.(list_variables_aux{i2}), ...
+                                    dtime_grid);
+        end
+    end
+
+    % Replace measured time stamps by time grid
+    sig1000.dtime = dtime_grid;
+
 % % % %  Remove other variables
 
 %%

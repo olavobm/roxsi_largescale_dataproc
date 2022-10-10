@@ -564,7 +564,7 @@ for i1 = 1:Nsignatures
         Nfilesperseg = length(listfiles_perseg);
 
         %
-        disp(['--- Data for processing is split into ' num2str(Nfilesperseg) ' raw data files. Loading data from ---'])
+        disp(['--- Raw data that will processed is split into ' num2str(Nfilesperseg) ' data files. Loading data from ---'])
         listfiles_perseg
 
         %
@@ -1191,7 +1191,7 @@ for i1 = 1:Nsignatures
         disp('----- Saving level 1 data -----')
 
         %
-        str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN)];
+        str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN) '_velocity'];
         %
         save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'sig1000', '-v7.3')
     end

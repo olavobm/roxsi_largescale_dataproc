@@ -555,9 +555,9 @@ for i1 = 1:Nsignatures
     roll_sub_aux = sig1000.roll(lin_deployment);
     %
     ylim(haxs_2, [min(temperature_sub_aux), max(temperature_sub_aux)])
-    ylim(haxs_3, [min(heading_sub_aux), max(heading_sub_aux)])
+    ylim(haxs_3, [min(heading_sub_aux), max(heading_sub_aux)] + [-1, +1])
     ylim(haxs_4, [min([min(pitch_sub_aux), min(roll_sub_aux)]), ...
-                  max([max(pitch_sub_aux), max(roll_sub_aux)])])
+                  max([max(pitch_sub_aux), max(roll_sub_aux)])] + [-1, +1])
 
     %
     ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
@@ -627,13 +627,13 @@ for i1 = 1:Nsignatures
         hold(haxs_all, 'on')
         %
         plot(haxs_1, inds_time, sig1000.dtime, '-k')
-        plot(haxs_2, inds_difftime, seconds(sig1000.dtime), '-k')
+        plot(haxs_2, inds_difftime, seconds(diff(sig1000.dtime)), '-k')
 
     %
     set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
                   'XGrid', 'on', 'YGrid', 'on')
     %
-    set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
+    set(haxs_all, 'XLim', [0, (inds_time(end) + 1)])
     %
     ylim(haxs_1, sig1000.dtime([1, end]))
 

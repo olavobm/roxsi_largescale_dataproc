@@ -40,7 +40,8 @@ dir_rawdata_parent = fullfile(dirparent_data, 'RAW', 'Signature1000');
 %
 % % dir_output_parent = data_dirpath();
 % % dir_output_parent = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/';
-dir_output_parent = '/home/omarques/Documents/MATLAB/ROXSIproc_output/';
+% % dir_output_parent = '/home/omarques/Documents/MATLAB/ROXSIproc_output/';
+dir_output_parent = pwd;
 %
 % dir_output_data_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Signature1000_Level1');
 % dir_output_figs_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Signature1000_Level1', 'qc_plots');
@@ -49,52 +50,6 @@ dir_output_data_L1 = dir_output_parent;
 % Logical switches to save or not save data and figures
 lsave_file = true;
 lsave_fig = true;
-
-
-% % %% Define time limits and time step for processing velocity data. Since
-% % % there are a lot of Signature1000, it seems appropriate to break
-% % % it apart in smaller chunks of time. Roughly speaking,
-% % % files with 1/4 of a day (6 hours) will be around 300 MB.
-% % %
-% % % Note that the pressure (and heading/tilt/pitch/temperature) are
-% % % still loaded for the full timeseries (for general QC) and only
-% % % the processing of velocity will be within these time limits.
-% % %
-% % % Note that in the definition I will use, each file will have data
-% % % starting and including the first time limit of each segment
-% % % (given by time_lims_proc) and ending just before (not including)
-% % % the next time limit.
-% % %
-% % % Note these time limits are "real times" -- i.e. they should be
-% % % compared to clock-drift-corrected timestamps.
-% % 
-% % % -----------------------------------
-% % % % %
-% % % % time_beginend_proc = [datetime(2022, 06, 29, 00, 00, 00), ...
-% % % %                       datetime(2022, 06, 29, 06, 00, 00)];
-% % % % time_beginend_proc.TimeZone = 'America/Los_Angeles';
-% % % % 
-% % % % %
-% % % % dtstep_proc = hours(6);
-% % % % 
-% % % % %
-% % % % time_lims_proc = time_beginend_proc(1) : dtstep_proc : time_beginend_proc(2);
-% % 
-% % % -----------------------------------
-% % %
-% % % % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00); ...
-% % % %                   datetime(2022, 07, 03, 18, 00, 00), datetime(2022, 07, 04, 00, 00, 00)];
-% % %
-% % % % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 06, 00, 00)];    % 6 hour chunk
-% % %
-% % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 07, 08, 00, 00, 00)];   % around 10 days
-% % %
-% % % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 00, 05, 00)];   % 5 minutes
-% % % time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), datetime(2022, 06, 29, 00, 01, 00)];   % 1 minute
-% % time_lims_proc.TimeZone = 'America/Los_Angeles';
-% % 
-% % %
-% % Ndatasegments = size(time_lims_proc, 1);
 
 
 %% Load ADCP deployment information
@@ -125,35 +80,6 @@ list_Signature = {'A01_103043'};
 %
 Nsignatures = length(list_Signature);
 
-
-% % %% The list of ADCPs processed with either 4 or 5 beams
-% % 
-% % %
-% % % % list_4beams = {'B10', 'B13', 'B15', 'B17', 'X11'};    % B10 has 5th beam, but on HR mode (up to 4 meters above the transducer). Others did the echosounder.
-% % % % list_5beams = {'A01', 'C01', 'X05'};
-% % %
-% % list_4beams = {'B10'};    % B10 has 5th beam, but on HR mode (up to 4 meters above the transducer). Others did the echosounder.
-% % list_5beams = {'A01', 'B13', 'B15', 'B17', 'C01', 'X05', 'X11'};
-% % 
-% % % Check all of the list of Signatures is in either of the
-% % % lists for processing with 4 or 5 beams
-% % for i = 1:length(list_Signature)
-% % 
-% %     %
-% %     linanylist = any(contains(list_4beams, list_Signature{i}(1:3))) || ...
-% %                  any(contains(list_5beams, list_Signature{i}(1:3)));
-% % 
-% %     %
-% %     if ~linanylist
-% % 
-% %         error(['Signature ' list_Signature{i} ' is not present in ' ...
-% %                'any of the lists specifying velocity processing.'])
-% % 
-% %     end
-% % 
-% % end
-
-    
 
 %%
 % -------------------------------------------------------------------------
@@ -230,17 +156,6 @@ diary(fullfile(dir_output_data_L1, log_file_name))
 %
 totalRunTime = tic;
 
-% % 
-% % %% Fields to be deleters
-
-%%
-% % 
-% % list_Data_fields = {'Burst_Time', ...
-% %                     'Burst_VelBeam1', 'Burst_VelBeam2', 'Burst_VelBeam3', 'Burst_VelBeam4', ...
-% %                     'Burst_AmpBeam1', 'Burst_AmpBeam2', 'Burst_AmpBeam3', 'Burst_AmpBeam4', ...
-% %                     'Burst_Heading', 'Burst_Pitch', 'Burst_Roll', ...
-% %                     'Burst_Temperature', 'Burst_Pressure'};
-
 
 %% Display on the screen:
 
@@ -302,9 +217,6 @@ for i1 = 1:Nsignatures
     time_1 = datetime(datenum(time_1, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
     time_2 = datetime(datenum(time_2, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
 
-% %     %
-% %     lin_deployment = (senAQDP_aux.time >= time_1) & (senAQDP_aux.time <= time_2);
-
 
     %%
     % ---------------------------------------------------------------
@@ -348,20 +260,6 @@ for i1 = 1:Nsignatures
         %% Load data in file i2'th
         %
         dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(i2).name));
-
-% %         %% Delete variables...
-% % 
-% %         %
-% %         dataread_aux = rmfield(dataread_aux, {'Units', 'Descriptions'});
-% %         %
-% %         list_fields_in_Data = fieldnames(dataread_aux.Data);
-% %         %
-% %         for i3 = 1:length(list_fields_in_Data)
-% %             %
-% %             if ~any(strcmp(list_fields_in_Data{i3}, list_Data_fields))
-% %                 dataread_aux.Data = rmfield(dataread_aux.Data, list_fields_in_Data{i3});
-% %             end
-% %         end
 
 
         %% Put time, pressure (which is already in dbar),
@@ -413,22 +311,17 @@ for i1 = 1:Nsignatures
 
     %% Apply (small) correction due to atmospheric pressure variability.
     % 
-    % As opposed to Aquadopps, Signatures don't have
-    % a customizable pressure offset.
+    % As opposed to Aquadopps, Signatures don't have a customizable
+    % pressure offset (so pressure measurements don't include the
+    % full pressure at the sensor)
 
+    % Interpolate atmospheric pressure anomaly to timestamps
+    % of the signature
+    atmpresanomaly_aux = interp1(atmpresanomaly.dtime, ...
+                                 atmpresanomaly.atm_anomaly, sig1000.dtime);
 
-
-
-    %% Find all bins that are entirely below the maximum bottom depth
-
-% % % %     %
-% % % %     lin_verticalrange = ((sig1000.zhab + (sig1000.binsize/2)) < ...
-% % % %                          max(sig1000.bottomdepthfrompres));
-% %     % Or dummy for code developing purposes
-% %     lin_verticalrange = true(1, length(sig1000.zhab));
-% % 
-% %     %
-% %     sig1000.zhab = sig1000.zhab(lin_verticalrange);
+    %
+    sig1000.pressure = sig1000.pressure - atmpresanomaly_aux;
 
 
     %%
@@ -805,7 +698,6 @@ for i1 = 1:Nsignatures
                       'table deploymentInfo_ROXSI2022.mat. Pressure ' ...
                       'is in dbar, where atmospheric pressure has been removed.'];
 
-return
 
     %%
 
@@ -819,7 +711,7 @@ return
         disp('----- Saving level 1 data -----')
 
         %
-        str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN)];
+        str_filename = ['roxsi_signature_scalars_L1_' char(sig1000.mooringID) '_' char(sig1000.SN)];
         %
         save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'sig1000', '-v7.3')
     end

@@ -435,12 +435,85 @@ for i1 = 1:Nsignatures
 
     %%
     % ---------------------------------------------------------------
-    % ------------- PLOT PRESSURE, HEADING, AND TILT ------------
+    % --------------- PLOT PRESSURE, HEADING, AND TILT --------------
     % ---------------------------------------------------------------
 
     %%
 
-    disp('--- Making first QC plot with timeseries of scalars ---')
+% %     %
+% %     disp('--- QC plot with timeseries of scalar variables ---')
+% % 
+% %     %
+% %     fig_L1_QC_tilt = figure;
+% %     set(fig_L1_QC_tilt, 'units', 'normalized')
+% %     set(fig_L1_QC_tilt, 'Position', [0.2, 0.2, 0.4, 0.6])
+% %         %
+% %         haxs_1 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.73, 0.8, 0.17]);
+% %         haxs_2 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.52, 0.8, 0.17]);
+% %         haxs_3 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.31, 0.8, 0.17]);
+% %         haxs_4 = axes(fig_L1_QC_tilt, 'Position', [0.1, 0.10, 0.8, 0.17]);
+% %         %
+% %         haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
+% %         hold(haxs_all, 'on')
+% %         %
+% %         plot(haxs_1, sig1000.dtime, sig1000.pressure, '-k')
+% %         plot(haxs_2, sig1000.dtime, sig1000.heading, '-k')
+% %         plot(haxs_3, sig1000.dtime, sig1000.pitch, '-k')
+% %         plot(haxs_4, sig1000.dtime, sig1000.roll, '-k')
+% % 
+% %     %
+% %     set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+% %                   'XGrid', 'on', 'YGrid', 'on')
+% %     %
+% %     set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
+% %     %
+% %     lin_deployment = (sig1000.dtime >= time_1) & (sig1000.dtime <= time_2);
+% %     %
+% %     pres_sub_aux = sig1000.pressure(lin_deployment);
+% %     ylim(haxs_1, [min(pres_sub_aux), max(pres_sub_aux)])
+% % % % %     ylim(haxs_2, [0, 360])
+% % % %     ylim(haxs_3, [-6, 6])
+% % % %     ylim(haxs_4, [-6, 6])
+% %     %
+% %     heading_sub_aux = sig1000.heading(lin_deployment);
+% %     pitch_sub_aux = sig1000.pitch(lin_deployment);
+% %     roll_sub_aux = sig1000.roll(lin_deployment);
+% %     ylim(haxs_2, [min(heading_sub_aux), max(heading_sub_aux)])
+% %     ylim(haxs_3, [min(pitch_sub_aux), max(pitch_sub_aux)])
+% %     ylim(haxs_4, [min(roll_sub_aux), max(roll_sub_aux)])
+% % 
+% %     %
+% %     ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
+% %     ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% %     ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% %     ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+% %     %
+% %     title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
+% %                    char(sig1000.SN) ': pressure, heading, pitch, and roll'], ...
+% %                   'Interpreter', 'Latex', 'FontSize', 16)
+% %     %
+% %     linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
+% % 
+% % 
+% %     %
+% %     for i2 = 1:length(haxs_all)
+% %         ylims_aux = ylim(haxs_all(i2));
+% %         %
+% %         plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
+% %         plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
+% %         %
+% %         ylim(haxs_all(i2), ylims_aux)
+% %     end
+% % 
+% % 
+% %     %
+% %     exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_pres_tilt_' list_Signature{i1} '.png']), 'Resolution', 300)
+
+
+    %% Includes temperature and plot pitch and roll on same subplot
+
+    %
+    disp('--- QC plot with timeseries of scalar variables ---')
 
     %
     fig_L1_QC_tilt = figure;
@@ -456,9 +529,11 @@ for i1 = 1:Nsignatures
         hold(haxs_all, 'on')
         %
         plot(haxs_1, sig1000.dtime, sig1000.pressure, '-k')
-        plot(haxs_2, sig1000.dtime, sig1000.heading, '-k')
-        plot(haxs_3, sig1000.dtime, sig1000.pitch, '-k')
-        plot(haxs_4, sig1000.dtime, sig1000.roll, '-k')
+        plot(haxs_2, sig1000.dtime, sig1000.temperature, '-k')
+        plot(haxs_3, sig1000.dtime, sig1000.heading, '-k')
+        %
+        plot(haxs_4, sig1000.dtime, sig1000.pitch, '-b')
+        plot(haxs_4, sig1000.dtime, sig1000.roll, '-r')
 
     %
     set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
@@ -470,19 +545,29 @@ for i1 = 1:Nsignatures
     %
     pres_sub_aux = sig1000.pressure(lin_deployment);
     ylim(haxs_1, [min(pres_sub_aux), max(pres_sub_aux)])
-% %     ylim(haxs_2, [0, 360])
-    ylim(haxs_3, [-6, 6])
-    ylim(haxs_4, [-6, 6])
-
+% % %     ylim(haxs_2, [0, 360])
+% %     ylim(haxs_3, [-6, 6])
+% %     ylim(haxs_4, [-6, 6])
+    %
+    temperature_sub_aux = sig1000.temperature(lin_deployment);
+    heading_sub_aux = sig1000.heading(lin_deployment);
+    pitch_sub_aux = sig1000.pitch(lin_deployment);
+    roll_sub_aux = sig1000.roll(lin_deployment);
+    %
+    ylim(haxs_2, [min(temperature_sub_aux), max(temperature_sub_aux)])
+    ylim(haxs_3, [min(heading_sub_aux), max(heading_sub_aux)])
+    ylim(haxs_4, [min([min(pitch_sub_aux), min(roll_sub_aux)]), ...
+                  max([max(pitch_sub_aux), max(roll_sub_aux)])])
 
     %
     ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_2, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_2, '[$^\circ$C]', 'Interpreter', 'Latex', 'FontSize', 16)
     ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
     ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
     %
     title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
-                   char(sig1000.SN) ': pressure, heading, pitch, and roll'], ...
+                   char(sig1000.SN) ': pressure, temperature, heading, ' ...
+                   'pitch (blue), and roll (red)'], ...
                   'Interpreter', 'Latex', 'FontSize', 16)
     %
     linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
@@ -500,16 +585,108 @@ for i1 = 1:Nsignatures
 
 
     %
-    exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_pres_tilt_' list_Signature{i1} '.png']), 'Resolution', 300)
+    exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_scalars_' list_Signature{i1} '.png']), 'Resolution', 300)
+
+
+    %% Trim variables for the desired period where analysis will be done
+    %
+    % The logical variable lin_deployment is created in the code block
+    % above.
 
     %
-    pause(10)
+    list_variables_aux = fieldnames(sig1000);
 
     %
-    close(fig_L1_QC_tilt)
+    for i2 = 1:length(list_variables_aux)
+        %
+        if length(sig1000.(list_variables_aux{i2}))==length(lin_deployment)
+            %
+            sig1000.(list_variables_aux{i2}) = sig1000.(list_variables_aux{i2})(lin_deployment);
+        end
+    end
 
 
-  
+    %% Check clock
+
+    %
+    disp('--- QC plot checking diff time ---')
+
+    %
+    inds_time = 1:length(sig1000.dtime);
+    inds_difftime = (inds_time(1:end-1) + inds_time(2:end))./2;
+
+    %
+    fig_L1_QC_clock = figure;
+    set(fig_L1_QC_clock, 'units', 'normalized')
+    set(fig_L1_QC_clock, 'Position', [0.2, 0.2, 0.4, 0.6])
+        %
+        haxs_1 = axes(fig_L1_QC_clock, 'Position', [0.1, 0.575, 0.8, 0.325]);
+        haxs_2 = axes(fig_L1_QC_clock, 'Position', [0.1, 0.150, 0.8, 0.325]);
+        %
+        haxs_all = [haxs_1, haxs_2];
+        hold(haxs_all, 'on')
+        %
+        plot(haxs_1, inds_time, sig1000.dtime, '-k')
+        plot(haxs_2, inds_difftime, seconds(sig1000.dtime), '-k')
+
+    %
+    set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+                  'XGrid', 'on', 'YGrid', 'on')
+    %
+    set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
+    %
+    ylim(haxs_1, sig1000.dtime([1, end]))
+
+    %
+    ylabel(haxs_1, 'Time', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_2, 'seconds', 'Interpreter', 'Latex', 'FontSize', 16)
+    %
+    title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
+                   char(sig1000.SN) ': time and diff(time) (in seconds)'], ...
+                  'Interpreter', 'Latex', 'FontSize', 16)
+    %
+    linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
+
+
+    %
+    for i2 = 1:length(haxs_all)
+        ylims_aux = ylim(haxs_all(i2));
+        %
+        plot(haxs_all(i2), [time_1, time_1], ylims_aux, '--r')
+        plot(haxs_all(i2), [time_2, time_2], ylims_aux, '--r')
+        %
+        ylim(haxs_all(i2), ylims_aux)
+    end
+
+
+    %
+    exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_clock_' list_Signature{i1} '.png']), 'Resolution', 300)
+
+
+    %% Interpolate variables to gridded time vector (after
+    % making sure there are no major issues above)
+
+% %     %
+% % %     dtime_grid = 
+% %     %
+% %     Nlengthtimeseries = length(sig1000.dtime);
+% %     %
+% % %     list_variables_interp = {};
+% %     %
+% %     for i2 = 1:length(list_variables_aux)
+% %         %
+% %         if length(sig1000.(list_variables_aux{i2})) == Nlengthtimeseries
+% %             %
+% % %             interp1(sig1000.dtime, sig1000.(list_variables_aux{i2}), dtime_grid)
+% % % %              = sig1000.(list_variables_aux{i2})(lin_deployment);
+% %         end
+% %     end
+% % % 
+% %   
+% %     % Now replace the original time by gridded time
+% % % %     sig1000.dtime = dtime_grid;
+% % 
+% % % %  Remove other variables
 
 %%
 % ----------------------------------------------------------------
@@ -532,7 +709,7 @@ for i1 = 1:Nsignatures
 % %                          'in the Level 1 structure has been trimmed for the deployment ' ...
 % %                          'period, as defined in the table deploymentInfo_ROXSI2022.mat. ' ...
 % %                          'Pressure is in dbar, where atmospheric pressure has been removed.'];
-
+return
 
     %%
 

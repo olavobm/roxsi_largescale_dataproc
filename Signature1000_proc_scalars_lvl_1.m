@@ -75,7 +75,7 @@ list_Signature = {'A01_103043', ...
                   'X11_101941'};
 
 % % % Just a test
-list_Signature = {'A01_103043'};
+% % list_Signature = {'A01_103043'};
 
 %
 Nsignatures = length(list_Signature);

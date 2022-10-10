@@ -329,6 +329,7 @@ for i1 = 1:Nsignatures
     prealloc_aux = cell(1, Nfiles);
     %
     sig1000.timedatenum = prealloc_aux;
+    sig1000.samplingrateHz = NaN;    % only added at the end
     sig1000.dtime = prealloc_aux;    % variable not filled  in the loop
     sig1000.pressure = prealloc_aux;
     sig1000.temperature = prealloc_aux;
@@ -392,9 +393,6 @@ for i1 = 1:Nsignatures
     sig1000.roll = cat(1, sig1000.roll{:});
 
 
-    disp('--- Done getting timeseries of scalar variables ---')
-
-
     %% Do clock drift correction
 
     %
@@ -435,10 +433,10 @@ for i1 = 1:Nsignatures
 
     %%
     % ---------------------------------------------------------------
-    % --------------- PLOT PRESSURE, HEADING, AND TILT --------------
+    % ----- PLOT PRESSURE, TEMPERATURE, HEADING, PITCH, AND ROLL ----
     % ---------------------------------------------------------------
 
-    %%
+    %% Older version (without temperature)
 
 % %     %
 % %     disp('--- QC plot with timeseries of scalar variables ---')
@@ -510,8 +508,8 @@ for i1 = 1:Nsignatures
 % %     exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_pres_tilt_' list_Signature{i1} '.png']), 'Resolution', 300)
 
 
-    %% Includes temperature and plot pitch and roll on same subplot
-
+    %% Similar as above, but includes temperature
+    % and plot pitch and roll on same subplot
 
     %
     disp('--- QC plot with timeseries of scalar variables ---')
@@ -661,7 +659,7 @@ for i1 = 1:Nsignatures
     plot(haxs_all(1), xlims_aux, [time_1, time_1], '--r')
     plot(haxs_all(1), xlims_aux, [time_2, time_2], '--r')
     %
-    xlim(haxs_all(i2), xlims_aux)
+    xlim(haxs_all(1), xlims_aux)
     
 
 
@@ -687,8 +685,7 @@ for i1 = 1:Nsignatures
 
     %
     dtime_grid = dtime_edge_1 : seconds(1/df_sampling) : dtime_edge_2;
-
-    dtime_grid.TimeZone
+    dtime_grid.TimeZone = sig1000.dtime.TimeZone;
 
     %
     Nlengthtimeseries = length(sig1000.dtime);
@@ -707,13 +704,25 @@ for i1 = 1:Nsignatures
                             interp1(sig1000.dtime, ...              
                                     sig1000.(list_variables_aux{i2}), ...
                                     dtime_grid);
+
+            % Turn to column vector
+            sig1000.(list_variables_aux{i2}) = sig1000.(list_variables_aux{i2})(:);
+
         end
     end
 
     % Replace measured time stamps by time grid
-    sig1000.dtime = dtime_grid;
+    sig1000.dtime = dtime_grid(:);
 
-% % % %  Remove other variables
+    %
+    disp('--- Done with time gridding ---')
+
+    % Remove datenum time
+    sig1000 = rmfield(sig1000, 'timedatenum');
+
+    % Add sampling rate as a field
+    sig1000.samplingrateHz = df_sampling;
+
 
 %%
 % ----------------------------------------------------------------
@@ -724,18 +733,21 @@ for i1 = 1:Nsignatures
 
     %% Add README
 
-% %     %
-% %     time_dataproc = datetime('now', 'TimeZone', 'Local');
-% %     time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
-% %     % Add a general README
-% %     sig1000.README = ['Level 1 Signature1000 data from ROXSI 2022. The data is from Signature ' ...
-% %                          ' with serial number SN and deployed at mooring site mooringID. ' ...
-% %                          'Data processed by script ' mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
-% %                          'Horizontal velocity components are relative to ??????, where the magnetic ' ...
-% %                          'decliation was taken from www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml. Data ' ...
-% %                          'in the Level 1 structure has been trimmed for the deployment ' ...
-% %                          'period, as defined in the table deploymentInfo_ROXSI2022.mat. ' ...
-% %                          'Pressure is in dbar, where atmospheric pressure has been removed.'];
+    %
+    time_dataproc = datetime('now', 'TimeZone', 'Local');
+    time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
+    % Add a general README
+    sig1000.README = ['Level 1 scalar data form Signature1000 in ROXSI ' ...
+                      '2022. The data is from Signature with serial ' ...
+                      'number SN and deployed at mooring site mooringID. ' ...
+                      'Data processed by script ' mfilename() '.m ' ...
+                      'on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
+                      'This data structure may be useful if there are ' ...
+                      'problems with the velocity data but pressure ' ...
+                      'is fine. Deployment period is defined in the ' ...
+                      'table deploymentInfo_ROXSI2022.mat. Pressure ' ...
+                      'is in dbar, where atmospheric pressure has been removed.'];
+
 return
 
     %%

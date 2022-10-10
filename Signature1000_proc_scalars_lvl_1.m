@@ -625,8 +625,8 @@ for i1 = 1:Nsignatures
     set(fig_L1_QC_clock, 'units', 'normalized')
     set(fig_L1_QC_clock, 'Position', [0.2, 0.2, 0.4, 0.6])
         %
-        haxs_1 = axes(fig_L1_QC_clock, 'Position', [0.1, 0.575, 0.8, 0.325]);
-        haxs_2 = axes(fig_L1_QC_clock, 'Position', [0.1, 0.150, 0.8, 0.325]);
+        haxs_1 = axes(fig_L1_QC_clock, 'Position', [0.2, 0.575, 0.6 , 0.325]);
+        haxs_2 = axes(fig_L1_QC_clock, 'Position', [0.2, 0.150, 0.6, 0.325]);
         %
         haxs_all = [haxs_1, haxs_2];
         hold(haxs_all, 'on')
@@ -642,6 +642,8 @@ for i1 = 1:Nsignatures
     %
     ylim(haxs_1, sig1000.dtime([1, end]))
 
+    %
+    xlabel(haxs_2, 'Indices', 'Interpreter', 'Latex', 'FontSize', 16)
     %
     ylabel(haxs_1, 'Time', 'Interpreter', 'Latex', 'FontSize', 16)
     ylabel(haxs_2, 'seconds', 'Interpreter', 'Latex', 'FontSize', 16)
@@ -661,7 +663,6 @@ for i1 = 1:Nsignatures
     %
     xlim(haxs_all(1), xlims_aux)
     
-
 
     %
     exportgraphics(fig_L1_QC_tilt, fullfile(pwd, ['sig_clock_' list_Signature{i1} '.png']), 'Resolution', 300)
@@ -722,6 +723,62 @@ for i1 = 1:Nsignatures
 
     % Add sampling rate as a field
     sig1000.samplingrateHz = df_sampling;
+
+
+    %% Repeat the plot of scalar variables again
+
+    %
+    disp('--- Plot of the timeseries in the output structure ---')
+
+    %
+    fig_L1_procdata = figure;
+    set(fig_L1_procdata, 'units', 'normalized')
+    set(fig_L1_procdata, 'Position', [0.2, 0.2, 0.4, 0.6])
+        %
+        haxs_1 = axes(fig_L1_procdata, 'Position', [0.1, 0.73, 0.8, 0.17]);
+        haxs_2 = axes(fig_L1_procdata, 'Position', [0.1, 0.52, 0.8, 0.17]);
+        haxs_3 = axes(fig_L1_procdata, 'Position', [0.1, 0.31, 0.8, 0.17]);
+        haxs_4 = axes(fig_L1_procdata, 'Position', [0.1, 0.10, 0.8, 0.17]);
+        %
+        haxs_all = [haxs_1, haxs_2, haxs_3, haxs_4];
+        hold(haxs_all, 'on')
+        %
+        plot(haxs_1, sig1000.dtime, sig1000.pressure, '-k')
+        plot(haxs_2, sig1000.dtime, sig1000.temperature, '-k')
+        plot(haxs_3, sig1000.dtime, sig1000.heading, '-k')
+        %
+        plot(haxs_4, sig1000.dtime, sig1000.pitch, '-b')
+        plot(haxs_4, sig1000.dtime, sig1000.roll, '-r')
+
+    %
+    set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+                  'XGrid', 'on', 'YGrid', 'on')
+    %
+    set(haxs_all, 'XLim', sig1000.dtime([1, end]) + [-hours(12); hours(12)])
+
+    %
+    ylim(haxs_1, [min(sig1000.pressure), max(sig1000.pressure)])
+    %
+    ylim(haxs_2, [min(sig1000.temperature), max(sig1000.temperature)])
+    ylim(haxs_3, [min(sig1000.heading), max(sig1000.heading)] + [-1, +1])
+    ylim(haxs_4, [min([min(sig1000.pitch), min(sig1000.roll)]), ...
+                  max([max(sig1000.pitch), max(sig1000.roll)])] + [-1, +1])
+
+    %
+    ylabel(haxs_1, '[dbar]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_2, '[$^\circ$C]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_3, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_4, '[degrees]', 'Interpreter', 'Latex', 'FontSize', 16)
+    %
+    title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
+                   char(sig1000.SN) ': pressure, temperature, heading, ' ...
+                   'pitch (blue), and roll (red)'], ...
+                  'Interpreter', 'Latex', 'FontSize', 12)
+    %
+    linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
+
+    %
+    exportgraphics(fig_L1_procdata, fullfile(pwd, ['sig_scalars_proc_' list_Signature{i1} '.png']), 'Resolution', 300)
 
 
 %%

@@ -919,7 +919,7 @@ for i1 = 1:Nsignatures
         for i2 = size(indbreak_rot, 2)
 
             %
-            ind_sub_aux = indbreak_rot(i2, 1) : indbreak_rot(i2, 2);
+            ind_sub_aux = indbreak_rot(1, i2) : indbreak_rot(2, i2);
 
             %
             [sig1000.Ue(:, ind_sub_aux), ...

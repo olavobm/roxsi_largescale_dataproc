@@ -38,7 +38,8 @@ dir_rawdata_parent = fullfile(dirparent_data, 'RAW', 'Signature1000');
 %
 % % dir_output_parent = data_dirpath();
 % % dir_output_parent = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/';
-dir_output_parent = '/home/omarques/Documents/MATLAB/ROXSIproc_output/';
+% % dir_output_parent = '/home/omarques/Documents/MATLAB/ROXSIproc_output/';
+dir_output_parent = pwd;
 %
 % dir_output_data_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Signature1000_Level1');
 % dir_output_figs_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Signature1000_Level1', 'qc_plots');

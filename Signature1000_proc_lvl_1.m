@@ -1190,11 +1190,16 @@ for i1 = 1:Nsignatures
     if lsave_file
         %
         disp('----- Saving level 1 data -----')
-
+        tic
         %
         str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN) '_velocity'];
         %
         save(fullfile(dir_output_data_L1, [str_filename '.mat']), 'sig1000', '-v7.3')
+
+        %
+        disp('----- Done saving data. It took: -----')
+        toc
+        
     end
 
     %

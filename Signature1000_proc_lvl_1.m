@@ -916,7 +916,7 @@ for i1 = 1:Nsignatures
         disp('Using 5 beams')
 
         %
-        for i2 = size(indbreak_rot, 2)
+        for i2 = 1:size(indbreak_rot, 2)
 
             %
             ind_sub_aux = indbreak_rot(1, i2) : indbreak_rot(2, i2);

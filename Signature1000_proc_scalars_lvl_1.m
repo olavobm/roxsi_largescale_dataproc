@@ -683,7 +683,7 @@ for i1 = 1:Nsignatures
     dtime_edge_2 = datetime(sig1000.dtime(end).Year, sig1000.dtime(end).Month, sig1000.dtime(end).Day, ...
                             sig1000.dtime(end).Hour, sig1000.dtime(end).Minute, 00);
     %
-    df_sampling = sig1000.Config.Burst_SamplingRate;    % in Hertz
+    df_sampling = double(sig1000.Config.Burst_SamplingRate);    % in Hertz
 
     %
     dtime_grid = dtime_edge_1 : seconds(1/df_sampling) : dtime_edge_2;

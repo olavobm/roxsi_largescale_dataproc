@@ -1,10 +1,9 @@
-function [Sxx, timespec, freqvec, dof, avgx] = spectra_scalar_reg(xtime, x, windowfft, windowavg, timespeclims, dt_step)
-%% [Sxx, freqspec, dof] = SPECTRA_SCALAR_REG(xtime, x, windowfft, windowavg, timespeclims, dt_step)
+function [Sxx, timespec, freqvec, dof, avgx] = spectra_scalar_reg(xtime, xdata, windowfft, windowavg, timespeclims, dt_step)
+%% [Sxx, freqspec, dof] = SPECTRA_SCALAR_REG(xtime, xdata, windowfft, windowavg, timespeclims, dt_step)
 %
 %   inputs
 %       - xtime:
-%       - x:
-%       - xdt: in seconds
+%       - xdata:
 %       - windowfft: in seconds
 %       - windowavg: in seconds
 %       - timespec (optional, but recommended):
@@ -42,7 +41,15 @@ end
 % %     end
 % % end
 
+%% check data is time-gridded!!!
+
 %%
+
+%
+if ~exist('fracoverlap', 'var')
+% %     fracoverlap = 0;
+    fracoverlap = 0.5;    % EITHER 0 OR 0.5. NO OTHER OPTION IMPLEMENTED
+end
 
 %
 if ~exist('dt_step', 'var')
@@ -78,15 +85,15 @@ ntspec = length(timespec);
 half_t_interval = dt_step/2;
 
 %
-time_bounds = [(timespecintervals - half_t_interval); ...
-               (timespecintervals + half_t_interval)];
+time_bounds = [(timespec - half_t_interval); ...
+               (timespec + half_t_interval)];
 
 
 %%
 
 % Time difference, in seconds, of the data time grid
 % (the code assumes it is a equally time grid)
-dt = (timevec(2) - timevec(1));
+dt = (xtime(2) - xtime(1));
 dt = seconds(dt);
 
 %
@@ -128,12 +135,139 @@ fm = (0:(nnyq-1)) * df;
 
 %%
 
-% % %
-% % statsout.dtime = timespecintervals;
-% % statsout.frequency = fm;
-% % %
-% % statsout.avgpres = NaN(1, length(timespecintervals));
-% % statsout.presSpec = NaN(length(fm), length(timespecintervals));
+%
+ind_start_data = find(~isnan(xdata), 1, 'first');
+ind_end_data = find(~isnan(xdata), 1, 'last');
+
+
+%%
+
+%
+ind_first_wholeinterval = find(time_bounds(1, :) >= xtime(ind_start_data), 1, 'first');
+%
+ind_last_wholeinterval = find(time_bounds(2, :) < xtime(ind_end_data), 1, 'last');
+
+%
+ind_data_start_firstinterval = find(xtime==time_bounds(1, ind_first_wholeinterval));
+ind_data_end_lastinterval = find(xtime==time_bounds(2, ind_last_wholeinterval));
+
+
+%%
+
+% Number of whole intervals (i.e. whole intervals
+% means that it doesn't include data at the edges)
+nt_whole_intervals = length(ind_data_start_firstinterval : (ind_data_end_lastinterval-1)) / npts_ininterval;
+
+%
+ind_data_wholeintervals = ind_data_start_firstinterval + ...
+                               (0 : 1 : ((nt_whole_intervals*npts_ininterval - 1)));
+% -1 because the round/0'th index is at the beginning and not the end of a whole interval
+
+%
+xdata_perinterval = reshape(xdata(ind_data_wholeintervals), npts_ininterval, nt_whole_intervals);
+
+
+%% IF there is more data at the edges, add them now
+
+%
+if ind_first_wholeinterval ~= 1
+    %
+    inds_edge_1 = ind_start_data:(ind_data_start_firstinterval - 1);
+
+    %
+    xdata_perinterval = [NaN(npts_ininterval, 1), xdata_perinterval];
+    %
+    inds_fill_aux = (npts_ininterval - (length(inds_edge_1) - 1)) : npts_ininterval;
+    xdata_perinterval(inds_fill_aux, 1) = xdata(inds_edge_1);
+    %
+    ind_first_interval = ind_first_wholeinterval - 1;
+
+else
+
+    ind_first_interval = ind_first_wholeinterval;
+
+end
+
+
+%
+if ind_last_wholeinterval ~= size(time_bounds, 2)
+    %
+    inds_edge_2 = (ind_data_wholeintervals(end) + 1):ind_end_data;
+
+    %
+    xdata_perinterval = [xdata_perinterval, NaN(npts_ininterval, 1)];
+    %
+    inds_fill_aux = 1:length(inds_edge_2);
+    xdata_perinterval(inds_fill_aux, end) = xdata(inds_edge_2);
+    %
+    ind_last_interval = ind_last_wholeinterval + 1;
+%
+else
+
+    ind_last_interval = ind_last_wholeinterval;
+
+
+end
+
+
+%%
+
+%
+ind_all_intervals = ind_first_interval:ind_last_interval;
+
+
+%% Create indices to deal with overlap
+
+%
+indstart_firstchunk = 1;
+indend_lastchunk = npts_ininterval;
+
+%
+if (fracoverlap==0.5)
+    %
+    indstart_firstchunk = [indstart_firstchunk, (nfft/2)];
+    %
+    indend_lastchunk = [indend_lastchunk, (npts_ininterval - (1 + (nfft*fracoverlap)))];
+end
+
+% Compute number of individual chunks for which fft will be computed
+indnumberchunks = (indend_lastchunk - indstart_firstchunk + 1)./nfft;
+%
+indcols = NaN(length(indnumberchunks), 2);
+indcols(1, 1) = 1;
+%
+inds_cumsum = cumsum(indnumberchunks);
+%
+indcols(2:end, 1) = inds_cumsum(1:end-1)+1;
+indcols(:, 2) = inds_cumsum;
+
+
+keyboard
+
+for i = 1:length(indstart_firstchunk)
+    %
+    ind_edge_chunk_aux = indstart_firstchunk(i) : nfft : indend_lastchunk(i);
+
+    keyboard
+    if ind_edge_chunk_aux(end)==npts_ininterval
+        
+    end
+% %     %
+% %     indnumberchunks = length(indstart_firstchunk);
+% %     %
+% %     indcols = []
+end
+
+% Compute upper bound of DOF (as if the chunks were fully independent)
+
+keyboard
+
+%%
+% ------------------------------------------------------------------
+% ------------------------------------------------------------------
+% ------------------------------------------------------------------
+
+%%
 
 %
 freqvec = fm;
@@ -141,223 +275,127 @@ freqvec = fm;
 %
 Sxx = NaN(length(fm), ntspec);
 dof = NaN(1, ntspec);
-avgx = NaN(1, ntspec);
 
 
 %%
 
 %
-ind_start_data = find(~isnan(pressuredata), 1, 'first');
-ind_end_data = find(~isnan(pressuredata), 1, 'last');
+avgx = mean(xdata_perinterval, 1, 'omitnan');
 
 
-%%
+%% Finally start the calculation
+
+% Loop over averaging intervals
+for i1 = 1:length(ind_all_intervals)  % == ntspec (?)
 
 
-%
-ind_first_wholeinterval = find(time_bounds(1, :) >= timevec(ind_start_data), 1, 'first');
-%
-ind_last_wholeinterval = find(time_bounds(2, :) < timevec(ind_end_data), 1, 'last');
-
-%
-ind_data_start_firstinterval = find(timevec==time_bounds(1, ind_first_wholeinterval));
-ind_data_end_lastinterval = find(timevec==time_bounds(2, ind_last_wholeinterval));
-
-
-%%
-return
-
-%%
-
-
-
-
-
-
-
-    % This MUST/SHOULD be an integer
-    nt_intervals = length(ind_data_start_firstinterval : (ind_data_end_lastinterval-1)) / npts_ininterval;
+    %% Get the data, breaking it apart in chunks for computing fft
+    
+    %
+    xdata_chunks = reshape(xdata_perinterval(:, i1), nfft, (npts_ininterval/nfft));
 
     %
-    ind_data_wholeintervals = ind_data_start_firstinterval + ...
-                                   (0 : 1 : ((nt_intervals*npts_ininterval - 1)));
-    % -1 because the round/0'th index is at the beginning and not the end of a whole interval
+    if length(indstart_firstchunk)~=1
 
+        %
+% %         pres_chunks = [pres_chunks, NaN(???)]
 
-    %
-    pressure_perinterval = reshape(pressuredata(ind_data_wholeintervals), npts_ininterval, nt_intervals);
+        %
+        for i2 = 2:length(indstart_firstchunk)
 
+            %
+            inds_sub_aux = indstart_firstchunk(i2):indend_lastchunk(i2);
 
-    % ------------------------------------
-% %     % Fill partial intervals at edges if
-% %     % necessary
-% %     if ind_first_wholeinterval ~= 1
-% % 
-% %     end
-% %     %
-% %     if ind_last_wholeinterval ~= size(time_bounds, 2)
-% % 
-% %     end
-    % ------------------------------------
+            %
+            x_chunks_overlap_aux = reshape(xdata_perinterval(inds_sub_aux, i1), nfft, (npts_ininterval/nfft));
 
-    % Update once I include partial edges
-    ind_first_interval = ind_first_wholeinterval;
-    ind_last_interval = ind_last_wholeinterval;
-    %
-    ind_all_intervals = ind_first_interval:ind_last_interval;
+% %             %
+% % % %             pres_chunks(:, indcols(i2)) = pres_chunks_overlap_aux;
+        end
 
-    % Now loop over intervals and compute spectra
-    for i2 = 1:length(ind_all_intervals)
+    end
+    
+    
 
-        %% Get and break apart the data for fft
+    %% Preliminary calculations to compute fft
 
-        % Reshape each interval such that each
-        % column is a chunk where FFT will be
-        % computed -- NO OVERLAP OR WINDOWING
-        pres_chunks = reshape(pressure_perinterval(:, i2), nfft, (npts_ininterval/nfft));
+    % Compute mean pressure in each chunk
+    mean_xdata_chunks = mean(xdata_chunks, 1);
 
-        % Or get the data with 50% overlapping segments
-        % (in case the data is windowed below)
+    % Remove the mean
+    xdata_anomaly_chunks = xdata_chunks - repmat(mean_xdata_chunks, nfft, 1);
 
+    % Detrend each column with a 1st degree polynomial (i.e. a line)
+    xdata_forfft_chunks = detrend(xdata_anomaly_chunks, 1);
 
-        %% Preliminary calculations to compute fft
-
-        % Compute mean pressure in each chunk
-        mean_pres_chunks = mean(pres_chunks, 1);
-
-        % Remove the mean
-        pres_anomaly_chunks = pres_chunks - repmat(mean_pres_chunks, nfft, 1);
-
-        % Detrend each column with a 1st degree polynomial (i.e. a line)
-        pres_detrended_chunks = detrend(pres_anomaly_chunks, 1);
+    % Apply window
+%     window_vec = 
+%     window_matrix = repmat(window_vec, 1, )
+    xdata_forfft_chunks = xdata_forfft_chunks .* window_matrix;
 
 % %         % Compute variance of data and detrended data
 % %         varPdetrend(i) = sum((pres_anomaly_chunks .* pres_anomaly_chunks), 1)./nfft;
-% %         varPdetrend(i) = sum((pres_detrended_chunks .* pres_detrended_chunks), 1)./nfft;
+% %         varPdetrend(i) = sum((pres_forfft_chunks .* pres_forfft_chunks), 1)./nfft;
 
 
-        % Compute variance of the full interval
-        var_data_aux = sum((pres_detrended_chunks(:).^2))./nfft;
+    % Compute variance of the full interval (to compute the
+    % normalization factor so that the average spectrum has
+    % the same variance as the full interval)
+    var_data_aux = sum((xdata_forfft_chunks(:).^2)) ./ numel(xdata_forfft_chunks);
 
-        % Window data here to taper the edges
+    %
+    dof(i1) = 2*length(~isnan(mean_xdata_chunks));
 
 
+    %% Compute power spectra
 
-        %% Compute power spectra pressure
+    % Compute fft of each column
+    fourier_coefs = fft(xdata_forfft_chunks, [], 1);
+    
+    % Select only coefficients associated with the mean
+    % (0 frequency) and positive frequencies (the first
+    % coefficient should be zero because the data was detrended)
+    fourier_coefs = fourier_coefs(1:nnyq, :);
 
-        % Compute fft of each column
-        fourier_coefs = fft(pres_detrended_chunks, [], 1);
-        
-        % Select only coefficients associated with the mean
-        % (0 frequency) and positive frequencies (the first
-        % coefficient should be zero because the data was detrended)
-        fourier_coefs = fourier_coefs(1:nnyq, :);
+    % Normalize by frequency resolution
+    x_all_Spec = (fourier_coefs .* conj(fourier_coefs)) ./ (nfft * df);
 
-        % Normalize by frequency resolution
-        pres_all_Spec = (fourier_coefs .* conj(fourier_coefs)) ./ (nfft * df);
+    % Factor of two to account for negative frequencies
+    % don't include the last one because there is no
+    % negative frequency counterpart for even nfft)
+    x_all_Spec(2:end-1) = 2*x_all_Spec(2:end-1);
 
-        % Factor of two to account for negative frequencies
-        % don't include the last one because there is no
-        % negative frequency counterpart for even nfft)
-        pres_all_Spec(2:end-1) = 2*pres_all_Spec(2:end-1);
+    % Average across all chunks in the interval
+    x_avg_Spec = mean(x_all_Spec, 2);
 
-        % Average across all chunks in the interval
-        pres_avg_Spec = mean(pres_all_Spec, 2);
+    % Normalize spectrum to maintain variance of
+    % the data before it was detrended (doesn't
+    % include first coefficient, though it's zero
+    % after detrending).
+    var_Spec_tmp = sum(x_avg_Spec(2:end))*df;
 
-        % Normalize spectrum to maintain variance of
-        % the data before it was detrended (doesn't
-        % include first coefficient, though it's zero
-        % after detrending).
-        var_Spec_tmp = sum(pres_avg_Spec(2:end))*df;
+    % Renormalization factor
+    factor_renormalize = var_data_aux/var_Spec_tmp;
 
-        % Renormalization factor
-        factor_renormalize = var_data_aux/var_Spec_tmp;
-
-        % Renormalize average spectrum
-        pres_avg_Spec_renormalized = pres_avg_Spec;
-        pres_avg_Spec_renormalized(2:end) = pres_avg_Spec(2:end) * factor_renormalize;
+    % Renormalize average spectrum
+    x_avg_Spec_renormalized = x_avg_Spec;
+    x_avg_Spec_renormalized(2:end) = x_avg_Spec(2:end) * factor_renormalize;
 
 % %         % Check Parseval's theorem
-% %         [var_data_aux,   (sum(pres_avg_Spec_renormalized(2:end)).*df)]
+% %         [var_data_aux,   (sum(x_avg_Spec_renormalized(2:end)).*df)]
 
-        % Assign to output
-        statsout.presSpec(:, ind_all_intervals(i2)) = pres_avg_Spec_renormalized;
-        
+    %%
 
+    % Assign to output
+    Sxx(:, ind_all_intervals(i2)) = x_avg_Spec_renormalized;
+    
 %         FALK'S CODE DOES NOT USE THE NORMALIZED SPECTRUM!!! IT IS
 %         COMPUTED, BUT IT IS NOT PASSED TO OUTPUT OR TO COMPUTATION
 %         OF SEA SURFACE HEIGHT SPECTRUM
 
 
-        %% Convert pressure spectra to sea-surface height spectra
 
-
-        % What is the wavenumber k? It's straightforward to compute
-        % either shallow-water or deep-water k. But what about the
-        % general k? What's the numerical approach to do it?
-
-        % ------------------------------------------------------------
-        % ------------------------------------------------------------
-        % HOW DO WE DERIVE THE CORRECTION FACTOR??? Not obvious to me
-        % how that appears from the dispersion relationship (maybe
-        % a derivative turns sinh into cosh?)
-        % %
-        % % correction = cosh( k*mean_depth(i))./cosh(k*doffz);
-        % ------------------------------------------------------------
-        % ------------------------------------------------------------
-
-        % % % ----------------------------------------
-        % % % Go from pressure to SSH spectrum:
-        % % doffz = 0.02;
-        % % grav = 9.81;
-        % % 
-        % % k = get_wavenum(2*pi*fm, mean_depth(i));
-        % % correction = cosh( k*mean_depth(i))./cosh(k*doffz);
-        % % See0 = Spp0 .* correction.^2;
-        % % See(i,:) = See0;
-        % % % ----------------------------------------
-
-% % % Find wavenumber from frequency -- need to
-% % % loop over frequency and mean depth.
-% % % Since frequency is known before the loop,
-% % % should create a function handle before the
-% % % loop, then only loop over mean depth
-% % 
-% % bla = @(x) 10*x*tanh(x*10) - (2*pi/10)^2
-% % kloin = fzero(bla, [2*pi/4000, 2*pi/0.001]);
-
-% %     %
-% %     if mean_depth(i)>0.3,  % only if deep enough, calculate wave stats
-% %     end
-        %
-    end
-
-% Degrees of freedom
-% DOF = 2*(nint/nfft)*2 ;  % last *2 is for the 50% overlap with the Hanning windowed data
-statsout.DOF = NaN;
+end
 
 
 
-
-%% Compute bulk statistical quantities
-
-%
-inds_IGband = find((fm > freq_lims_IG(1)) & (fm < freq_lims_IG(2)));
-inds_SSband = find((fm > freq_lims_SS(1)) & (fm < freq_lims_SS(2)));
-
-%
-statsout.freqlims_IG = freq_lims_IG;
-statsout.PsigIG = 4*sqrt(sum(statsout.presSpec(inds_IGband, :)) * df);
-
-%
-statsout.freqlims_SS = freq_lims_SS;
-statsout.PsigSS = 4*sqrt(sum(statsout.presSpec(inds_SSband, :)) * df);
-
-%
-[~, ind_peak] = max(statsout.presSpec(inds_SSband, :), [], 1);
-
-%
-statsout.peakfreqSS = statsout.frequency(inds_SSband(ind_peak));
-statsout.meanfreqSS = (statsout.frequency(inds_SSband) * ...
-                       statsout.presSpec(inds_SSband, :)) ./ ...
-                           sum(statsout.presSpec(inds_SSband, :));

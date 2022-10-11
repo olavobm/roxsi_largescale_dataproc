@@ -901,6 +901,12 @@ for i1 = 1:Nsignatures
     %
     disp('--- Converting along-beam velocities to magnetic ENU ---')
 
+
+    %
+    disp(['--- Coordinate transformation will be computed ' ...
+          'for ' num2str(size(indbreak_rot, 2)) ' separate chunks ' ...
+          'of the timeseries (to avoid crashing Matlab) ---'])
+
     %
     sig1000.Ue = NaN(size(sig1000.vel1));
     sig1000.Vn = NaN(size(sig1000.vel1));

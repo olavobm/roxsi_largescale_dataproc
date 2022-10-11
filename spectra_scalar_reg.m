@@ -1,4 +1,4 @@
-function [Sxx, freqspec, dof] = spectra_scalar_reg(xtime, x, windowfft, windowavg, timespeclims, dt_step)
+function [Sxx, timespec, freqvec, dof, avgx] = spectra_scalar_reg(xtime, x, windowfft, windowavg, timespeclims, dt_step)
 %% [Sxx, freqspec, dof] = SPECTRA_SCALAR_REG(xtime, x, windowfft, windowavg, timespeclims, dt_step)
 %
 %   inputs
@@ -11,8 +11,10 @@ function [Sxx, freqspec, dof] = spectra_scalar_reg(xtime, x, windowfft, windowav
 %
 %   outputs
 %       - Sxx:
-%       - freqspec:
-%       - dof:
+%       - timespec
+%       - freqspec
+%       - dof
+%       - avgx
 %
 %
 % SPECTRA_SCALAR_REG.m
@@ -72,15 +74,13 @@ end
 %
 timespec = timespeclims(1): dt_step : timespeclims(2);
 %
-nt = length(timespec);
+ntspec = length(timespec);
 half_t_interval = dt_step/2;
 
-
-
-%% The number of points per averaging window
-
 %
-npts_ininterval = fs*windowavg;
+time_bounds = [(timespecintervals - half_t_interval); ...
+               (timespecintervals + half_t_interval)];
+
 
 %%
 
@@ -92,6 +92,12 @@ dt = seconds(dt);
 %
 fs = 1/dt;     % sampling frequency in Hertz
 fnyq = fs/2;   % Nyquist frequency
+
+
+%% The number of points per averaging window
+
+%
+npts_ininterval = fs*windowavg;
 
 
 %%
@@ -122,12 +128,40 @@ fm = (0:(nnyq-1)) * df;
 
 %%
 
+% % %
+% % statsout.dtime = timespecintervals;
+% % statsout.frequency = fm;
+% % %
+% % statsout.avgpres = NaN(1, length(timespecintervals));
+% % statsout.presSpec = NaN(length(fm), length(timespecintervals));
+
 %
-statsout.dtime = timespecintervals;
-statsout.frequency = fm;
+freqvec = fm;
+
 %
-statsout.avgpres = NaN(1, length(timespecintervals));
-statsout.presSpec = NaN(length(fm), length(timespecintervals));
+Sxx = NaN(length(fm), ntspec);
+dof = NaN(1, ntspec);
+avgx = NaN(1, ntspec);
+
+
+%%
+
+%
+ind_start_data = find(~isnan(pressuredata), 1, 'first');
+ind_end_data = find(~isnan(pressuredata), 1, 'last');
+
+
+%%
+
+
+%
+ind_first_wholeinterval = find(time_bounds(1, :) >= timevec(ind_start_data), 1, 'first');
+%
+ind_last_wholeinterval = find(time_bounds(2, :) < timevec(ind_end_data), 1, 'last');
+
+%
+ind_data_start_firstinterval = find(timevec==time_bounds(1, ind_first_wholeinterval));
+ind_data_end_lastinterval = find(timevec==time_bounds(2, ind_last_wholeinterval));
 
 
 %%
@@ -137,24 +171,9 @@ return
 
 
 
-    %
-    time_bounds = [(timespecintervals - half_t_interval); ...
-                   (timespecintervals + half_t_interval)];
-
-    %
-    ind_start_data = find(~isnan(pressuredata), 1, 'first');
-%     ind_end_data = find(~isnan(pressuredata), 1, 'last');
-    ind_end_data = find(~isnan(pressuredata), 1, 'last');
 
 
-    %
-    ind_first_wholeinterval = find(time_bounds(1, :) >= timevec(ind_start_data), 1, 'first');
-    %
-    ind_last_wholeinterval = find(time_bounds(2, :) < timevec(ind_end_data), 1, 'last');
 
-    %
-    ind_data_start_firstinterval = find(timevec==time_bounds(1, ind_first_wholeinterval));
-    ind_data_end_lastinterval = find(timevec==time_bounds(2, ind_last_wholeinterval));
 
     % This MUST/SHOULD be an integer
     nt_intervals = length(ind_data_start_firstinterval : (ind_data_end_lastinterval-1)) / npts_ininterval;

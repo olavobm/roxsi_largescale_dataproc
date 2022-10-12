@@ -165,7 +165,8 @@ extraTrim = extraTrim.removeBadData;
 %% Load atmospheric pressure
 
 %
-atmpres_NOAA = load(dir_rawdata_parent, 'noaa_mry_barometric_pressure', 'atm_pressure.mat');
+atmpres_NOAA = load(fullfile(dir_rawdata_parent, ...
+                             'noaa_mry_barometric_pressure', 'atm_pressure.mat'));
 
 
 %% Datenum limits of the full deployment (from before the first

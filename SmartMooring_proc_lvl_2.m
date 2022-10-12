@@ -56,6 +56,18 @@ list_smartmoorings = {'E02_1859'};
 Nspotsmart = length(list_smartmoorings);
 
 
+%% Initialize a log file with what is printed to the
+% command window and timer for running the whole script
+
+%
+log_file_name = ['log_SmartMooring_procL2_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
+%
+diary(fullfile(dir_output_data_L2, log_file_name))
+
+%
+totalRunTime = tic;
+    
+
 %%
 
 %
@@ -135,17 +147,6 @@ for i1 = 1:Nspotsmart
     % -----------------------------------------------------------------
     % -----------------------------------------------------------------
     % -----------------------------------------------------------------
-    
-    %% Initialize a log file with what is printed to the
-    % command window and timer for running the whole script
-    
-    %
-    log_file_name = ['log_SmartMooring_procL2_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
-    %
-    diary(fullfile(dir_output_data_L2, log_file_name))
-    
-    %
-    totalRunTime = tic;
     
     
     %% Computes pressure spectra

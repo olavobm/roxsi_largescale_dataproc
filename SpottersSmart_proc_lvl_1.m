@@ -21,28 +21,40 @@ close all
 
 
 %%
-% --------------------------------------
-% --------- PRELIMINARY STUFF ----------
-% --------------------------------------
+% ---------------------------------------------------
+% --------------------- PREAMBLE --------------------
+% ---------------------------------------------------
 
 %%
 
 %
-dir_rawdata_parent = fullfile(data_dirpath(), 'RAW', 'Spotters_Smart', 'SDcards');
+% % dir_rawdata_parent = fullfile(data_dirpath(), 'RAW', 'Spotters_Smart', 'SDcards');
+dir_rawdata_parent = '/project/CSIDE/ROXSI/LargeScale_Data_2022/RAW/Spotters_Smart/SDcards';
 
 
 %%
 
-%
-dir_output_data_L1 = fullfile(data_dirpath(), 'Level1_Data', 'Spotters_Smart_Level1');
-dir_output_figs_L1 = fullfile(data_dirpath(), 'Level1_Data', 'Spotters_Smart_Level1', 'qc_plots');
+% % repo_dirpath()
+% % %
+% % dir_output_data_L1 = fullfile(data_dirpath(), 'Level1_Data', 'Spotters_Smart_Level1');
+% % dir_output_figs_L1 = fullfile(data_dirpath(), 'Level1_Data', 'Spotters_Smart_Level1', 'qc_plots');
 %
 % dir_output_data_L1 = '/Volumes/OBM-HD/docs/researchPostdoc/datasets/ROXSI/fieldworks/experiment_2022/Aquadopp/';
 % dir_output_figs_L1 = fullfile(dir_output_data_L1, 'qc_p lots');
 
+%
+dir_output_data_L1 = pwd;
+dir_output_figs_L1 = dir_output_data_L1;
+
 % Logical switches to save or not save data and figures
 lsave_file = false;
 lsave_fig = false;
+
+
+%%
+% ---------------------------------------------------
+% ---- SELECT INSTRUMENTS THAT WILL BE PROCESSED ----
+% ---------------------------------------------------
 
 
 %% List of Spotters/Smart moorings that will be processed
@@ -88,18 +100,6 @@ list_SmartMoorings = {'E02_spot1859'};
 Nspotters = length(list_SmartMoorings);
 
 
-%% Display on the screen:
-
-% Skip a few lines for clarity
-disp(' ')
-disp(' ')
-disp(' ')
-% Print message
-disp(['Processing ' num2str(Nspotters) ' Smart Mooring(s) from RAW to level 1. ' ...
-      'Processing Aquadopps:'])
-
-list_SmartMoorings
-
 
 %%
 % ----------------------------------------------------------------
@@ -107,6 +107,29 @@ list_SmartMoorings
 % ---------------------- DO DATA PROCESSING ----------------------
 % ----------------------------------------------------------------
 % ----------------------------------------------------------------
+
+%% Initialize a log file with what is printed to the
+% command window and timer for running the whole script
+
+%
+log_file_name = ['log_SmartMooring_procL1_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
+%
+diary(fullfile(dir_output_data_L1, log_file_name))
+
+%
+totalRunTime = tic;
+    
+
+%% Display on the screen
+
+%
+disp(' '), disp(' ')
+disp('------------------------------ Processing Smart Mooring data from RAW to L1 ------------------------------')
+disp('List of Smart Moorings being processed:')
+%
+for i = 1:Nspotters
+    disp([num2str(i) ' - ' list_SmartMoorings{i}])
+end
 
 
 %% Load mooring locations
@@ -161,10 +184,9 @@ for i1 = 1:length(list_SmartMoorings)
 
     % ------------------------------------------
     % Load raw data
-    disp(' ')
-    disp(' ')
+    disp(' '), disp(' ')
     %
-    disp(['-------------- Starting level 1 data processing of smart mooring ' list_SmartMoorings{i1}(1:3) ' - SN ' list_SmartMoorings{i1}(end-3:end) ' --------------'])
+    disp(['-------------- Doing data processing for smart mooring ' list_SmartMoorings{i1}(1:3) ' - SN ' list_SmartMoorings{i1}(end-3:end) ' --------------'])
     %
     disp('---- Reading data ---- ')
 
@@ -281,7 +303,9 @@ for i1 = 1:length(list_SmartMoorings)
                list_SmartMoorings{i1}(end-3:end) ': unique ' ...
                '(short) time differences'], 'Interpreter', 'Latex', 'FontSize', 16)
 
-    keyboard
+    %
+    disp(['-------------- Done with basic QC on RAW data from smart mooring ' list_SmartMoorings{i1}(1:3) ' - SN ' list_SmartMoorings{i1}(end-3:end) ' --------------'])
+    
     %%
     % ----------------------------------------------------------
     % --------------- DO LEVEL 1 DATA PROCESSING ---------------
@@ -298,7 +322,7 @@ for i1 = 1:length(list_SmartMoorings)
     spotterSmartdata.pressure = raw_readdata.allfiles.pressure(l_gooddata);
     %
     spotterSmartdata.unixEpoch = raw_readdata.allfiles.unixEpoch(l_gooddata);
-keyboard
+
     % ------------------------------------------
     % *****
     % AT LEAST IN 2022, THE SMART MOORINGS
@@ -1042,7 +1066,7 @@ keyboard
 
     %%
     % ----------------------------------------------------------
-    % ------- ORGANIZE LEVEL 1 DATA STRUCTURE AND SAVE IT ------
+    % ------------ ORGANIZE LEVEL 1 DATA STRUCTURE -------------
     % ----------------------------------------------------------
 
     %
@@ -1105,12 +1129,25 @@ keyboard
                         'from Spotter coordinates over the whole deployment. ' ...
                         'zhab is the the height in meters of the pressure sensor above the bottom.'];
 
+
+    %% Save data and figures
+
+    % ------------------------------------------
+    % Save Level 1 data
     %
     disp('---- Saving smart mooring level 1 data ---- ')
+    %
+    save(fullfile(dir_output_data_L1, ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1_notgridded.mat']), 'spotsmart');
 
-    % Save Level 1 data
-    save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1.mat']), 'spotsmart');
 
+    % ------------------------------------------
+    % Save QC figure
+    %
+% % %     disp('---- Saving smart mooring level 1 data ---- ')
+    %
+% % %     save(fullfile(dir_output_data_L1, ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1.mat']), 'spotsmart');
+
+    % ------------------------------------------
     %
     disp(['-------------- Done with level 1 data processing of smart mooring ' spotsmart.mooringID ' - SN ' spotsmart.SN ' --------------'])
 
@@ -1153,81 +1190,92 @@ figure
     title([list_SmartMoorings{1}(1:3) ' - SN ' list_SmartMoorings{1}(end-3:end)], 'FontSize', 22)
 
 
+% % % %%
+% % % 
+% % % % % %
+% % % % % inds_lim_procdata = [2492600, 2492700];
+% % % % % % inds_lim_procdata = inds_lim_procdata + 1e6;
+% % % 
+% % % % For E08
+% % % inds_lim_procdata = [2372700, 2372790];
+% % % 
+% % % %
+% % % inds_segment_procdata = inds_lim_procdata(1):inds_lim_procdata(2);
+% % % 
+% % % % Get corresponding time limits
+% % % time_lims = datenum(spotsmart.dtime(inds_lim_procdata));
+% % % 
+% % % % Now find the corresponding indices in the "unprocessed" data
+% % % time_uncorrected = 719529 + (spotterSmartdata.unixEpoch./86400) - (7/24);
+% % % 
+% % % % Do this in a way that I don't think will fail 
+% % % % even with potential weird stuff in the clock
+% % % inds_lim_uncorrectedtime = [find( (time_uncorrected > (time_lims(1) - 3/(24*3600))) & (time_uncorrected < (time_lims(1) + 3/(24*3600))), 1, 'first'), ...
+% % %                             find( (time_uncorrected > (time_lims(2) - 3/(24*3600))) & (time_uncorrected < (time_lims(2) + 3/(24*3600))), 1, 'last')];
+% % % 
+% % % inds_segment_uncorrectedtime = inds_lim_uncorrectedtime(1):inds_lim_uncorrectedtime(2);
+% % % 
+% % % 
+% % % %
+% % % figure
+% % %     %
+% % %     set(gcf, 'Units', 'normalized')
+% % %     set(gcf, 'Position', [0.47, 0.23, 0.19, 0.51])
+% % %     %
+% % %     haxs_1 = axes('Position', [0.1, 0.6, 0.8, 0.3]);
+% % %     haxs_2 = axes('Position', [0.1, 0.2, 0.8, 0.3]);
+% % % 
+% % % 
+% % %     %
+% % %     plot(haxs_1, 0.5 + inds_segment_uncorrectedtime(1:end-1), 24*3600*diff(time_uncorrected(inds_segment_uncorrectedtime)), '.-')
+% % %     plot(haxs_2, 0.5 + inds_segment_procdata(1:end-1), 24*3600*diff(datenum(spotsmart.dtime(inds_segment_procdata))), '.-')
+% % %     
+% % %   
+% % % % %     %
+% % % % %     plot(haxs_1, datetime(time_uncorrected(inds_segment_uncorrectedtime(1:end-1)), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles'), ...
+% % % % %                  24*3600*diff(time_uncorrected(inds_segment_uncorrectedtime)), '.-')
+% % % % %     
+% % % % %     %
+% % % % %     plot(haxs_2, spotsmart.dtime(inds_segment_procdata(1:end-1)), ...
+% % % % %                  24*3600*diff(datenum(spotsmart.dtime(inds_segment_procdata))), '.-')
+% % % 
+% % % 
+% % % %
+% % % set([haxs_1, haxs_2], 'FontSize', 16, 'Box', 'on', 'XGrid', 'on', 'YGrid', 'on')
+% % % %
+% % % axis(haxs_1, 'tight')
+% % % axis(haxs_2, 'tight')
+% % % % % axis(haxs_3, 'tight')
+% % % 
+% % % %
+% % % linkallaxes('xy')
+% % % 
+% % % 
+% % % 
+% % % 
+% % % %%
+% % % 
+% % % figure
+% % %     hold on
+% % %     %
+% % %     plot(spotsmart.dtime, spotsmart.pressure, '.-')
+% % %     plot(datetime(719529 + (spotterSmartdata.unixEpoch./86400) - (7/24), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles'), ...
+% % %          spotterSmartdata.pressure, '.-')
+
+
+
 %%
-
-return
-
-%%
-
-% % %
-% % inds_lim_procdata = [2492600, 2492700];
-% % % inds_lim_procdata = inds_lim_procdata + 1e6;
-
-% For E08
-inds_lim_procdata = [2372700, 2372790];
+%
+disp('###################### Done with L1 data processing for all Smart Moorings ######################')
 
 %
-inds_segment_procdata = inds_lim_procdata(1):inds_lim_procdata(2);
-
-% Get corresponding time limits
-time_lims = datenum(spotsmart.dtime(inds_lim_procdata));
-
-% Now find the corresponding indices in the "unprocessed" data
-time_uncorrected = 719529 + (spotterSmartdata.unixEpoch./86400) - (7/24);
-
-% Do this in a way that I don't think will fail 
-% even with potential weird stuff in the clock
-inds_lim_uncorrectedtime = [find( (time_uncorrected > (time_lims(1) - 3/(24*3600))) & (time_uncorrected < (time_lims(1) + 3/(24*3600))), 1, 'first'), ...
-                            find( (time_uncorrected > (time_lims(2) - 3/(24*3600))) & (time_uncorrected < (time_lims(2) + 3/(24*3600))), 1, 'last')];
-
-inds_segment_uncorrectedtime = inds_lim_uncorrectedtime(1):inds_lim_uncorrectedtime(2);
-
-
+disp(' '), disp(' ')
+disp('*** The total time to run the data processing was:')
 %
-figure
-    %
-    set(gcf, 'Units', 'normalized')
-    set(gcf, 'Position', [0.47, 0.23, 0.19, 0.51])
-    %
-    haxs_1 = axes('Position', [0.1, 0.6, 0.8, 0.3]);
-    haxs_2 = axes('Position', [0.1, 0.2, 0.8, 0.3]);
+toc(totalRunTime)
 
-
-    %
-    plot(haxs_1, 0.5 + inds_segment_uncorrectedtime(1:end-1), 24*3600*diff(time_uncorrected(inds_segment_uncorrectedtime)), '.-')
-    plot(haxs_2, 0.5 + inds_segment_procdata(1:end-1), 24*3600*diff(datenum(spotsmart.dtime(inds_segment_procdata))), '.-')
-    
-  
-% %     %
-% %     plot(haxs_1, datetime(time_uncorrected(inds_segment_uncorrectedtime(1:end-1)), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles'), ...
-% %                  24*3600*diff(time_uncorrected(inds_segment_uncorrectedtime)), '.-')
-% %     
-% %     %
-% %     plot(haxs_2, spotsmart.dtime(inds_segment_procdata(1:end-1)), ...
-% %                  24*3600*diff(datenum(spotsmart.dtime(inds_segment_procdata))), '.-')
-
-
-%
-set([haxs_1, haxs_2], 'FontSize', 16, 'Box', 'on', 'XGrid', 'on', 'YGrid', 'on')
-%
-axis(haxs_1, 'tight')
-axis(haxs_2, 'tight')
-% % axis(haxs_3, 'tight')
-
-%
-linkallaxes('xy')
-
-
-
-
-%%
-
-figure
-    hold on
-    %
-    plot(spotsmart.dtime, spotsmart.pressure, '.-')
-    plot(datetime(719529 + (spotterSmartdata.unixEpoch./86400) - (7/24), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles'), ...
-         spotterSmartdata.pressure, '.-')
+% Close the log file
+diary('off');
 
 
 

@@ -1004,7 +1004,10 @@ for i1 = 1:Nsignatures
     sig1000.Ue(ind_abovesurface) = NaN;
     sig1000.Vn(ind_abovesurface) = NaN;
     sig1000.Wup(ind_abovesurface) = NaN;
-    sig1000.Wbeam5(ind_abovesurface) = NaN;
+    %
+    if any(contains(list_5beams, list_Signature{i1}(1:3)))
+        sig1000.Wbeam5(ind_abovesurface) = NaN;
+    end
     
     
 

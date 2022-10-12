@@ -330,7 +330,7 @@ for i1 = 1:length(ind_all_intervals)
     % % that this upper bound would be the true dof if segments were
     % fully independent).
     % Gaps in chunks will decrease the degrees of freedom
-    dof(i1) = 2*length(mean_xdata_chunks(~isnan(mean_xdata_chunks)));
+    dof(ind_all_intervals(i1)) = 2*length(mean_xdata_chunks(~isnan(mean_xdata_chunks)));
 
 
     %% Compute power spectra

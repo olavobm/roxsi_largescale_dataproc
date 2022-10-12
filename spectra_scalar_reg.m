@@ -94,6 +94,18 @@ if ~exist('timespeclims', 'var')
     %
     timespeclims = [tstart_dnum, tend_dnum];
 
+else
+
+    %
+    if isempty(timespeclims.TimeZone)
+        %
+        timespeclims.TimeZone = xtime.TimeZone;
+    else
+        %
+        if ~isequal(timespeclims.TimeZone, xtime.TimeZone)
+            error("Timezones don't match")
+        end
+    end
 end
 
 

@@ -18,6 +18,40 @@ function L2out = SmartMooring_proc_lvl_2(spotsmartL1, dtspec)
 %
 
 
+%%
+% --------------------------------------
+% -------------- PREAMBLE --------------
+% --------------------------------------
+
+%%
+
+% % roxsi_add_libraries()
+
+%% Directory where data will be loaded from
+
+%
+% % dirparent_data = data_dirpath();
+dirparent_data = '/project/CSIDE/ROXSI/LargeScale_Data_2022/';
+%
+dir_rawdata_parent = fullfile(dirparent_data, 'RAW', 'Spotters_Smart');
+
+
+%% Directory where output will be saved
+
+%
+% % dir_output_parent = data_dirpath();
+dir_output_parent = pwd;
+%
+dir_output_data_L2 = dir_output_parent;
+
+
+%%
+% -----------------------------------------------------------------
+% -----------------------------------------------------------------
+% -----------------------------------------------------------------
+
+
+
 %% Copy some metadata from L1 to L2
 
 %
@@ -65,6 +99,16 @@ freq_bands.SS = [0.045, 0.3];
 % -----------------------------------------------------------------
 % -----------------------------------------------------------------
 
+%% Initialize a log file with what is printed to the
+% command window and timer for running the whole script
+
+%
+log_file_name = ['log_SmartMooring_procL2_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
+%
+diary(fullfile(dir_output_data_L2, log_file_name))
+
+%
+totalRunTime = tic;
 
 
 %% Computes pressure spectra
@@ -339,6 +383,44 @@ L2out.README = ['ROXSI Level 2 Smart Mooring data. Serial number ' ...
                 time_dataproc.TimeZone ').'];
 
 
+%% Save L2 data and QC figure
+
+    % ---------------------------------------------
+    %
+    disp('----- Saving level 2 data -----')
+
+    %
+    str_filename = ['roxsi_smartmooring_L2_' char(L2out.mooringID) '_' char(L2out.SN)];
+    %
+    save(fullfile(dir_output_data_L2, [str_filename '.mat']), 'sig1000', '-v7.3')
+
+    %
+    disp('----- Done saving data -----')
+
+
+    % ---------------------------------------------
+    %
+    disp('----- Saving level 2 QC plot -----')
+
+    %
+    str_filename = ['roxsi_smartmooring_L2_' char(L2out.mooringID) '_' char(L2out.SN) '_QC_fig'];
+    % Save figure as *.png
+    exportgraphics(fig_QC, fullfile(dir_output_data_L2, [str_filename '.png']), 'Resolution', 300)
+
+
+
+%%
+%
+disp('###################### Done with L2 data processing for all Smart Moorings ######################')
+
+%
+disp(' '), disp(' ')
+disp('*** The total time to run the data processing was:')
+%
+toc(totalRunTime)
+
+% Close the log file
+diary('off');
 
 
 

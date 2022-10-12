@@ -9,13 +9,14 @@ close all
 %% Data directory
 
 %
-dir_data_L1 = '/Users/olavobm/Documents/ROXSI_Postdoc/MyResearch/ROXSI/Common_Code/LargeScale_Data_2022/code_proc';
+% dir_data_L1 = '/Users/olavobm/Documents/ROXSI_Postdoc/MyResearch/ROXSI/Common_Code/LargeScale_Data_2022/code_proc';
+dir_data_L1 = pwd;
 
 
 %% Get all L1 file names in folder
 
 %
-dir_all_L1 = dir(fullfile(dir_data_L1, '*_L1.mat'));
+dir_all_L1 = dir(fullfile(dir_data_L1, '*_L1_notgridded.mat'));
 %
 list_files = cell(1, length(dir_all_L1));
 
@@ -236,6 +237,19 @@ for i = 1:length(list_fields)
     %
     spotsmart.pressure = smartMoorlvl1.(list_fields{i}).pressureinterp;
     
+    % Turn all vectors into column vectors (so
+    % that Matlab displays structure variable quickly)
+    list_somefields = fieldnames(spotsmart);
+    %
+    for i2 = 1:length(list_somefields)
+        %
+        if isvector(spotsmart.(list_somefields{i2})) && ...
+           ~isstruct(spotsmart.(list_somefields{i2})) && ...
+           ~ischar(spotsmart.(list_somefields{i2}))
+            %
+            spotsmart.(list_somefields{i2}) = spotsmart.(list_somefields{i2})(:);
+        end
+    end
 
     %
     time_dataproc = datestr(datetime('now', 'TimeZone', 'America/Los_Angeles'), 'yyyy/mm/dd HH:MM:SS');

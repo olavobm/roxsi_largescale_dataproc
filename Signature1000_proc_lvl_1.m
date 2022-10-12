@@ -918,7 +918,6 @@ for i1 = 1:Nsignatures
     % If the i1'th Signature is in the 5-beam list
     if any(contains(list_5beams, list_Signature{i1}(1:3)))
         % Compute velocity using 5 beams
-
         %
         disp('Using 5 beams')
 
@@ -947,13 +946,24 @@ for i1 = 1:Nsignatures
     % 
     else
         % Or use 4 beams instead
-
         %
         disp('Using 4 beams')
 
         %
-        [u, v, w] = janus2earth(head, ptch, roll, theta, b1, b2, b3, b4);
+        for i2 = 1:size(indbreak_rot, 2)
 
+            %
+            ind_sub_aux = indbreak_rot(1, i2) : indbreak_rot(2, i2);
+            %
+            [sig1000.Ue(:, ind_sub_aux), ...
+             sig1000.Vn(:, ind_sub_aux), ...
+             sig1000.Wup(:, ind_sub_aux)] = ...
+                        janus2earth(sig1000.heading(ind_sub_aux).' - 90, ...
+                                    sig1000.roll(ind_sub_aux).', -sig1000.pitch(ind_sub_aux).', ...
+                                    25, ...
+                                    -sig1000.vel1(:, ind_sub_aux), -sig1000.vel3(:, ind_sub_aux), ...
+                                    -sig1000.vel4(:, ind_sub_aux), -sig1000.vel2(:, ind_sub_aux));
+        end
     end
 
     %

@@ -29,7 +29,9 @@ close all
 
 %
 % % dir_rawdata_parent = fullfile(data_dirpath(), 'RAW', 'Spotters_Smart', 'SDcards');
-dir_rawdata_parent = '/project/CSIDE/ROXSI/LargeScale_Data_2022/RAW/Spotters_Smart/SDcards';
+dir_rawdata_parent = '/project/CSIDE/ROXSI/LargeScale_Data_2022/RAW/';
+%
+dir_rawsmartmooring = fullfile(dir_rawdata_parent, 'Spotters_Smart', 'SDcards');
 
 
 %%
@@ -163,8 +165,7 @@ extraTrim = extraTrim.removeBadData;
 %% Load atmospheric pressure
 
 %
-% % atmpres_NOAA = load(fullfile(data_dirpath(), 'noaa_mry_barometric_pressure', 'atm_pressure.mat'));
-atmpres_NOAA = load('atm_pressure.mat');
+atmpres_NOAA = load(dir_rawdata_parent, 'noaa_mry_barometric_pressure', 'atm_pressure.mat');
 
 
 %% Datenum limits of the full deployment (from before the first
@@ -191,7 +192,7 @@ for i1 = 1:length(list_SmartMoorings)
     disp('---- Reading data ---- ')
 
     %
-    raw_readdata = Spotter_readmulti_SMD(fullfile(dir_rawdata_parent, list_SmartMoorings{i1}));
+    raw_readdata = Spotter_readmulti_SMD(fullfile(dir_rawsmartmooring, list_SmartMoorings{i1}));
 
     %
     disp('---- Done with reading data ---- ')

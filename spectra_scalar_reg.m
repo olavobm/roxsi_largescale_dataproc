@@ -22,27 +22,33 @@ function [Sxx, timespec, freqvec, dof, avgx] = spectra_scalar_reg(xtime, xdata, 
 %
 %
 % SPECTRA_SCALAR_REG.m computes spectra from timeseries xdata. One spectrum
-% is computed for each averaging window windowavg. The resulting spectra
+% is computed for each averaging window windowavg and the resulting spectra
 % are given by the columns of Sxx. The frequencies (row-dimension of Sxx)
 % are given by output freqvec. The times associated with each column of
 % column of Sxx are given by output timespec. The data for each spectrum
-% in Sxx is ceneterd at timespec (i.e. 50% of windowavg is taken to the
+% in Sxx is centered at timespec (i.e. 50% of windowavg is taken to the
 % left and to right of timespec).
 %
 % Within each averaging window, the timeseries is split in chunks with
 % length windowfft. This function can handle either no overlap or 50%
-% overlap of these chunks. The averaged spectrum from all of these chunks
+% overlap between these chunks. The averaged spectrum from all of these chunks
 % is computed by ignoring chunks with any gaps. The spectra computed from
 % gappy data have smaller degrees of freedom (given in output dof).
 %
 % Spectra are computed between time limits given by timespeclims. If this
 % is not given in the input, the function neglects a bit of the edges,
 % but uses all the rest of the data. If timespeclims are beyond the times
-% when there is data, then the corresponding edge columns of Sxx will be
+% when there are data, then the corresponding edge columns of Sxx will be
 % NaNs. The default time stepping is calculated from windowavg to use all
 % of the data, but this can be given as input dt_step (though I need to
-% test the function in this case!!!)
+% test the function in this case!!!).
 %
+% The idea behind SPECTRA_SCALAR_REG.m is to compute spectra for a
+% regular (_reg / normal / time-gridded) timeseries. Therefore, xtime
+% must be a vector with constant grid step (dt). This idea is also 
+% associated with having input timespeclims instead of a vector of
+% times for when spectra should be computed. Therefore, this code
+% is able to select data and compute fft's in an efficient way.
 %
 % Olavo Badaro Marques, Oct/2022.
 

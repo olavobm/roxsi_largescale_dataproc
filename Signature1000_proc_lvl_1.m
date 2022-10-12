@@ -674,7 +674,7 @@ for i1 = 1:Nsignatures
             end
             
             %
-            disp(['--- Done loading from file ' num2str(i3) ' out of ' num2str(Nfilesperseg) ' ---'])
+            disp(['--- Done loading data from file ' num2str(i3) ' out of ' num2str(Nfilesperseg) ' ---'])
         end
 
         % ------------------------------------------------

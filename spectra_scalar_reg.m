@@ -2,28 +2,54 @@ function [Sxx, timespec, freqvec, dof, avgx] = spectra_scalar_reg(xtime, xdata, 
 %% [Sxx, timespec, freqvec, dof, avgx] = SPECTRA_SCALAR_REG(xtime, xdata, windowfft, windowavg, timespeclims, dt_step)
 %
 %   inputs
-%       - xtime:
-%       - xdata:
-%       - windowfft: in seconds
-%       - windowavg: in seconds
-%       - timespeclims (optional):
+%       - xtime: time grid (in date time format) of the data xdata.
+%       - xdata: a vector with data to compute spectra.
+%       - windowfft: time window (in seconds) to compute fft.
+%       - windowavg: time window (in seconds) for averaging individual
+%                    spectra (MUST BE MULTIPLE OF windowfft).
+%       - timespeclims (optional): datetime limits.
 %       - dt_step (optional):
 %
 %   outputs
-%       - Sxx:
-%       - timespec
-%       - freqspec
-%       - dof
-%       - avgx
+%       - Sxx: spectra of xdata. A matrix where row-dimension if frequency
+%              and comlumn-dimension is time.
+%       - timespec: time (datetime) vector with same number
+%                   of columns as Sxx.
+%       - freqspec: frequency vector (in Hz) with same number
+%                   of rows as Sxx.
+%       - dof: vector with degrees of freedom for each spectrum in Sxx.
+%       - avgx: average of xdata within each window windowavg.
 %
 %
-% SPECTRA_SCALAR_REG.m
+% SPECTRA_SCALAR_REG.m computes spectra from timeseries xdata. One spectrum
+% is computed for each averaging window windowavg. The resulting spectra
+% are given by the columns of Sxx. The frequencies (row-dimension of Sxx)
+% are given by output freqvec. The times associated with each column of
+% column of Sxx are given by output timespec. The data for each spectrum
+% in Sxx is ceneterd at timespec (i.e. 50% of windowavg is taken to the
+% left and to right of timespec).
+%
+% Within each averaging window, the timeseries is split in chunks with
+% length windowfft. This function can handle either no overlap or 50%
+% overlap of these chunks. The averaged spectrum from all of these chunks
+% is computed by ignoring chunks with any gaps. The spectra computed from
+% gappy data have smaller degrees of freedom (given in output dof).
+%
+% Spectra are computed between time limits given by timespeclims. If this
+% is not given in the input, the function neglects a bit of the edges,
+% but uses all the rest of the data. If timespeclims are beyond the times
+% when there is data, then the corresponding edge columns of Sxx will be
+% NaNs. The default time stepping is calculated from windowavg to use all
+% of the data, but this can be given as input dt_step (though I need to
+% test the function in this case!!!)
 %
 %
+% Olavo Badaro Marques, Oct/2022.
+
 
 %%
 % ------------------------------------------------------------------
-% ------------------------------------------------------------------
+% ---------------------------- PREAMBLE ----------------------------
 % ------------------------------------------------------------------
 
 %% Check inputs
@@ -42,8 +68,8 @@ end
 
 %
 if ~exist('fracoverlap', 'var')
-% %     fracoverlap = 0;
-    fracoverlap = 0.5;    % EITHER 0 OR 0.5. NO OTHER OPTION IMPLEMENTED
+    fracoverlap = 0;
+%     fracoverlap = 0.5;    % EITHER 0 OR 0.5. NO OTHER OPTION IMPLEMENTED
 end
 
 %
@@ -73,7 +99,7 @@ window_handle = @hann;
 
 %%
 % ------------------------------------------------------------------
-% ------------------------------------------------------------------
+% ----------- DEFINE BASIC PARAMETERS OF THE CALCULATION -----------
 % ------------------------------------------------------------------
 
 
@@ -133,7 +159,8 @@ fm = (0:(nnyq-1)) * df;
 
 %%
 % ------------------------------------------------------------------
-% ------------------------------------------------------------------
+% --------- DEFINE VARIABLES TO TAKE CARE OF SPLITTING THE ---------
+% ------ DATA IN CHUNKS (INCLUDING THE OVERLAP) TO COMPUT FFT ------
 % ------------------------------------------------------------------
 
 
@@ -256,7 +283,7 @@ indcols(:, 2) = inds_cumsum;
 
 %%
 % ------------------------------------------------------------------
-% ------------------------------------------------------------------
+% ---------------------- NOW COMPUTE SPECTRA -----------------------
 % ------------------------------------------------------------------
 
 %%
@@ -319,7 +346,8 @@ for i1 = 1:length(ind_all_intervals)
 
     % Compute variance of the full interval (to compute the  
     % normalization factor so that the average spectrum has
-    % the same variance as the full interval)
+    % the same variance as the full interval) [not exactly right when
+    % there are gaps, but shouldn't be a problem]
     var_data_aux = var(xdata_forfft_chunks(:), 'omitnan');
 
     % Apply window
@@ -348,7 +376,7 @@ for i1 = 1:length(ind_all_intervals)
 
     % Factor of two to account for negative frequencies
     % don't include the last one because there is no
-    % negative frequency counterpart for even nfft) -- IT'S THE OPPOSITE!!!!!
+    % negative frequency counterpart for even nfft) -- CHECK WHETHER IT'S THE OPPOSITE!!!!!
     x_all_Spec(2:end-1) = 2*x_all_Spec(2:end-1);
 
     % Average across all chunks in the interval and ignore chunks

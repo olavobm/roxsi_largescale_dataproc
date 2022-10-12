@@ -36,9 +36,13 @@ list_Spotters = {'B03_spot1152', 'B05_spot1153', ...
                  'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
 % Just a few to test
+% % list_Spotters = {'B03_spot1152'};
 % % list_Spotters = {'B03_spot1152', 'B05_spot1153', 'E02_spot1859'};
 % % list_Spotters = {'E02_spot1859'};
-list_Spotters = {'X03_spot1157'};
+% list_Spotters = {'X03_spot1157'};
+
+% list_Spotters = {'B01_spot1150', 'B01_spot1158'};
+list_Spotters = {'B01_spot1158'};
 
 % Output directory
 dir_output_level_2 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
@@ -64,7 +68,7 @@ spotter_location = spotter_location.spotter_location;
 % % %
 % % % The trimming for Smart Moorings was defined in terms of
 % % % pressure data, which had some issues for a few
-% % % Smart Moorings. Looking at ther definition, they work
+% % % Smart Moorings. Looking at the definition, they work
 % % % well for the Spotter buoy data, except for E09-SN1850.
 % % % The end trim for this one should be 06/24-06:00:00.
 % % 
@@ -168,6 +172,11 @@ for i = 1:length(list_Spotters)
     
     %% --------- LOAD DISPLACEMENT FILE ---------
 
+    % Print message to the screen
+    disp(' ')
+    disp(' ')
+    %
+    disp(['------------------ Load Spotter data from ' list_Spotters{i} ' ------------------'])
     %
     data_buoy = load(fullfile(dir_data_level_1, [list_Spotters{i} '.mat']));
     data_buoy = data_buoy.s;
@@ -205,8 +214,38 @@ for i = 1:length(list_Spotters)
     vars2dirspectra.spotterdisp.y = data_buoy.displacement.("y (m)")(lintrim_edges);
     vars2dirspectra.spotterdisp.z = data_buoy.displacement.("z (m)")(lintrim_edges);
 
-    
     %%
+    %
+% %     %
+% %     figure
+% %         plot(vars2dirspectra.spotterdisp.dtime(1:end-1), ...
+% %              diff(vars2dirspectra.spotterdisp.dtime), '.-')
+% %     %
+% %     grid on
+% %     set(gca, 'FontSize', 16)
+% %     lims_dates = [datetime(2022, 06, 15), datetime(2022, 07, 23)];
+% %     lims_dates.TimeZone = 'America/Los_Angeles';
+% %     xlim(lims_dates)
+% %     %
+% %     title([list_Spotters{i}(1:3) ' SN:' list_Spotters{i}(end-3:end)], 'FontSize', 16)
+
+    figure
+        plot(vars2dirspectra.spotterloc.dtime(1:end-1), ...
+             diff(vars2dirspectra.spotterloc.dtime), '.-')
+        %
+        grid on
+        set(gca, 'FontSize', 16)
+        lims_dates = [datetime(2022, 06, 15), datetime(2022, 07, 23)];
+        lims_dates.TimeZone = 'America/Los_Angeles';
+        xlim(lims_dates)
+        %
+        title([list_Spotters{i}(1:3) ' SN:' list_Spotters{i}(end-3:end)], 'FontSize', 16)
+
+
+% %     keyboard
+    continue
+    
+    %% Select the analysis periods
 
     % pull out an analysis period of data
     % ind is the index of the start of the first full hour
@@ -219,7 +258,7 @@ for i = 1:length(list_Spotters)
     analysis_periods = length(dtime); % this is the number of analysis period in the data
 
 
-    %%
+    %% Do the calculation
 
     % preallocate for speed
     S_f_theta_temp = NaN(length(f), Nt, analysis_periods, length(dspec_method));
@@ -233,15 +272,15 @@ for i = 1:length(list_Spotters)
     disp(' ')
     disp(' ')
     %
-    disp(['------------------ Computing directional spectrum ' ...
-          'for Spotter ' list_Spotters{i} ' ------------------'])
+    disp(['--------- Computing directional spectrum ' ...
+          'for Spotter ' list_Spotters{i} ' ---------'])
     %
-    disp(['----- The total number of analysis ' ...
-          'periods is: ' num2str(analysis_periods) ' -----'])
+    disp(['The total number of analysis ' ...
+          'periods is: ' num2str(analysis_periods)])
     
     % Loop over analysis periods
     tic
-    for sample = 1:(analysis_periods - 1)    % - 1 until I check what could be a minor bug/feature in the demo script
+    for sample = 1:(analysis_periods)    % - 1 until I check what could be a minor bug/feature in the demo script
         
         %
         data_index = ind_start + (sample -1) *N : ...
@@ -256,8 +295,8 @@ for i = 1:length(list_Spotters)
         good = vars2dirspectra.spotterloc.dtime >= dtime_sample(1) & ...
                vars2dirspectra.spotterloc.dtime <= dtime_sample(end);
         %
-        lat(sample) = mean(vars2dirspectra.spotterloc.latitude(good),'omitnan');
-        lon(sample) = mean(vars2dirspectra.spotterloc.longitude(good),'omitnan');
+        lat(sample) = mean(vars2dirspectra.spotterloc.latitude(good), 'omitnan');
+        lon(sample) = mean(vars2dirspectra.spotterloc.longitude(good), 'omitnan');
         depth(sample) = mean(vars2dirspectra.spotterloc.depth(good), 'omitnan');
         h = abs(depth(sample));
     
@@ -303,7 +342,7 @@ for i = 1:length(list_Spotters)
         % ------------------------------
         
     end
-
+keyboard
     % from the wafo documentation
 %             theta  = angle vector -pi..pi of length Nt 
 %                      (theta = 0 -> + x-axis, theta = pi/2 -> + y-axis) 

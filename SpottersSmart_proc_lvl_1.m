@@ -49,9 +49,9 @@ lsave_fig = false;
 
 % All Spotters/Smart moorings
 list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
-                     'E05_spot1853', 'E07_spot1855', 'E07_spot1857', ...
-                     'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
-                     'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
+                      'E05_spot1853', 'E07_spot1855', 'E07_spot1857', ...
+                      'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
+                      'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
 % % All good Smart Moorings
 % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
@@ -1050,8 +1050,13 @@ keyboard
     %
     spotsmart.SN = list_SmartMoorings{i1}(end-3:end);
 
-    %
-    lmatch = strcmp(dplySpotters.SN, list_SmartMoorings{i1}(end-3:end));
+    % Find the deployment information
+    lmatch = strcmp(mooringtable.mooringID, ...
+                    convertCharsToStrings([list_SmartMoorings{i1}(1:3) 'sp']));
+
+% % % %     OLD AND WRONG!!!!
+% %     lmatch = strcmp(dplySpotters.SN, list_SmartMoorings{i1}(end-3:end));
+
     %
     spotsmart.latitude = mooringtable(lmatch, :).latitude;
     spotsmart.longitude = mooringtable(lmatch, :).longitude;
@@ -1071,6 +1076,20 @@ keyboard
     spotsmart.dtime_avg = datetime(timeavg_vec, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
     %
     spotsmart.pressure_avg = Pavg_vec;
+
+    % Turn all vectors into column vectors so that Matlab
+    % (display structure variable quickly)
+    list_fields_aux = fieldnames(spotsmart);
+    %
+    for i2 = 1:length(list_fields_aux)
+        %
+        if isvector(spotsmart.(list_fields_aux{i2})) && ...
+           ~isstruct(spotsmart.(list_fields_aux{i2})) && ...
+           ~ischar(spotsmart.(list_fields_aux{i2}))
+            %
+            spotsmart.(list_fields_aux{i2}) = spotsmart.(list_fields_aux{i2})(:);
+        end
+    end
 
     %
     spotsmart.time_zone = 'PDT';

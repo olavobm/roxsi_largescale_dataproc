@@ -285,7 +285,10 @@ for i1 = 1:Nspotsmart
         haxs_2 = axes('Position', [0.15, 0.15, 0.7, 0.3]);
         hold(haxs_1, 'on')
         hold(haxs_2, 'on')
-    
+        %
+        freq_plt_lims = [(df/1.5), (freq_bands.SS(2) + 10*df)];
+        pwer_plt_lims = [1e-3, 1.5];
+
             %
             pcolor(haxs_1, freqvec(ltrimspec), timespec, log10(See(ltrimspec, :)).')
             shading(haxs_1, 'flat')
@@ -299,10 +302,10 @@ for i1 = 1:Nspotsmart
             plot(haxs_2, freqvec, mean(See, 2, 'omitnan'), '-k')        
             plot(haxs_2, freqvec(ltrimspec), mean(See(ltrimspec, :), 2), '.-b')
             %
-            plot(haxs_2, freq_bands.SS(1).*[1, 1], ylim_aux, '--r')
-            plot(haxs_2, freq_bands.SS(2).*[1, 1], ylim_aux, '--r')
-            plot(haxs_2, freq_bands.IG(1).*[1, 1], ylim_aux, '--k')
-            plot(haxs_2, freq_bands.IG(2).*[1, 1], ylim_aux, '--k')
+            plot(haxs_2, freq_bands.SS(1).*[1, 1], pwer_plt_lims, '--r')
+            plot(haxs_2, freq_bands.SS(2).*[1, 1], pwer_plt_lims, '--r')
+            plot(haxs_2, freq_bands.IG(1).*[1, 1], pwer_plt_lims, '--k')
+            plot(haxs_2, freq_bands.IG(2).*[1, 1], pwer_plt_lims, '--k')
     
             %
             hcb = colorbar(haxs_1);
@@ -318,12 +321,10 @@ for i1 = 1:Nspotsmart
             set([haxs_1, haxs_2], 'XScale', 'log')
             set(haxs_2, 'XScale', 'log', 'YScale', 'log')
             %
-            freq_plt_lims = [(df/1.5), (freq_bands.SS(2) + 10*df)];
-            %
             set([haxs_1, haxs_2], 'XLim', freq_plt_lims)
             %
             set(haxs_1, 'YLim', timespec([1, end]))
-            set(haxs_2, 'YLim', [1e-3, 1.5])
+            set(haxs_2, 'YLim', pwer_plt_lims)
     
     
         %
@@ -433,7 +434,7 @@ for i1 = 1:Nspotsmart
     %
     str_filename = ['roxsi_smartmooring_L2_' char(spotsmartL2.mooringID) '_' char(spotsmartL2.SN)];
     %
-    save(fullfile(dir_output_data_L2, [str_filename '.mat']), 'sig1000', '-v7.3')
+    save(fullfile(dir_output_data_L2, [str_filename '.mat']), 'spotsmartL2', '-v7.3')
 
     %
     disp('----- Done saving data -----')

@@ -18,7 +18,8 @@ close all
 % % dirparent_data = data_dirpath();
 dirparent_data = '/project/CSIDE/ROXSI/LargeScale_Data_2022/';
 %
-dir_L1data_parent = fullfile(dirparent_data, 'Level1_Data', 'Spotters_Smart', 'gridded');
+% dir_L1data_parent = fullfile(dirparent_data, 'Level1_Data', 'Spotters_Smart', 'gridded');
+dir_L1data_parent = pwd;
 
 
 %% Directory where output will be saved
@@ -154,7 +155,7 @@ for i1 = 1:Nspotsmart
     %
     tic
     [Spp, timespec, freqvec, dof, avgpres] = ...
-                spectra_scalar_reg(spotsmart.dtime, spotsmart.pressure, ...
+                spectra_scalar_reg(spotsmartL1.dtime, spotsmartL1.pressure, ...
                                    windowfft, windowavg, timespeclims);
     toc
     

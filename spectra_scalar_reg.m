@@ -1,12 +1,13 @@
 function [Sxx, timespec, freqvec, dof, avgx] = spectra_scalar_reg(xtime, xdata, windowfft, windowavg, timespeclims, dt_step)
-%% [Sxx, freqspec, dof] = SPECTRA_SCALAR_REG(xtime, xdata, windowfft, windowavg, timespeclims, dt_step)
+%% [Sxx, timespec, freqvec, dof, avgx] = SPECTRA_SCALAR_REG(xtime, xdata, windowfft, windowavg, timespeclims, dt_step)
 %
 %   inputs
 %       - xtime:
 %       - xdata:
 %       - windowfft: in seconds
 %       - windowavg: in seconds
-%       - timespec (optional, but recommended):
+%       - timespeclims (optional):
+%       - dt_step (optional):
 %
 %   outputs
 %       - Sxx:
@@ -20,28 +21,22 @@ function [Sxx, timespec, freqvec, dof, avgx] = spectra_scalar_reg(xtime, xdata, 
 %
 %
 
+%%
+% ------------------------------------------------------------------
+% ------------------------------------------------------------------
+% ------------------------------------------------------------------
+
 %% Check inputs
 
 %
 if ~isdatetime(xtime)
     error('Time vector of the data is NOT in datetime format.')
 end
-% % %
-% % if ~isdatetime(timespec)
-% %     error('Time grid is NOT in datetime format.')
-% % end
 
-% % %
-% % if isempty(timespec.TimeZone)
-% %     timespec.TimeZone = xtime.TimeZone;
-% % else
-% %     %
-% %     if ~isequal(xtime.TimeZone, timespec.TimeZone)
-% %         error('Time zones don''t match.')
-% %     end
-% % end
+% #########################
+% check data is time-gridded!!!
+% #########################
 
-%% check data is time-gridded!!!
 
 %%
 
@@ -68,6 +63,12 @@ if ~exist('timespeclims', 'var')
     timespeclims = [tstart_dnum, tend_dnum];
 
 end
+
+
+%% Windows for fft
+
+% % window_handle = @rectwin;
+window_handle = @hann;
 
 
 %%
@@ -111,6 +112,9 @@ npts_ininterval = fs*windowavg;
 
 % Number of points per chunk
 nfft = windowfft*fs;
+
+%
+window_weights = window(window_handle, nfft);    % this is already a column vector
 
 % Only allow for even nfft (you could want otherwise
 % is sampling period is 1.5s, but that seems unlikely)
@@ -217,6 +221,9 @@ ind_all_intervals = ind_first_interval:ind_last_interval;
 
 
 %% Create indices to deal with overlap
+%
+% (the coding here only allows for 0 or 50% overlap
+% and the coding assumes 1/overlap is an interget)
 
 %
 indstart_firstchunk = 1;
@@ -241,26 +248,11 @@ inds_cumsum = cumsum(indnumberchunks);
 indcols(2:end, 1) = inds_cumsum(1:end-1)+1;
 indcols(:, 2) = inds_cumsum;
 
-
-keyboard
-
-for i = 1:length(indstart_firstchunk)
-    %
-    ind_edge_chunk_aux = indstart_firstchunk(i) : nfft : indend_lastchunk(i);
-
-    keyboard
-    if ind_edge_chunk_aux(end)==npts_ininterval
-        
-    end
-% %     %
-% %     indnumberchunks = length(indstart_firstchunk);
-% %     %
-% %     indcols = []
-end
-
 % Compute upper bound of DOF (as if the chunks were fully independent)
+% % 2*inds_cumsum(end)
 
-keyboard
+
+
 
 %%
 % ------------------------------------------------------------------
@@ -286,19 +278,20 @@ avgx = mean(xdata_perinterval, 1, 'omitnan');
 %% Finally start the calculation
 
 % Loop over averaging intervals
-for i1 = 1:length(ind_all_intervals)  % == ntspec (?)
-
+for i1 = 1:length(ind_all_intervals)
 
     %% Get the data, breaking it apart in chunks for computing fft
+    % (note that overlapping segments are concatenated at the end
+    % of matrix and not adjacent)
     
     %
     xdata_chunks = reshape(xdata_perinterval(:, i1), nfft, (npts_ininterval/nfft));
 
-    %
+    % If there is overlap, then get the other segments
     if length(indstart_firstchunk)~=1
 
         %
-% %         pres_chunks = [pres_chunks, NaN(???)]
+        xdata_chunks = [xdata_chunks, NaN(nfft, (inds_cumsum(end) - inds_cumsum(1)))];
 
         %
         for i2 = 2:length(indstart_firstchunk)
@@ -307,14 +300,10 @@ for i1 = 1:length(ind_all_intervals)  % == ntspec (?)
             inds_sub_aux = indstart_firstchunk(i2):indend_lastchunk(i2);
 
             %
-            x_chunks_overlap_aux = reshape(xdata_perinterval(inds_sub_aux, i1), nfft, (npts_ininterval/nfft));
-
-% %             %
-% % % %             pres_chunks(:, indcols(i2)) = pres_chunks_overlap_aux;
+            xdata_chunks(:, indcols(i2, 1):indcols(i2, 2)) = ...
+                        reshape(xdata_perinterval(inds_sub_aux, i1), nfft, (length(inds_sub_aux)/nfft));
         end
-
     end
-    
     
 
     %% Preliminary calculations to compute fft
@@ -328,23 +317,20 @@ for i1 = 1:length(ind_all_intervals)  % == ntspec (?)
     % Detrend each column with a 1st degree polynomial (i.e. a line)
     xdata_forfft_chunks = detrend(xdata_anomaly_chunks, 1);
 
-    % Apply window
-%     window_vec = 
-%     window_matrix = repmat(window_vec, 1, )
-    xdata_forfft_chunks = xdata_forfft_chunks .* window_matrix;
-
-% %         % Compute variance of data and detrended data
-% %         varPdetrend(i) = sum((pres_anomaly_chunks .* pres_anomaly_chunks), 1)./nfft;
-% %         varPdetrend(i) = sum((pres_forfft_chunks .* pres_forfft_chunks), 1)./nfft;
-
-
-    % Compute variance of the full interval (to compute the
+    % Compute variance of the full interval (to compute the  
     % normalization factor so that the average spectrum has
     % the same variance as the full interval)
-    var_data_aux = sum((xdata_forfft_chunks(:).^2)) ./ numel(xdata_forfft_chunks);
+    var_data_aux = var(xdata_forfft_chunks(:), 'omitnan');
 
-    %
-    dof(i1) = 2*length(~isnan(mean_xdata_chunks));
+    % Apply window
+    window_matrix = repmat(window_weights, 1, size(xdata_forfft_chunks, 2));
+    xdata_forfft_chunks = xdata_forfft_chunks .* window_matrix;
+
+    % Compute upper bound of degrees of freedom (i.e. in the sense
+    % % that this upper bound would be the true dof if segments were
+    % fully independent).
+    % Gaps in chunks will decrease the degrees of freedom
+    dof(i1) = 2*length(mean_xdata_chunks(~isnan(mean_xdata_chunks)));
 
 
     %% Compute power spectra
@@ -358,15 +344,17 @@ for i1 = 1:length(ind_all_intervals)  % == ntspec (?)
     fourier_coefs = fourier_coefs(1:nnyq, :);
 
     % Normalize by frequency resolution
-    x_all_Spec = (fourier_coefs .* conj(fourier_coefs)) ./ (nfft * df);
+    x_all_Spec = (fourier_coefs .* conj(fourier_coefs)) ./ ((nfft^2) * df);
 
     % Factor of two to account for negative frequencies
     % don't include the last one because there is no
-    % negative frequency counterpart for even nfft)
+    % negative frequency counterpart for even nfft) -- IT'S THE OPPOSITE!!!!!
     x_all_Spec(2:end-1) = 2*x_all_Spec(2:end-1);
 
-    % Average across all chunks in the interval
-    x_avg_Spec = mean(x_all_Spec, 2);
+    % Average across all chunks in the interval and ignore chunks
+    % with gaps (look at output dof to see which intervals are
+    % complete or have gaps)
+    x_avg_Spec = mean(x_all_Spec, 2, 'omitnan');
 
     % Normalize spectrum to maintain variance of
     % the data before it was detrended (doesn't
@@ -374,7 +362,7 @@ for i1 = 1:length(ind_all_intervals)  % == ntspec (?)
     % after detrending).
     var_Spec_tmp = sum(x_avg_Spec(2:end))*df;
 
-    % Renormalization factor
+    % Renormalization factor due to windowing
     factor_renormalize = var_data_aux/var_Spec_tmp;
 
     % Renormalize average spectrum
@@ -384,15 +372,12 @@ for i1 = 1:length(ind_all_intervals)  % == ntspec (?)
 % %         % Check Parseval's theorem
 % %         [var_data_aux,   (sum(x_avg_Spec_renormalized(2:end)).*df)]
 
+    
     %%
 
     % Assign to output
-    Sxx(:, ind_all_intervals(i2)) = x_avg_Spec_renormalized;
+    Sxx(:, ind_all_intervals(i1)) = x_avg_Spec_renormalized;
     
-%         FALK'S CODE DOES NOT USE THE NORMALIZED SPECTRUM!!! IT IS
-%         COMPUTED, BUT IT IS NOT PASSED TO OUTPUT OR TO COMPUTATION
-%         OF SEA SURFACE HEIGHT SPECTRUM
-
 
 
 end

@@ -1071,9 +1071,9 @@ for i1 = 1:length(list_SmartMoorings)
     % ----------------------------------------------------------
 
     %
-    spotsmart.mooringID = [list_SmartMoorings{i1}(1:3) 'sp'];
+    spotsmartL1.mooringID = [list_SmartMoorings{i1}(1:3) 'sp'];
     %
-    spotsmart.SN = list_SmartMoorings{i1}(end-3:end);
+    spotsmartL1.SN = list_SmartMoorings{i1}(end-3:end);
 
     % Find the deployment information
     lmatch = strcmp(mooringtable.mooringID, ...
@@ -1083,46 +1083,46 @@ for i1 = 1:length(list_SmartMoorings)
 % %     lmatch = strcmp(dplySpotters.SN, list_SmartMoorings{i1}(end-3:end));
 
     %
-    spotsmart.latitude = mooringtable(lmatch, :).latitude;
-    spotsmart.longitude = mooringtable(lmatch, :).longitude;
+    spotsmartL1.latitude = mooringtable(lmatch, :).latitude;
+    spotsmartL1.longitude = mooringtable(lmatch, :).longitude;
 
     % Height of the sensor above the bottom
     % (this was measured in inches, = 5 inches).
-    spotsmart.zhab = 12.7 * 1e-2;    % in meters
+    spotsmartL1.zhab = 12.7 * 1e-2;    % in meters
 
     %
-    spotsmart.dtime = datetime(spotterSmartdata.dtime, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
+    spotsmartL1.dtime = datetime(spotterSmartdata.dtime, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
     %
-    spotsmart.pressure = spotterSmartdata.pressure;
+    spotsmartL1.pressure = spotterSmartdata.pressure;
 
     %
-    spotsmart.dtime_dt_avg = dtavg;
+    spotsmartL1.dtime_dt_avg = dtavg;
     %
-    spotsmart.dtime_avg = datetime(timeavg_vec, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
+    spotsmartL1.dtime_avg = datetime(timeavg_vec, 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
     %
-    spotsmart.pressure_avg = Pavg_vec;
+    spotsmartL1.pressure_avg = Pavg_vec;
 
     % Turn all vectors into column vectors so that Matlab
     % (display structure variable quickly)
-    list_fields_aux = fieldnames(spotsmart);
+    list_fields_aux = fieldnames(spotsmartL1);
     %
     for i2 = 1:length(list_fields_aux)
         %
-        if isvector(spotsmart.(list_fields_aux{i2})) && ...
-           ~isstruct(spotsmart.(list_fields_aux{i2})) && ...
-           ~ischar(spotsmart.(list_fields_aux{i2}))
+        if isvector(spotsmartL1.(list_fields_aux{i2})) && ...
+           ~isstruct(spotsmartL1.(list_fields_aux{i2})) && ...
+           ~ischar(spotsmartL1.(list_fields_aux{i2}))
             %
-            spotsmart.(list_fields_aux{i2}) = spotsmart.(list_fields_aux{i2})(:);
+            spotsmartL1.(list_fields_aux{i2}) = spotsmartL1.(list_fields_aux{i2})(:);
         end
     end
 
     %
-    spotsmart.time_zone = 'PDT';
+    spotsmartL1.time_zone = 'PDT';
 
     %
     time_dataproc = datestr(datetime('now', 'TimeZone', 'America/Los_Angeles'), 'yyyy/mm/dd HH:MM:SS');
     %
-    spotsmart.REAMDE = ['Level 1 smart mooring data from ROXSI 2022. Data processed by script ' ...
+    spotsmartL1.REAMDE = ['Level 1 smart mooring data from ROXSI 2022. Data processed by script ' ...
                         mfilename() '.m on ' time_dataproc ' (PDT). ' ...
                         'Pressure is in decibar and atmospheric pressure was subtracted from ' ...
                         'the data. Longitude and latitude (for the pressure measurement) ' ...
@@ -1138,7 +1138,7 @@ for i1 = 1:length(list_SmartMoorings)
     %
     disp('---- Saving smart mooring level 1 data ---- ')
     %
-    save(fullfile(dir_output_data_L1, ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1_notgridded.mat']), 'spotsmart');
+    save(fullfile(dir_output_data_L1, ['smart_mooring_' spotsmartL1.mooringID '_' spotsmartL1.SN '_L1_notgridded.mat']), 'spotsmartL1');
 
 
     % ------------------------------------------
@@ -1150,7 +1150,7 @@ for i1 = 1:length(list_SmartMoorings)
 
     % ------------------------------------------
     %
-    disp(['-------------- Done with level 1 data processing of smart mooring ' spotsmart.mooringID ' - SN ' spotsmart.SN ' --------------'])
+    disp(['-------------- Done with level 1 data processing of smart mooring ' spotsmartL1.mooringID ' - SN ' spotsmartL1.SN ' --------------'])
 
 
     %% Clear variables/close figures as needed before
@@ -1174,7 +1174,7 @@ end
 %
 figure
     %
-    plot(24*3600*diff(datenum(spotsmart.dtime)), '.-')
+    plot(24*3600*diff(datenum(spotsmartL1.dtime)), '.-')
     hold on
     
     %
@@ -1183,7 +1183,7 @@ figure
     set(gca, 'FontSize', 16, 'Box', 'on', ...
              'XGrid', 'on', 'YGrid', 'on')
     %
-    xlim([-0.02, 1.02].*length(spotsmart.dtime))
+    xlim([-0.02, 1.02].*length(spotsmartL1.dtime))
     %
     plot(xlim, [0, 0], '-k')
 

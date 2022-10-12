@@ -98,7 +98,7 @@ for i1 = 1:Nspotsmart
                     list_smartmoorings{i1}(end-3:end) '_L1_gridded.mat'];
     %
     spotsmartL1 = load(fullfile(dir_L1data_parent, filename_aux));
-    spotsmartL1 = spotsmartL1.spotsmart;
+    spotsmartL1 = spotsmartL1.spotsmartL1;
 
 
     %% Copy some metadata from L1 to L2

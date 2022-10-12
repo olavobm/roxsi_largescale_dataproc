@@ -220,41 +220,41 @@ figure
 for i = 1:length(list_fields)
 
     %
-    spotsmart.mooringID = smartMoorlvl1.(list_fields{i}).mooringID;
-    spotsmart.SN = smartMoorlvl1.(list_fields{i}).SN;
+    spotsmartL1.mooringID = smartMoorlvl1.(list_fields{i}).mooringID;
+    spotsmartL1.SN = smartMoorlvl1.(list_fields{i}).SN;
     %
-    spotsmart.latitude = smartMoorlvl1.(list_fields{i}).latitude;
-    spotsmart.longitude = smartMoorlvl1.(list_fields{i}).longitude;
+    spotsmartL1.latitude = smartMoorlvl1.(list_fields{i}).latitude;
+    spotsmartL1.longitude = smartMoorlvl1.(list_fields{i}).longitude;
     %
-    spotsmart.zhab = smartMoorlvl1.(list_fields{i}).zhab;
+    spotsmartL1.zhab = smartMoorlvl1.(list_fields{i}).zhab;
 
     %
-    spotsmart.dt = dt_grid;
-    spotsmart.timelims = min_max_times;
-    spotsmart.gapTH = seconds(gap_TH);
+    spotsmartL1.dt = dt_grid;
+    spotsmartL1.timelims = min_max_times;
+    spotsmartL1.gapTH = seconds(gap_TH);
     %
-    spotsmart.dtime = dtime;
+    spotsmartL1.dtime = dtime;
     %
-    spotsmart.pressure = smartMoorlvl1.(list_fields{i}).pressureinterp;
+    spotsmartL1.pressure = smartMoorlvl1.(list_fields{i}).pressureinterp;
     
     % Turn all vectors into column vectors (so
     % that Matlab displays structure variable quickly)
-    list_somefields = fieldnames(spotsmart);
+    list_somefields = fieldnames(spotsmartL1);
     %
     for i2 = 1:length(list_somefields)
         %
-        if isvector(spotsmart.(list_somefields{i2})) && ...
-           ~isstruct(spotsmart.(list_somefields{i2})) && ...
-           ~ischar(spotsmart.(list_somefields{i2}))
+        if isvector(spotsmartL1.(list_somefields{i2})) && ...
+           ~isstruct(spotsmartL1.(list_somefields{i2})) && ...
+           ~ischar(spotsmartL1.(list_somefields{i2}))
             %
-            spotsmart.(list_somefields{i2}) = spotsmart.(list_somefields{i2})(:);
+            spotsmartL1.(list_somefields{i2}) = spotsmartL1.(list_somefields{i2})(:);
         end
     end
 
     %
     time_dataproc = datestr(datetime('now', 'TimeZone', 'America/Los_Angeles'), 'yyyy/mm/dd HH:MM:SS');
     %
-    spotsmart.README = ['Level 1 (gridded) smart mooring data from ROXSI ' ...
+    spotsmartL1.README = ['Level 1 (gridded) smart mooring data from ROXSI ' ...
                         '2022. Data gridded by script ' mfilename() '.m on ' ...
                         time_dataproc ' (PDT). Data gaps shorter or equal than ' ...
                         'the gap threshold (gapTH) are interpolated over. ' ...
@@ -271,11 +271,11 @@ for i = 1:length(list_fields)
     %
     disp('---- Saving smart mooring level 1 data ---- ')
     % Save Level 1 gridded data
-    save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1_gridded.mat']), 'spotsmart');
+    save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmartL1.mooringID '_' spotsmartL1.SN '_L1_gridded.mat']), 'spotsmartL1');
     %
-    disp(['---- Done with level 1 time-gridding pressure from smart mooring ' spotsmart.mooringID ' - SN ' spotsmart.SN ' ----'])
+    disp(['---- Done with level 1 time-gridding pressure from smart mooring ' spotsmartL1.mooringID ' - SN ' spotsmartL1.SN ' ----'])
 
 
     %
-    clear spotsmart
+    clear spotsmartL1
 end

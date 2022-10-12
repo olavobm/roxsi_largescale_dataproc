@@ -126,7 +126,7 @@ for i = 1:length(list_files)
     clear data_aux
 end
 
-
+return
 %% Get bathymetry around each Spotter
 
 
@@ -463,7 +463,7 @@ end
 % NOTE: Median pressure is slightly (<= 10 cm) higher
 % than mean pressure (I checked the median to make
 % sure the gaps were not a big problem for defining
-% the "true mean" depth of the Spotters.
+% the "true mean" depth of the Spotters).
 
 
 %% Since I don't have the bathymetry around Smart moorings,

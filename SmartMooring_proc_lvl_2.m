@@ -145,54 +145,118 @@ Hsig_IG = 4*sqrt(sum(See(lin_IGband, :), 1).*df);
 % blowing up
 ltrimspec = (freqvec <= freq_bands.SS(2));
 
-%
-figure
-    %
-    pcolor(timespec, freqvec(ltrimspec), log10(See(ltrimspec, :)))
-    shading flat
-    %
-    hold on
+% % % % QC figures
+% % % %
+% % % figure
+% % %     %
+% % %     pcolor(timespec, freqvec(ltrimspec), log10(See(ltrimspec, :)))
+% % %     shading flat
+% % %     %
+% % %     hold on
+% % % 
+% % %     %
+% % %     plot(timespec([1, end]), freq_bands.SS(1).*[1, 1], '--r')
+% % %     plot(timespec([1, end]), freq_bands.SS(2).*[1, 1], '--r')
+% % %     plot(timespec([1, end]), freq_bands.IG(1).*[1, 1], '--k')
+% % %     plot(timespec([1, end]), freq_bands.IG(2).*[1, 1], '--k')
+% % % 
+% % %     %
+% % %     ylim_aux = ylim;
+% % %     ylim([ylim_aux(1), (freq_bands.SS(2) + 3*df)])
+% % % 
+% % % 
+% % %     %
+% % %     colorbar
+% % % 
+% % % %
+% % % figure
+% % %     %
+% % %     plot(freqvec, mean(See, 2), '-k')
+% % %     hold on
+% % %     plot(freqvec(ltrimspec), mean(See(ltrimspec, :), 2), '.-b')
+% % % 
+% % %     %
+% % %     set(gca, 'FontSize', 16, 'Box', 'on', ...
+% % %              'XGrid', 'on', 'YGrid', 'on', ...
+% % %              'XScale', 'log', 'YScale', 'log')
+% % %     %
+% % %     set(gca, 'XLim', [(df/1.5), (freq_bands.SS(2) + 10*df)])
+% % %     set(gca, 'YLim', [1e-3, 1.5])
+% % % 
+% % %     %
+% % %     ylim_aux = ylim;
+% % %     %
+% % %     plot(freq_bands.SS(1).*[1, 1], ylim_aux, '--r')
+% % %     plot(freq_bands.SS(2).*[1, 1], ylim_aux, '--r')
+% % %     plot(freq_bands.IG(1).*[1, 1], ylim_aux, '--k')
+% % %     plot(freq_bands.IG(2).*[1, 1], ylim_aux, '--k')
 
-    %
-    plot(timespec([1, end]), freq_bands.SS(1).*[1, 1], '--r')
-    plot(timespec([1, end]), freq_bands.SS(2).*[1, 1], '--r')
-    plot(timespec([1, end]), freq_bands.IG(1).*[1, 1], '--k')
-    plot(timespec([1, end]), freq_bands.IG(2).*[1, 1], '--k')
 
-    %
-    ylim_aux = ylim;
-    ylim([ylim_aux(1), (freq_bands.SS(2) + 3*df)])
-
-
-    %
-    colorbar
-
-%
-figure
-    %
-    plot(freqvec, mean(See, 2), '-k')
-    hold on
-    plot(freqvec(ltrimspec), mean(See(ltrimspec, :), 2), '.-b')
-
-    %
-    set(gca, 'FontSize', 16, 'Box', 'on', ...
-             'XGrid', 'on', 'YGrid', 'on', ...
-             'XScale', 'log', 'YScale', 'log')
-    %
-    set(gca, 'XLim', [(df/1.5), (freq_bands.SS(2) + 10*df)])
-    set(gca, 'YLim', [1e-3, 1.5])
-
-    %
-    ylim_aux = ylim;
-    %
-    plot(freq_bands.SS(1).*[1, 1], ylim_aux, '--r')
-    plot(freq_bands.SS(2).*[1, 1], ylim_aux, '--r')
-    plot(freq_bands.IG(1).*[1, 1], ylim_aux, '--k')
-    plot(freq_bands.IG(2).*[1, 1], ylim_aux, '--k')
-
-
-% -------------------------------------------------
 % Combine the 2 plots above in the same figure
+%
+fig_QC = figure;
+    %
+    set(gcf, 'Units', 'normalized')
+    set(gcf, 'Position', [0.2, 0.2, 0.4, 0.6])
+    %
+    haxs_1 = axes('Position', [0.15, 0.50, 0.7, 0.4]);
+    haxs_2 = axes('Position', [0.15, 0.15, 0.7, 0.3]);
+    hold(haxs_1, 'on')
+    hold(haxs_2, 'on')
+
+        %
+        pcolor(haxs_1, freqvec(ltrimspec), timespec, log10(See(ltrimspec, :)).')
+        shading(haxs_1, 'flat')
+        %
+        plot(haxs_1, freq_bands.SS(1).*[1, 1], timespec([1, end]), '--r')
+        plot(haxs_1, freq_bands.SS(2).*[1, 1], timespec([1, end]), '--r')
+        plot(haxs_1, freq_bands.IG(1).*[1, 1], timespec([1, end]), '--k')
+        plot(haxs_1, freq_bands.IG(2).*[1, 1], timespec([1, end]), '--k')
+    
+        %
+        plot(haxs_2, freqvec, mean(See, 2, 'omitnan'), '-k')        
+        plot(haxs_2, freqvec(ltrimspec), mean(See(ltrimspec, :), 2), '.-b')
+        %
+        plot(haxs_2, freq_bands.SS(1).*[1, 1], ylim_aux, '--r')
+        plot(haxs_2, freq_bands.SS(2).*[1, 1], ylim_aux, '--r')
+        plot(haxs_2, freq_bands.IG(1).*[1, 1], ylim_aux, '--k')
+        plot(haxs_2, freq_bands.IG(2).*[1, 1], ylim_aux, '--k')
+
+        %
+        hcb = colorbar(haxs_1);
+            hcb.Position = [(sum(haxs_1.Position([1, 3])) + 0.01), ...
+                            haxs_1.Position(2), 0.02, haxs_1.Position(4)];
+            hcb.Ticks = -4:1:1;
+            hcb.Label.Interpreter = 'Latex';
+            hcb.Label.String = '$\log_{10}$ of m$^2$ Hz$^{-1}$';
+
+        %
+        set([haxs_1, haxs_2], 'FontSize', 16, 'Box', 'on', ...
+                              'XGrid', 'on', 'YGrid', 'on')
+        set([haxs_1, haxs_2], 'XScale', 'log')
+        set(haxs_2, 'XScale', 'log', 'YScale', 'log')
+        %
+        freq_plt_lims = [(df/1.5), (freq_bands.SS(2) + 10*df)];
+        %
+        set([haxs_1, haxs_2], 'XLim', freq_plt_lims)
+        %
+        set(haxs_1, 'YLim', timespec([1, end]))
+        set(haxs_2, 'YLim', [1e-3, 1.5])
+
+
+    %
+    xlabel(haxs_2, 'Frequency [Hz]', 'Interpreter', 'Latex', 'FontSize', 12)
+    ylabel(haxs_1, 'Time ', 'Interpreter', 'Latex', 'FontSize', 12)
+    ylabel(haxs_2, '[m$^2$ Hz$^{-1}$]', 'Interpreter', 'Latex', 'FontSize', 12)
+    %
+    title(haxs_1, {['ROXSI 2022 pressure-based surface elevation spectra ' ...
+                    '(and time-mean spectrum)'];  ...
+                   ['from smart mooring ' ...
+                   char(L2out.mooringID) '. Frequencies higher than ' ...
+                   'sea-swell upper bound were trimmed']}, ...
+                   'Interpreter', 'Latex', 'FontSize', 12)
+    
+
 
 
 %% Compute mean and peak frequency in sea-swell band

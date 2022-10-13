@@ -22,9 +22,6 @@ close all
 % -------------- PREAMBLE --------------
 % --------------------------------------
 
-%%
-
-% % roxsi_add_libraries()
 
 %%
 
@@ -79,6 +76,19 @@ list_Signature = {'A01_103043', ...
 
 %
 Nsignatures = length(list_Signature);
+
+
+%% Set whether the first velocity bin will be included
+% (no QC on this velocity)
+
+%
+% lvelbin1 = false;
+lvelbin1 = true;
+
+%
+if lvelbin1
+     roxsi_add_libraries()    % add ADCPtools
+end
 
 
 %%
@@ -203,6 +213,9 @@ for i1 = 1:Nsignatures
     sig1000.latitude = info_mooringtable.latitude;
     sig1000.longitude = info_mooringtable.longitude;
 
+    %
+    sig1000.site = info_mooringtable.roxsiarray;
+
 
     %% Get trimming times for the deployment period of this Signature
 
@@ -251,6 +264,14 @@ for i1 = 1:Nsignatures
     sig1000.roll = prealloc_aux;
 
     %
+    if lvelbin1
+        sig1000.vel1 = prealloc_aux;
+        sig1000.vel2 = prealloc_aux;
+        sig1000.vel3 = prealloc_aux;
+        sig1000.vel4 = prealloc_aux;
+    end
+
+    %
     disp('--- Load all scalar variables ---')
 
     tic
@@ -274,6 +295,16 @@ for i1 = 1:Nsignatures
         sig1000.pitch{i2} = dataread_aux.Data.Burst_Pitch;
         sig1000.roll{i2} = dataread_aux.Data.Burst_Roll;
 
+        %
+        if lvelbin1
+            % Take only the first bin (or any other, but just one bin)
+            sig1000.vel1{i2} = dataread_aux.Data.Burst_VelBeam1(:, 1);
+            sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(:, 1);
+            sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(:, 1);
+            sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(:, 1);
+        end
+
+
         %%
         clear dataread_aux
 
@@ -289,6 +320,14 @@ for i1 = 1:Nsignatures
     sig1000.heading = cat(1, sig1000.heading{:});
     sig1000.pitch = cat(1, sig1000.pitch{:});
     sig1000.roll = cat(1, sig1000.roll{:});
+
+    %
+    if lvelbin1
+        sig1000.vel1 = cat(1, sig1000.vel1{:});
+        sig1000.vel2 = cat(1, sig1000.vel2{:});
+        sig1000.vel3 = cat(1, sig1000.vel3{:});
+        sig1000.vel4 = cat(1, sig1000.vel4{:});
+    end
 
 
     %% Do clock drift correction
@@ -671,6 +710,102 @@ for i1 = 1:Nsignatures
 
 % %     % Saved at the end of the for loop
 % %     exportgraphics(fig_L1_procdata, fullfile(pwd, ['sig_scalars_proc_' list_Signature{i1} '.png']), 'Resolution', 300)
+
+
+    %% Compute rotate velocity if lvelbin1 is true
+
+    %
+    if lvelbin1
+
+        % -------------------------------------------------------
+        % Rotate velocity to magnetic ENU
+
+        % If data is too long, break it apart (maybe not necessary when
+        % there is only 1 velocity bin)
+        npts_rot_TH = 1000000;
+        Npts_alldata = length(sig1000.timedatenum);
+        %
+        if Npts_alldata<=npts_rot_TH
+            indbreak_rot = [1; Npts_alldata];
+        else
+            %
+            inds_edges_breakrot = 1 : npts_rot_TH : Npts_alldata;
+            if (inds_edges_breakrot(end)~=Npts_alldata)
+                inds_edges_breakrot = [inds_edges_breakrot, Npts_alldata];
+            end
+            %
+            indbreak_rot = [inds_edges_breakrot(1:end-1); ...
+                            (inds_edges_breakrot(2:end) - 1)];
+            % The last one shouldn't have 1 subtracted. Add again
+            indbreak_rot(2, end) = indbreak_rot(2, end) + 1;
+        end
+
+        %
+        sig1000.Ue = NaN(size(sig1000.vel1));
+        sig1000.Vn = NaN(size(sig1000.vel1));
+        sig1000.Wup = NaN(size(sig1000.vel1));
+        
+        %
+        disp('Using 4 beams')
+        %
+        for i2 = 1:size(indbreak_rot, 2)
+
+            %
+            ind_sub_aux = indbreak_rot(1, i2) : indbreak_rot(2, i2);
+            %
+            [sig1000.Ue(ind_sub_aux), ...
+             sig1000.Vn(ind_sub_aux), ...
+             sig1000.Wup(ind_sub_aux)] = ...
+                        janus2earth(sig1000.heading(ind_sub_aux).' - 90, ...
+                                    sig1000.roll(ind_sub_aux).', -sig1000.pitch(ind_sub_aux).', ...
+                                    25, ...
+                                    -sig1000.vel1(ind_sub_aux).', -sig1000.vel3(ind_sub_aux).', ...
+                                    -sig1000.vel4(ind_sub_aux).', -sig1000.vel2(ind_sub_aux).');
+        end
+
+
+        % -------------------------------------------------------
+        % Rotate velocity to geographic ENU
+        sig1000.magdec = 12.86;
+
+        %
+        disp(['----- Rotating horizontal velocity to ' ...
+              ' geographic ENU., with mag. declination of ' ...
+              num2str(sig1000.magdec, '%.2f') ' degrees -----'])
+    
+        %
+        rotMatrix = [cosd(sig1000.magdec), sind(sig1000.magdec); ...
+                     -sind(sig1000.magdec), cosd(sig1000.magdec)];
+    
+    % %     % Check the rotation (i.e. velocity aligned with magnetic north
+    % %     % should have a small zonal component and large meridional
+    % %     % component in a geographical north coordinate system)
+    % %     rotMatrix * [0; 1]
+    
+        %
+        uv_aux = [sig1000.Ue.'; sig1000.Vn.'];
+        %
+        uv_rot_aux = rotMatrix * uv_aux;
+
+        %
+        sig1000.Ue = uv_aux(1, :).';
+        sig1000.Vn = uv_aux(2, :).';
+
+        % -------------------------------------------------------
+        %  Rotate velocity to XY ROXSI coordinate system(s)
+
+        %
+        [sig1000.Ux, sig1000.Uy] = ROXSI_uv_ENtoXY(sig1000.Ue, sig1000.Vn, sig1000.site);
+        
+
+        % -------------------------------------------------------
+        % Remove other variables
+        sig1000 = rmfield(sig1000, {'vel1', 'vel2', 'vel3', 'vel4', 'Ue', 'Vn'});
+
+    end
+
+
+    
 
 
 %%

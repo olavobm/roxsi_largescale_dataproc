@@ -14,6 +14,25 @@ function [ux, uy] = ROXSI_uv_ENtoXY(ue, vn, site, roxsigrid)
 %
 
 %%
+if ~isequal(size(ue), size(vn))
+    error('!!!!')
+end
+
+
+%% 
+
+%
+if (~iscolumn(ue)) && size(ue, 1) > nbinsTH
+    larrayopposite = true;
+    %
+    ue = ue.';
+    vn = vn.';
+else
+    larrayopposite = false;
+end
+
+
+%%
 
 %
 if ~exist('roxsigrid', 'var')
@@ -23,13 +42,6 @@ if ~exist('roxsigrid', 'var')
     fnameaux = fieldnames(roxsigrid);
     roxsigrid = roxsigrid.(fnameaux{1});
 end
-
-
-%%
-if ~isequal(size(ue), size(vn))
-    error('!!!!')
-end
-
 
 %%
 %
@@ -69,9 +81,18 @@ for i = 1:size(ue, 1)
 
 end
 
+%%
 %
 if lcolumn
     ux = ux.';
     uy = uy.';
 end
+
+%
+if larrayopposite
+    ux = ux.';
+    uy = uy.';
+end
+
+
     

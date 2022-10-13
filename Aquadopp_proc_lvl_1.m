@@ -24,8 +24,10 @@ dir_rawdata_parent = fullfile(dirparent_data, 'RAW', 'Aquadopp');
 % % dir_output_parent = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/';
 dir_output_parent = '/home/omarques/Documents/MATLAB/ROXSIproc_output/';
 %
-dir_output_data_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Aquadopp_Level1');
-dir_output_figs_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Aquadopp_Level1', 'qc_plots');
+% dir_output_data_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Aquadopp_Level1');
+% dir_output_figs_L1 = fullfile(dir_output_parent, 'Level1_Data', 'Aquadopp_Level1', 'qc_plots');
+dir_output_data_L1 = pwd;
+dir_output_figs_L1 = pwd;
 
 % Logical switches to save or not save data and figures
 lsave_file = true;
@@ -57,6 +59,7 @@ list_Aquadopp = {'A03_5380', ...
 % list_Aquadopp = {'B02_12507', 'X13_9945'};
 % list_Aquadopp = {'X13_9945'};
 % list_Aquadopp = {'F03_5384'};
+list_Aquadopp = {'A03_5380'};
 
 %
 Naquadopps = length(list_Aquadopp);
@@ -399,15 +402,20 @@ for i = 1:Naquadopps
     %
     aquadoppL1.backscatterTH = 30;
 
-    %
-    l_belowTH = (aquadoppL1.a1 <= aquadoppL1.backscatterTH) | ...
-                (aquadoppL1.a2 <= aquadoppL1.backscatterTH) | ...
-                (aquadoppL1.a3 <= aquadoppL1.backscatterTH);
-    %
-    aquadoppL1.Ue(l_belowTH) = NaN;
-    aquadoppL1.Vn(l_belowTH) = NaN;
-    aquadoppL1.Wup(l_belowTH) = NaN;
+% %     %
+% %     l_belowTH = (aquadoppL1.a1 <= aquadoppL1.backscatterTH) | ...
+% %                 (aquadoppL1.a2 <= aquadoppL1.backscatterTH) | ...
+% %                 (aquadoppL1.a3 <= aquadoppL1.backscatterTH);
+% %     %
+% %     aquadoppL1.Ue(l_belowTH) = NaN;
+% %     aquadoppL1.Vn(l_belowTH) = NaN;
+% %     aquadoppL1.Wup(l_belowTH) = NaN;
 
+    %
+    aquadoppL1.la1belowTH = (aquadoppL1.a1 <= aquadoppL1.backscatterTH);
+    aquadoppL1.la2belowTH = (aquadoppL1.a2 <= aquadoppL1.backscatterTH);
+    aquadoppL1.la3belowTH = (aquadoppL1.a3 <= aquadoppL1.backscatterTH);
+                
 
     % ----------------------------------------------------
     % Turn all vectors into column vectors so that Matlab

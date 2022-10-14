@@ -535,10 +535,10 @@ for i = 1:length(list_spotters)
     % for specified time grid points -- here we neglect that
     % the data is NOT EXACTLY on a time grid (there are only
     % milisecond variations though, which are small and provided
-    % by the Spotter)
+    % by the Spotter. But if there are gaps, it would be a problem)
 
     %
-    disp('----- Recalculating bulk statistics -----')
+    disp('----- Recalculating spectra and bulk statistics -----')
      
     %
     prealloc_aux = NaN(length(time_grid_aux), 128);
@@ -861,7 +861,7 @@ for i = 1:length(list_spotters)
             time_raw_displacement = data_aux.displacement.time;
             time_raw_displacement.TimeZone = spotterL1.displacement.dtime.TimeZone;
             %
-            time_raw_stats = data_aux.spectra.time;
+            time_raw_stats = data_aux.bulkparameters.time;
             time_raw_stats.TimeZone = spotterL1.spectra.dtime.TimeZone;
 
             % Plot vertical displacement

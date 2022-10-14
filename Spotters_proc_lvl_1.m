@@ -783,7 +783,7 @@ for i = 1:length(list_spotters)
     %
     data_out.bulkparameters.dtime.TimeZone = 'America/Los_Angeles';
     data_out.displacement.dtime.TimeZone = 'America/Los_Angeles';
-    data_out.location.dtime.dtime.TimeZone = 'America/Los_Angeles';
+    data_out.location.dtime.TimeZone = 'America/Los_Angeles';
 
 
     %% Create and organize output structure (including metadata)
@@ -801,11 +801,10 @@ for i = 1:length(list_spotters)
     % ROXSI_mooringlocation.m gives, use the data
     spotterL1.latitude = mean(data_out.location.latitude);
     spotterL1.longitude = mean(data_out.location.longitude);
-    
-
-% %     %
-% %     spotterL1.stats.dt = [num2str(dt_bulkstats/60) ' hour'];
-% %     spotterL1.stats.dtime = data_out.timestats;
+    %
+    [spotterL1.X, ...
+     spotterL1.Y] = ROXSI_lltoxy(spotterL1.latitude, ...
+                                 spotterL1.longitude, spotterL1.site);
 
     %
     list_fields_aux = fieldnames(data_out);
@@ -940,8 +939,8 @@ for i = 1:length(list_spotters)
     % -----------------------------------
     % Save QC figure
     %
-    disp(['----- Save level 1 data plot at -----'])
-    dir_QCfig
+    disp('----- Save level 1 data plot at: -----')
+    disp(dir_QCfig)
     exportgraphics(hfig_aux, fullfile(dir_QCfig, ['spotter_L1_' list_spotters{i} '_data.png']), 'Resolution', 300)
 
 
@@ -952,7 +951,7 @@ for i = 1:length(list_spotters)
     str_fullpath_file = fullfile(dir_outlvl1, [str_filename '.mat']);
     %
     disp(['----- Saving level 1 data from Spotter ' list_spotters{i} ' at:-----'])
-    str_fullpath_file
+    disp(str_fullpath_file)
 
     %
     save(str_fullpath_file, 'spotterL1', '-v7.3')

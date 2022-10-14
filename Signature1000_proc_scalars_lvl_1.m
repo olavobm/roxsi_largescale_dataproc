@@ -87,7 +87,7 @@ lvelbin1 = true;
 
 %
 if lvelbin1
-     roxsi_add_libraries()    % add ADCPtools
+    roxsi_add_libraries()    % add ADCPtools
 end
 
 
@@ -265,6 +265,9 @@ for i1 = 1:Nsignatures
 
     %
     if lvelbin1
+        %
+        disp('--- Adding velocity from 1st bin ---')
+        %
         sig1000.vel1 = prealloc_aux;
         sig1000.vel2 = prealloc_aux;
         sig1000.vel3 = prealloc_aux;
@@ -722,8 +725,8 @@ for i1 = 1:Nsignatures
 
         % If data is too long, break it apart (maybe not necessary when
         % there is only 1 velocity bin)
-        npts_rot_TH = 1000000;
-        Npts_alldata = length(sig1000.timedatenum);
+        npts_rot_TH = 4000000;
+        Npts_alldata = length(sig1000.dtime);
         %
         if Npts_alldata<=npts_rot_TH
             indbreak_rot = [1; Npts_alldata];
@@ -746,7 +749,13 @@ for i1 = 1:Nsignatures
         sig1000.Wup = NaN(size(sig1000.vel1));
         
         %
-        disp('Using 4 beams')
+        disp('--- Using 4 beams ---')
+
+        %
+        disp(['--- Coordinate transformation will be computed ' ...
+              'for ' num2str(size(indbreak_rot, 2)) ' separate chunks ' ...
+              'of the timeseries (to avoid crashing Matlab) ---'])
+
         %
         for i2 = 1:size(indbreak_rot, 2)
 
@@ -761,6 +770,9 @@ for i1 = 1:Nsignatures
                                     25, ...
                                     -sig1000.vel1(ind_sub_aux).', -sig1000.vel3(ind_sub_aux).', ...
                                     -sig1000.vel4(ind_sub_aux).', -sig1000.vel2(ind_sub_aux).');
+
+            %
+            disp(['----- Done with chunk ' num2str(i2) ' out of ' num2str(size(indbreak_rot, 2)) ' -----'])
         end
 
 
@@ -770,7 +782,7 @@ for i1 = 1:Nsignatures
 
         %
         disp(['----- Rotating horizontal velocity to ' ...
-              ' geographic ENU., with mag. declination of ' ...
+              'geographic ENU., with mag. declination of ' ...
               num2str(sig1000.magdec, '%.2f') ' degrees -----'])
     
         %

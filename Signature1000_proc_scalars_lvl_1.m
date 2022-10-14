@@ -791,33 +791,36 @@ for i1 = 1:Nsignatures
         sig1000.magdec = 12.86;
 
         %
-        disp(['----- Rotating horizontal velocity to ' ...
-              'geographic ENU., with mag. declination of ' ...
+        disp(['----- Rotating horizontal velocity from magnetic ENU ' ...
+              'to local XY coordinate system. Magnetic declination is ' ...
               num2str(sig1000.magdec, '%.2f') ' degrees -----'])
     
         %
-        rotMatrix = [cosd(sig1000.magdec), sind(sig1000.magdec); ...
-                     -sind(sig1000.magdec), cosd(sig1000.magdec)];
-    
-    % %     % Check the rotation (i.e. velocity aligned with magnetic north
-    % %     % should have a small zonal component and large meridional
-    % %     % component in a geographical north coordinate system)
-    % %     rotMatrix * [0; 1]
-    
-        %
-        uv_aux = [sig1000.Ue.'; sig1000.Vn.'];
-        %
-        uv_rot_aux = rotMatrix * uv_aux;
+        [sig1000.Ux, sig1000.Uy] = ROXSI_uv_ENtoXY(sig1000.Ue, sig1000.Vn, sig1000.site, true);
 
-        %
-        sig1000.Ue = uv_aux(1, :).';
-        sig1000.Vn = uv_aux(2, :).';
-
-        % -------------------------------------------------------
-        %  Rotate velocity to XY ROXSI coordinate system(s)
-
-        %
-        [sig1000.Ux, sig1000.Uy] = ROXSI_uv_ENtoXY(sig1000.Ue, sig1000.Vn, sig1000.site);
+% %         %
+% %         rotMatrix = [cosd(sig1000.magdec), sind(sig1000.magdec); ...
+% %                      -sind(sig1000.magdec), cosd(sig1000.magdec)];
+% %     
+% %     % %     % Check the rotation (i.e. velocity aligned with magnetic north
+% %     % %     % should have a small zonal component and large meridional
+% %     % %     % component in a geographical north coordinate system)
+% %     % %     rotMatrix * [0; 1]
+% %     
+% %         %
+% %         uv_aux = [sig1000.Ue.'; sig1000.Vn.'];
+% %         %
+% %         uv_rot_aux = rotMatrix * uv_aux;
+% % 
+% %         %
+% %         sig1000.Ue = uv_aux(1, :).';
+% %         sig1000.Vn = uv_aux(2, :).';
+% % 
+% %         % -------------------------------------------------------
+% %         %  Rotate velocity to XY ROXSI coordinate system(s)
+% % 
+% %         %
+% %         [sig1000.Ux, sig1000.Uy] = ROXSI_uv_ENtoXY(sig1000.Ue, sig1000.Vn, sig1000.site);
         
 
         % -------------------------------------------------------

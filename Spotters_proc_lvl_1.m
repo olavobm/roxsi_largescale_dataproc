@@ -15,6 +15,35 @@ clear
 close all
 
 
+%%
+% --------------------------------------
+% -------- SET DIRECTORY PATHS ---------
+% --------------------------------------
+
+
+%%
+
+% %
+% dir_data_parent = "/Volumes/ROXSI_Data/LargeScale_Data_2022/RAW/";
+dir_data_parent = '/project/CSIDE/ROXSI/LargeScale_Data_2022/';
+
+
+%% Define output directories
+
+%
+% dir_outlvl1 = "/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1_new/";
+dir_outlvl1 = pwd;
+%
+% dir_QCfig = fullfile(dir_outlvl1, 'figs_QC');
+dir_QCfig = dir_outlvl1;
+
+
+%%
+% --------------------------------------
+% --- DEFINE VARIABLES FOR PROCESSING --
+% --------------------------------------
+
+
 %% Directory of the RAW data and list of Spotters
 % that will be processed
 
@@ -39,7 +68,6 @@ list_spotters = {'B01_spot1150', 'B01_spot1158', ...
 % % list_spotters = {'B01_spot1150'};
 
 %
-dir_data_parent = "/Volumes/ROXSI_Data/LargeScale_Data_2022/RAW/";
 dir_data_parsed = strings(length(list_spotters), 1);
 %
 for i = 1:length(list_spotters)
@@ -52,21 +80,11 @@ for i = 1:length(list_spotters)
 end
 
 
-
-%% Define output directories
-
-%
-dir_outlvl1 = "/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1_new/";
-
-%
-dir_QCfig = fullfile(dir_outlvl1, 'figs_QC');
-
-
 %% Parameters of the data and for computing bulk statistics
 % (CODE HAS NOT BEEN THOROUGHLY TESTED FOR OTHER PARAMETERS!)
 
 % Sampling period (in seconds)
-dt = 0.4;    % this is 
+dt = 0.4;
 
 % Bulk statistics period for which bulk statistics will be
 % computed for (in minutes). Sofar does it hourly.
@@ -92,9 +110,16 @@ spotter_dplt = spotter_dplt.dployInfo_Spotters;
 
 %% List of tables in the data
 
-list_tables_totrim = ["a1", "a2", "b1", "b2", "bulkparameters", "displacement", "location", "sst"];
+list_tables_totrim = ["a1", "a2", "b1", "b2", ...
+                      "bulkparameters", "displacement", "location", "sst"];
 
 
+%%
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
+% -------------------------------------------------------------------------
 
 %%
 % ------------------------------------------------------------

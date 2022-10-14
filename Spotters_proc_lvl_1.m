@@ -474,6 +474,7 @@ for i = 1:length(list_spotters)
     %
     time_grid_aux = first_time_gridpoint : minutes(dt_bulkstats) : last_time_gridpoint;
     
+
     %% Dummy (short) time grid just to test the code
     %
 % % %     time_grid_aux = datetime(2022, 07, 01, 0, 0, 0) : hours(1) : datetime(2022, 07, 03, 0, 0, 0);
@@ -518,7 +519,7 @@ for i = 1:length(list_spotters)
     b1_matrix_dummy = prealloc_aux;
     b2_matrix_dummy = prealloc_aux;
     %
-    bulkpars_matrix_dummy = NaN(length(time_grid_aux), 7);
+    bulkpars_matrix_dummy = NaN(length(time_grid_aux), 9);
 
     % Loop over time grid points, get the appropriate
     % displacement data, and compute bulk statistics
@@ -549,13 +550,12 @@ for i = 1:length(list_spotters)
 
         end
 
-        %
-
-        %
-        [a1, a2, b1, b2, ...
-              Ezz, Hsig, T_mean, ...
-              dir_mean, spread_mean, f_peak, T_peak, dir_peak, spread_peak, ...
-              f, DoF] = ...
+        % Compute wave statistics from Spotter displacement
+        [f, a1, a2, b1, b2, ...
+         Ezz, Hsig, ...
+         T_mean, dir_mean, spread_mean, ...
+         T_peak, dir_peak, spread_peak, ...
+         a1_bar, b1_bar, DOF] = ...
                     wave_spec_fourier_displacement(x_data_aux, y_data_aux, z_data_aux, ...
                                                    dt, nfft, noverlap, window, [0.029, 1.245]);
 
@@ -580,15 +580,19 @@ for i = 1:length(list_spotters)
         b2_matrix_dummy(i2, 4:end) = b2(4:end-1);
         
         % Put bulk statistics in dummy array
-        bulkpars_matrix_dummy(i2, :) = [Hsig, T_mean, T_peak, ...
-                                              dir_mean, dir_peak, ...
-                                              spread_mean, spread_peak];
+        bulkpars_matrix_dummy(i2, :) = [Hsig, ...
+                                        T_mean, T_peak, ...
+                                        dir_mean, dir_peak, ...
+                                        spread_mean, spread_peak, ....
+                                        a1_bar, b1_bar];
         
     end
     toc
     
 
     %% Convert arrays to tables
+
+    keyboard
 
     %
     data_out.a1 = array2table(a1_matrix_dummy);
@@ -609,6 +613,52 @@ for i = 1:length(list_spotters)
 
     %% Rename variables to be consistent with Sofar
 
+% %     % 9 decimal points is the maximum nonzero number of nonzero digits
+% %     names_frequency_char = num2str(f, '%.10f');    % First convert to char -- it's a matrix!
+% %     %
+% %     names_frequency_string = strings(1, length(data_out.frequency));    
+% % 
+% %     %
+% %     for i2 = 1:length(data_out.frequency)
+% %         % First deal with 0 frequency
+% %         if strcmp(names_frequency_char(i2, :), num2str(0, '%.10f'))
+% %             names_frequency_string(i2) = "0.0";
+% %         %
+% %         else
+% %             %
+% %             inds_loc_0 = strfind(names_frequency_char(i2, :), '0');
+% %             %
+% %             if length(inds_loc_0)==1
+% %                 names_frequency_string(i2) = convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(end)-1)));
+% %             else
+% % 
+% %                 %
+% %                 diff_inds_0 = diff(inds_loc_0);
+% %                 %
+% %                 ind_first_final_0 = find(diff_inds_0 > 1, 1, 'last') + 1;
+% % 
+% %                 %
+% %                 if isempty(ind_first_final_0)
+% %                     ind_first_final_0 = 1;
+% %                 end
+% % 
+% %                 %
+% %                 names_frequency_string(i2) = ...
+% %                                 convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(ind_first_final_0) - 1)));
+% %             end
+% %             
+% %             
+% %         end
+% %     end
+% % 
+% %     % Rename variables in the tables of coeffcients
+% %     data_out.a1 = renamevars(data_out.a1, data_out.a1.Properties.VariableNames, names_frequency_string);
+% %     data_out.a2 = renamevars(data_out.a2, data_out.a2.Properties.VariableNames, names_frequency_string);
+% %     data_out.b1 = renamevars(data_out.b1, data_out.b1.Properties.VariableNames, names_frequency_string);
+% %     data_out.b2 = renamevars(data_out.b2, data_out.b2.Properties.VariableNames, names_frequency_string);
+
+
+    %%
     % 9 decimal points is the maximum nonzero number of nonzero digits
     names_frequency_char = num2str(f, '%.10f');    % First convert to char -- it's a matrix!
     %
@@ -641,7 +691,6 @@ for i = 1:length(list_spotters)
                 %
                 names_frequency_string(i2) = ...
                                 convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(ind_first_final_0) - 1)));
-                
             end
             
             
@@ -686,8 +735,10 @@ for i = 1:length(list_spotters)
     %
     spotterL1.mooringID = list_spotters{i}(1:3);
     spotterL1.SN = list_spotters{i}(9:12);
+    
     %
-    spotterL1.dtstats = [num2str(dt_bulkstats/60) ' hour'];
+    spotterL1.stats.dt = [num2str(dt_bulkstats/60) ' hour'];
+    spotterL1.stats.dtime = data_out.timestats;
 
     %
     list_fields_aux = fieldnames(data_out);

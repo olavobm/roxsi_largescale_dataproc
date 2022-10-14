@@ -544,17 +544,17 @@ for i = 1:length(list_spotters)
     prealloc_aux = NaN(length(time_grid_aux), 128);
 
     %
-    data_out.bulkparameters.dt = diff(time_grid_aux(1:2));
-    data_out.bulkparameters.dtime = time_grid_aux(:);
+    data_out.spectra.dt = diff(time_grid_aux(1:2));
+    data_out.spectra.dtime = time_grid_aux(:);
     %
-    data_out.bulkparameters.df = 1/(dt*nfft);
-    data_out.bulkparameters.frequency = [];
+    data_out.spectra.df = 1/(dt*nfft);
+    data_out.spectra.frequency = [];
     %
-    data_out.bulkparameters.Ezz = prealloc_aux;
-    data_out.bulkparameters.See = [];
+    data_out.spectra.Ezz = prealloc_aux;
+    data_out.spectra.See = [];
     % DOF assuming 50% and subtracting 2 because the overlap
     % makes the chunks not entirely independent
-    data_out.bulkparameters.DOF = 2*(2*floor((60*dt_bulkstats/0.4)/nfft) - 1) - 2;
+    data_out.spectra.DOF = 2*(2*floor((60*dt_bulkstats/0.4)/nfft) - 1) - 2;
 
     %
     a1_matrix_dummy = prealloc_aux;
@@ -611,10 +611,10 @@ for i = 1:length(list_spotters)
 
         % Put Spectra in output structure
         if i2==1
-            data_out.bulkparameters.frequency = f(1:end-1);
+            data_out.spectra.frequency = f(1:end-1);
         end
         %
-        data_out.bulkparameters.Ezz(i2, 4:end) = Ezz(4:end-1);
+        data_out.spectra.Ezz(i2, 4:end) = Ezz(4:end-1);
 
         % Put Fourier coefficients in output structure
         a1_matrix_dummy(i2, 4:end) = a1(4:end-1);    % starts at 4 (frequencies higher than 0.029 Hz) because that's what Sofar does.
@@ -642,38 +642,38 @@ for i = 1:length(list_spotters)
 % %     data_out.b2 = array2table(b2_matrix_dummy);
 
     %
-% % % %     data_out.bulkparameters = array2table([time_grid_aux(:), bulkpars_matrix_dummy]);    % this would be Sofar's format 
-% %     data_out.bulkparameters = array2table(bulkpars_matrix_dummy);
+% % % %     data_out.spectra = array2table([time_grid_aux(:), bulkpars_matrix_dummy]);    % this would be Sofar's format 
+% %     data_out.spectra = array2table(bulkpars_matrix_dummy);
 % % 
 % %     % Rename variables in the table of bulk parameters
-% %     data_out.bulkparameters = renamevars(data_out.bulkparameters, ...
-% %                                          data_out.bulkparameters.Properties.VariableNames, ...
+% %     data_out.spectra = renamevars(data_out.spectra, ...
+% %                                          data_out.spectra.Properties.VariableNames, ...
 % %                           ["Significant Wave Height", "Mean Period", "Peak Period", ...
 % %                            "Mean Direction", "Peak Direction", "Mean Spreading", "Peak Spreading"]);
 
 
     % Keep it as an array instead
-    data_out.bulkparameters.a1 = a1_matrix_dummy;
-    data_out.bulkparameters.a2 = a2_matrix_dummy;
-    data_out.bulkparameters.b1 = b1_matrix_dummy;
-    data_out.bulkparameters.b2 = b2_matrix_dummy;
+    data_out.spectra.a1 = a1_matrix_dummy;
+    data_out.spectra.a2 = a2_matrix_dummy;
+    data_out.spectra.b1 = b1_matrix_dummy;
+    data_out.spectra.b2 = b2_matrix_dummy;
 
     %
-    data_out.bulkparameters.freqband = freq_lims;
+    data_out.spectra.freqband = freq_lims;
 
     %
-    data_out.bulkparameters.Hsig = bulkpars_matrix_dummy(:, 1);
+    data_out.spectra.Hsig = bulkpars_matrix_dummy(:, 1);
     %
-    data_out.bulkparameters.Tmean = bulkpars_matrix_dummy(:, 2);
-    data_out.bulkparameters.meandir = bulkpars_matrix_dummy(:, 4);
-    data_out.bulkparameters.meandirspread = bulkpars_matrix_dummy(:, 6);
+    data_out.spectra.Tmean = bulkpars_matrix_dummy(:, 2);
+    data_out.spectra.meandir = bulkpars_matrix_dummy(:, 4);
+    data_out.spectra.meandirspread = bulkpars_matrix_dummy(:, 6);
     %
-    data_out.bulkparameters.Tpeak = bulkpars_matrix_dummy(:, 3);
-    data_out.bulkparameters.peakdir = bulkpars_matrix_dummy(:, 5);
-    data_out.bulkparameters.peakdirspread = bulkpars_matrix_dummy(:, 7);
+    data_out.spectra.Tpeak = bulkpars_matrix_dummy(:, 3);
+    data_out.spectra.peakdir = bulkpars_matrix_dummy(:, 5);
+    data_out.spectra.peakdirspread = bulkpars_matrix_dummy(:, 7);
     %
-    data_out.bulkparameters.a1_bar = bulkpars_matrix_dummy(:, 8);
-    data_out.bulkparameters.b1_bar = bulkpars_matrix_dummy(:, 9);
+    data_out.spectra.a1_bar = bulkpars_matrix_dummy(:, 8);
+    data_out.spectra.b1_bar = bulkpars_matrix_dummy(:, 9);
 
 
     %% Trim out zero frequency and the first two non-zero frequencies
@@ -681,18 +681,18 @@ for i = 1:length(list_spotters)
     % above can compute them)
 
     %
-    data_out.bulkparameters.frequency = f(4:end);
+    data_out.spectra.frequency = f(4:end);
 
     %
-    data_out.bulkparameters.a1 = data_out.bulkparameters.a1(:, 4:end);
-    data_out.bulkparameters.a2 = data_out.bulkparameters.a2(:, 4:end);
-    data_out.bulkparameters.b1 = data_out.bulkparameters.b1(:, 4:end);
-    data_out.bulkparameters.b2 = data_out.bulkparameters.b2(:, 4:end);
+    data_out.spectra.a1 = data_out.spectra.a1(:, 4:end);
+    data_out.spectra.a2 = data_out.spectra.a2(:, 4:end);
+    data_out.spectra.b1 = data_out.spectra.b1(:, 4:end);
+    data_out.spectra.b2 = data_out.spectra.b2(:, 4:end);
     %
-    data_out.bulkparameters.See = data_out.bulkparameters.Ezz(:, 4:end);
+    data_out.spectra.See = data_out.spectra.Ezz(:, 4:end);
 
     %
-    data_out.bulkparameters = rmfield(data_out.bulkparameters, 'Ezz');
+    data_out.spectra = rmfield(data_out.spectra, 'Ezz');
 
 
     %% Rename variables to be consistent with Sofar
@@ -781,7 +781,7 @@ for i = 1:length(list_spotters)
 % %     data_out.location.time.TimeZone = 'America/Los_Angeles';
 
     %
-    data_out.bulkparameters.dtime.TimeZone = 'America/Los_Angeles';
+    data_out.spectra.dtime.TimeZone = 'America/Los_Angeles';
     data_out.displacement.dtime.TimeZone = 'America/Los_Angeles';
     data_out.location.dtime.TimeZone = 'America/Los_Angeles';
 
@@ -861,8 +861,8 @@ for i = 1:length(list_spotters)
             time_raw_displacement = data_aux.displacement.time;
             time_raw_displacement.TimeZone = spotterL1.displacement.dtime.TimeZone;
             %
-            time_raw_stats = data_aux.bulkparameters.time;
-            time_raw_stats.TimeZone = spotterL1.bulkparameters.dtime.TimeZone;
+            time_raw_stats = data_aux.spectra.time;
+            time_raw_stats.TimeZone = spotterL1.spectra.dtime.TimeZone;
 
             % Plot vertical displacement
             if any(strcmp(data_aux.displacement.Properties.VariableNames, "z(m)"))
@@ -874,21 +874,21 @@ for i = 1:length(list_spotters)
             
             % Plot significant wave hieght
             plot(haxs_2, time_raw_stats, data_aux.bulkparameters.("Significant Wave Height"), '.-')
-            plot(haxs_2, spotterL1.bulkparameters.dtime, spotterL1.bulkparameters.Hsig, '.-k')
+            plot(haxs_2, spotterL1.spectra.dtime, spotterL1.spectra.Hsig, '.-k')
             
             % Plot mean period
             plot(haxs_3, time_raw_stats, data_aux.bulkparameters.("Mean Period"), '.-')
-            plot(haxs_3, spotterL1.bulkparameters.dtime, spotterL1.bulkparameters.Tmean, '.-k')
+            plot(haxs_3, spotterL1.spectra.dtime, spotterL1.spectra.Tmean, '.-k')
             % Plot mean direction
             plot(haxs_4, time_raw_stats, data_aux.bulkparameters.("Mean Direction"), '.-')
-            plot(haxs_4, spotterL1.bulkparameters.dtime, spotterL1.bulkparameters.meandir, '.-k')
+            plot(haxs_4, spotterL1.spectra.dtime, spotterL1.spectra.meandir, '.-k')
 
         %
         time_trim_1 = trim_edge_1;
         time_trim_2 = trim_edge_2;
         %
-        time_trim_1.TimeZone = spotterL1.bulkparameters.dtime.TimeZone;
-        time_trim_2.TimeZone = spotterL1.bulkparameters.dtime.TimeZone;
+        time_trim_1.TimeZone = spotterL1.spectra.dtime.TimeZone;
+        time_trim_2.TimeZone = spotterL1.spectra.dtime.TimeZone;
         %
         time_lims_plt = [time_trim_1; time_trim_2] + [-hours(24); +hours(24)];
 
@@ -898,9 +898,9 @@ for i = 1:length(list_spotters)
                       'XLim', time_lims_plt);
         set(haxs_all(1:end-1), 'XTickLabel', [])
         % Set ylims of plots 2-4
-        set(haxs_all(2), 'YLim', [0, 1.1*max(spotterL1.bulkparameters.Hsig)])
-        set(haxs_all(3), 'YLim', [min(spotterL1.bulkparameters.Tmean), max(spotterL1.bulkparameters.Tmean)])
-        set(haxs_all(4), 'YLim', [min(spotterL1.bulkparameters.meandir), max(spotterL1.bulkparameters.meandir)])
+        set(haxs_all(2), 'YLim', [0, 1.1*max(spotterL1.spectra.Hsig)])
+        set(haxs_all(3), 'YLim', [min(spotterL1.spectra.Tmean), max(spotterL1.spectra.Tmean)])
+        set(haxs_all(4), 'YLim', [min(spotterL1.spectra.meandir), max(spotterL1.spectra.meandir)])
         %
         linkaxes(haxs_all, 'x')
 

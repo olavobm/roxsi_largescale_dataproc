@@ -25,7 +25,7 @@ close all
 
 % %
 % dir_data_parent = "/Volumes/ROXSI_Data/LargeScale_Data_2022/RAW/";
-dir_data_parent = '/project/CSIDE/ROXSI/LargeScale_Data_2022/';
+dir_data_parent = '/project/CSIDE/ROXSI/LargeScale_Data_2022/RAW/';
 
 
 %% Define output directories
@@ -98,6 +98,10 @@ nfft = 256;
 noverlap = nfft/2;
 window = hanning(nfft);
 
+% Frequency limits for computing bulk statistics
+% freq_lims = [0.029, 1.245];
+freq_lims = [0.045, 0.3];
+
 
 %% Load Spotter deployment info.
 
@@ -164,6 +168,9 @@ for i = 1:length(list_spotters)
     %% A basic plot of Sofar's significant height
     %
     figure
+        %
+        hold on
+        %
         plot(data_aux.bulkparameters.time, ...
              data_aux.bulkparameters.("Significant Wave Height"), '.-')
 
@@ -172,16 +179,18 @@ for i = 1:length(list_spotters)
         trim_edge_2 = datetime(datenum(spotter_dplt.time_end_trim(ind_match), 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum');
 
         %
-        overlayline('v', trim_edge_1, '--k')
-        overlayline('v', trim_edge_2, '--k')
-
-        %
         xaxs_lims = [datetime(2022, 06, 15), datetime(2022, 07, 23)];
         xlim(xaxs_lims)
 
         %
         grid on
         set(gca, 'FontSize', 16, 'Box', 'on')
+
+        %
+        ylim_aux = ylim;
+        plot([trim_edge_1, trim_edge_1], ylim_aux, '--k')
+        plot([trim_edge_2, trim_edge_2], ylim_aux, '--k')
+        ylim(ylim_aux)
 
         %
         title([list_spotters{i}(1:3) '-' list_spotters{i}(9:12)], 'FontSize', 18)
@@ -533,10 +542,16 @@ for i = 1:length(list_spotters)
     prealloc_aux = NaN(length(time_grid_aux), 128);
 
     %
-    data_out.timestats = time_grid_aux(:);
+    data_out.bulkparameters.dt = diff(time_grid_aux(1:2));
+    data_out.bulkparameters.dtime = time_grid_aux(:);
     %
-    data_out.frequency = [];
-    data_out.Ezz = prealloc_aux;
+    data_out.bulkparameters.df = 1/(dt*nfft);
+    data_out.bulkparameters.frequency = [];
+    %
+    data_out.bulkparameters.Ezz = prealloc_aux;
+    % DOF assuming 50% and subtracting 2 because the overlap
+    % makes the chunks not entirely independent
+    data_out.bulkparameters.DOF = 2*(2*floor((60*dt_bulkstats/0.4)/nfft) - 1) - 2;
 
     %
     a1_matrix_dummy = prealloc_aux;
@@ -582,7 +597,7 @@ for i = 1:length(list_spotters)
          T_peak, dir_peak, spread_peak, ...
          a1_bar, b1_bar, DOF] = ...
                     wave_spec_fourier_displacement(x_data_aux, y_data_aux, z_data_aux, ...
-                                                   dt, nfft, noverlap, window, [0.029, 1.245]);
+                                                   dt, nfft, noverlap, window, freq_lims);
 
         % Sofar's frequencies are 0 : 0.009765625 : 1.240234375,
         % where the first 3 are NaNs. For default parameters, there
@@ -593,10 +608,10 @@ for i = 1:length(list_spotters)
 
         % Put Spectra in output structure
         if i2==1
-            data_out.frequency = f(1:end-1);
+            data_out.bulkparameters.frequency = f(1:end-1);
         end
         %
-        data_out.Ezz(i2, 4:end) = Ezz(4:end-1);
+        data_out.bulkparameters.Ezz(i2, 4:end) = Ezz(4:end-1);
 
         % Put Fourier coefficients in output structure
         a1_matrix_dummy(i2, 4:end) = a1(4:end-1);    % starts at 4 (frequencies higher than 0.029 Hz) because that's what Sofar does.
@@ -617,153 +632,171 @@ for i = 1:length(list_spotters)
 
     %% Convert arrays to tables
 
-    keyboard
+% %     %
+% %     data_out.a1 = array2table(a1_matrix_dummy);
+% %     data_out.a2 = array2table(a2_matrix_dummy);
+% %     data_out.b1 = array2table(b1_matrix_dummy);
+% %     data_out.b2 = array2table(b2_matrix_dummy);
 
     %
-    data_out.a1 = array2table(a1_matrix_dummy);
-    data_out.a2 = array2table(a2_matrix_dummy);
-    data_out.b1 = array2table(b1_matrix_dummy);
-    data_out.b2 = array2table(b2_matrix_dummy);
+% % % %     data_out.bulkparameters = array2table([time_grid_aux(:), bulkpars_matrix_dummy]);    % this would be Sofar's format 
+% %     data_out.bulkparameters = array2table(bulkpars_matrix_dummy);
+% % 
+% %     % Rename variables in the table of bulk parameters
+% %     data_out.bulkparameters = renamevars(data_out.bulkparameters, ...
+% %                                          data_out.bulkparameters.Properties.VariableNames, ...
+% %                           ["Significant Wave Height", "Mean Period", "Peak Period", ...
+% %                            "Mean Direction", "Peak Direction", "Mean Spreading", "Peak Spreading"]);
+
+
+    % Keep it as an array instead
+    data_out.bulkparameters.a1 = a1_matrix_dummy;
+    data_out.bulkparameters.a2 = a2_matrix_dummy;
+    data_out.bulkparameters.b1 = b1_matrix_dummy;
+    data_out.bulkparameters.b2 = b2_matrix_dummy;
 
     %
-%     data_out.bulkparameters = array2table([time_grid_aux(:), bulkpars_matrix_dummy]);    % this would be Sofar's format 
-    data_out.bulkparameters = array2table(bulkpars_matrix_dummy);
+    data_out.bulkparameters.freqband = freq_lims;
 
-    % Rename variables in the table of bulk parameters
-    data_out.bulkparameters = renamevars(data_out.bulkparameters, ...
-                                         data_out.bulkparameters.Properties.VariableNames, ...
-                          ["Significant Wave Height", "Mean Period", "Peak Period", ...
-                           "Mean Direction", "Peak Direction", "Mean Spreading", "Peak Spreading"]);
-               
+    %
+    data_out.bulkparameters.Hsig = bulkpars_matrix_dummy(:, 1);
+    %
+    data_out.bulkparameters.Tmean = bulkpars_matrix_dummy(:, 2);
+    data_out.bulkparameters.dirmean = bulkpars_matrix_dummy(:, 4);
+    data_out.bulkparameters.dirspreadmean = bulkpars_matrix_dummy(:, 6);
+    %
+    data_out.bulkparameters.Tpeak = bulkpars_matrix_dummy(:, 3);
+    data_out.bulkparameters.dirpeak = bulkpars_matrix_dummy(:, 5);
+    data_out.bulkparameters.dirspreadpeak = bulkpars_matrix_dummy(:, 7);
+    %
+    data_out.bulkparameters.a1_bar = bulkpars_matrix_dummy(:, 8);
+    data_out.bulkparameters.b1_bar = bulkpars_matrix_dummy(:, 9);
+
+
+    %% Trim out zero frequency and the first two non-zero frequencies
+    % that Sofar does not give in their processing (though the code
+    % above can compute them)
+
+    %
+    data_out.bulkparameters.a1 = data_out.bulkparameters.a1(:, 4:end);
+    data_out.bulkparameters.a2 = data_out.bulkparameters.a2(:, 4:end);
+    data_out.bulkparameters.a3 = data_out.bulkparameters.a3(:, 4:end);
+    data_out.bulkparameters.a4 = data_out.bulkparameters.a4(:, 4:end);
+    %
+    data_out.bulkparameters.See = data_out.bulkparameters.Ezz(:, 4:end);
+
 
     %% Rename variables to be consistent with Sofar
 
-% %     % 9 decimal points is the maximum nonzero number of nonzero digits
-% %     names_frequency_char = num2str(f, '%.10f');    % First convert to char -- it's a matrix!
-% %     %
-% %     names_frequency_string = strings(1, length(data_out.frequency));    
-% % 
-% %     %
-% %     for i2 = 1:length(data_out.frequency)
-% %         % First deal with 0 frequency
-% %         if strcmp(names_frequency_char(i2, :), num2str(0, '%.10f'))
-% %             names_frequency_string(i2) = "0.0";
-% %         %
-% %         else
-% %             %
-% %             inds_loc_0 = strfind(names_frequency_char(i2, :), '0');
-% %             %
-% %             if length(inds_loc_0)==1
-% %                 names_frequency_string(i2) = convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(end)-1)));
-% %             else
-% % 
-% %                 %
-% %                 diff_inds_0 = diff(inds_loc_0);
-% %                 %
-% %                 ind_first_final_0 = find(diff_inds_0 > 1, 1, 'last') + 1;
-% % 
-% %                 %
-% %                 if isempty(ind_first_final_0)
-% %                     ind_first_final_0 = 1;
-% %                 end
-% % 
-% %                 %
-% %                 names_frequency_string(i2) = ...
-% %                                 convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(ind_first_final_0) - 1)));
-% %             end
-% %             
-% %             
-% %         end
-% %     end
-% % 
-% %     % Rename variables in the tables of coeffcients
-% %     data_out.a1 = renamevars(data_out.a1, data_out.a1.Properties.VariableNames, names_frequency_string);
-% %     data_out.a2 = renamevars(data_out.a2, data_out.a2.Properties.VariableNames, names_frequency_string);
-% %     data_out.b1 = renamevars(data_out.b1, data_out.b1.Properties.VariableNames, names_frequency_string);
-% %     data_out.b2 = renamevars(data_out.b2, data_out.b2.Properties.VariableNames, names_frequency_string);
+%     % 9 decimal points is the maximum nonzero number of nonzero digits
+%     names_frequency_char = num2str(f, '%.10f');    % First convert to char -- it's a matrix!
+%     %
+%     names_frequency_string = strings(1, length(data_out.frequency));    
+% 
+%     %
+%     for i2 = 1:length(data_out.frequency)
+%         % First deal with 0 frequency
+%         if strcmp(names_frequency_char(i2, :), num2str(0, '%.10f'))
+%             names_frequency_string(i2) = "0.0";
+%         %
+%         else
+%             %
+%             inds_loc_0 = strfind(names_frequency_char(i2, :), '0');
+%             %
+%             if length(inds_loc_0)==1
+%                 names_frequency_string(i2) = convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(end)-1)));
+%             else
+% 
+%                 %
+%                 diff_inds_0 = diff(inds_loc_0);
+%                 %
+%                 ind_first_final_0 = find(diff_inds_0 > 1, 1, 'last') + 1;
+% 
+%                 %
+%                 if isempty(ind_first_final_0)
+%                     ind_first_final_0 = 1;
+%                 end
+% 
+%                 %
+%                 names_frequency_string(i2) = ...
+%                                 convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(ind_first_final_0) - 1)));
+%             end
+%             
+%             
+%         end
+%     end
+% 
+%     % Rename variables in the tables of coeffcients
+%     data_out.a1 = renamevars(data_out.a1, data_out.a1.Properties.VariableNames, names_frequency_string);
+%     data_out.a2 = renamevars(data_out.a2, data_out.a2.Properties.VariableNames, names_frequency_string);
+%     data_out.b1 = renamevars(data_out.b1, data_out.b1.Properties.VariableNames, names_frequency_string);
+%     data_out.b2 = renamevars(data_out.b2, data_out.b2.Properties.VariableNames, names_frequency_string);
 
-
-    %%
-    % 9 decimal points is the maximum nonzero number of nonzero digits
-    names_frequency_char = num2str(f, '%.10f');    % First convert to char -- it's a matrix!
-    %
-    names_frequency_string = strings(1, length(data_out.frequency));    
-
-    %
-    for i2 = 1:length(data_out.frequency)
-        % First deal with 0 frequency
-        if strcmp(names_frequency_char(i2, :), num2str(0, '%.10f'))
-            names_frequency_string(i2) = "0.0";
-        %
-        else
-            %
-            inds_loc_0 = strfind(names_frequency_char(i2, :), '0');
-            %
-            if length(inds_loc_0)==1
-                names_frequency_string(i2) = convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(end)-1)));
-            else
-
-                %
-                diff_inds_0 = diff(inds_loc_0);
-                %
-                ind_first_final_0 = find(diff_inds_0 > 1, 1, 'last') + 1;
-
-                %
-                if isempty(ind_first_final_0)
-                    ind_first_final_0 = 1;
-                end
-
-                %
-                names_frequency_string(i2) = ...
-                                convertCharsToStrings(names_frequency_char(i2, 1:(inds_loc_0(ind_first_final_0) - 1)));
-            end
-            
-            
-        end
-    end
-
-    % Rename variables in the tables of coeffcients
-    data_out.a1 = renamevars(data_out.a1, data_out.a1.Properties.VariableNames, names_frequency_string);
-    data_out.a2 = renamevars(data_out.a2, data_out.a2.Properties.VariableNames, names_frequency_string);
-    data_out.b1 = renamevars(data_out.b1, data_out.b1.Properties.VariableNames, names_frequency_string);
-    data_out.b2 = renamevars(data_out.b2, data_out.b2.Properties.VariableNames, names_frequency_string);
 
 
     %% PROBABLY NOT SUPER USEFUL, BUT IT MIGHT BE GOOD TO HAVE
     % THE HOURLY AVERAGE LOCATION TO GO ALONG WITH THE BULK STATISTICS
     
+
     %% Pass other tables to output structure
 
     % Pass displacement
-    data_out.displacement = data_trimmed.displacement;
+%     data_out.displacement = data_trimmed.displacement;
+    data_out.displacement.dtime = data_trimmed.displacement.time;
+    data_out.displacement.x = data_trimmed.displacement.("x (m)");
+    data_out.displacement.y = data_trimmed.displacement.("y (m)");
+    data_out.displacement.z = data_trimmed.displacement.("z (m)");
 
     % Pass location
-    data_out.location = data_trimmed.location;
+%     data_out.location = data_trimmed.location;
+    data_out.location.dtime = data_trimmed.location.time;
+    data_out.location.latitude = data_trimmed.location.("latitude (decimal degrees)");
+    data_out.location.longitude = data_trimmed.location.("longitude (decimal degrees)");
 
     % Pass sst (if it exists)
     if isfield(data_trimmed, "sst")
-        data_out.sst = data_trimmed.sst;
-        data_out.sst.time.TimeZone = 'America/Los_Angeles';
+% %         data_out.sst = data_trimmed.sst;
+% %         data_out.sst.time.TimeZone = 'America/Los_Angeles';
+        data_out.SST.dtime = data_trimmed.sst.time;
+        data_out.SST.dtime.TimeZone = 'America/Los_Angeles';
+        %
+        data_out.SST.temperature = data_trimmed.sst.("T (deg. Celcius)");
     end
 
 
     %% Add timezones to other datetime variables
 
-    %
-    data_out.timestats.TimeZone = 'America/Los_Angeles';
-    data_out.displacement.time.TimeZone = 'America/Los_Angeles';
-    data_out.location.time.TimeZone = 'America/Los_Angeles';
-    
+% %     %
+% %     data_out.timestats.TimeZone = 'America/Los_Angeles';
+% %     data_out.displacement.time.TimeZone = 'America/Los_Angeles';
+% %     data_out.location.time.TimeZone = 'America/Los_Angeles';
 
-    %% Change variable name and add metadata
+    %
+    data_out.bulkparameters.dtime.TimeZone = 'America/Los_Angeles';
+    data_out.displacement.dtime.TimeZone = 'America/Los_Angeles';
+    data_out.location.time.dtime.TimeZone = 'America/Los_Angeles';
+
+
+    %% Create and organize output structure (including metadata)
 
     %
     spotterL1.mooringID = list_spotters{i}(1:3);
     spotterL1.SN = list_spotters{i}(9:12);
     
     %
-    spotterL1.stats.dt = [num2str(dt_bulkstats/60) ' hour'];
-    spotterL1.stats.dtime = data_out.timestats;
+    loc_mooring = ROXSI_mooringlocation(list_spotters{i}(1:3));
+    %
+    spotterL1.site = loc_mooring.roxsiarray;
+
+    % Instead of the reference value that
+    % ROXSI_mooringlocation.m gives, use the data
+    spotterL1.latitude = mean(data_out.location.latitude);
+    spotterL1.longitude = mean(data_out.location.longitude);
+    
+
+% %     %
+% %     spotterL1.stats.dt = [num2str(dt_bulkstats/60) ' hour'];
+% %     spotterL1.stats.dtime = data_out.timestats;
 
     %
     list_fields_aux = fieldnames(data_out);
@@ -772,13 +805,17 @@ for i = 1:length(list_spotters)
     for i2 = 1:length(list_fields_aux)
         %
         spotterL1.(list_fields_aux{i2}) = data_out.(list_fields_aux{i2});
-        %
-        if strcmp(list_fields_aux{i2}, 'Ezz')
-            %
-            npts_perbulkstats = dt_bulkstats * 60/0.4;                              
-            %
-            spotterL1.DOF = 2*(2*floor(npts_perbulkstats/nfft) - 1) - 2;
-        end
+
+% %         %
+% %         if strcmp(list_fields_aux{i2}, 'Ezz')
+% %             %
+% %             npts_perbulkstats = dt_bulkstats * 60/0.4;
+% % 
+% %             % Degrees of freedom with ffts computed with 50% overlap
+% %             % (remove 2 just because the overlap makes the chunks
+% %             % not entirely independent)
+% %             spotterL1.DOF = 2*(2*floor(npts_perbulkstats/nfft) - 1) - 2;
+% %         end
     end
  
     %
@@ -789,12 +826,10 @@ for i = 1:length(list_spotters)
                         mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
                         'Data in the Level 1 structure has been trimmed for the deployment ' ...
                         'period, which is defined in the table at ' file_spotter_deployment '. ' ...
-                        'Ezz is surface vertical displacement spectra (in m2/Hz) and was ' ...
-                        'computed as analogous as possible to Sofar''s calculations. These ' ...
+                        'See is the spectra of vertical displacement of the sea surface (in m2/Hz) ' ...
+                        'and was computed as analogous as possible to Sofar''s calculations. These ' ...
                         'spectra, and all corresponding statistics, are calculated from ' ...
-                        'data centered at timestamps in the field timestats. Statistics are ' ...
-                        'calculated at temporal resolution dtstats in hours, with DOF '...
-                        'degrees of freedom.'];
+                        'data centered at the timestamps of the corresponding time vector (dtime).'];
 
 
     %% Make a plot of some of the basic variables
@@ -889,19 +924,23 @@ for i = 1:length(list_spotters)
         set(hfig_aux, 'Units', 'normalized')
         set(hfig_aux, 'Position', [0.5023, 0.0778, 0.2844, 0.3917])
 
+
+
+    %% Save the data and QC figure
+
+    % -----------------------------------
+    % Save QC figure
     %
     disp(['----- Save level 1 data plot at -----'])
     dir_QCfig
-    exportgraphics(hfig_aux, fullfile(dir_QCfig, [list_spotters{i} '_spotter_L1_data.png']), 'Resolution', 300)
+    exportgraphics(hfig_aux, fullfile(dir_QCfig, ['spotter_L1_data_' list_spotters{i} '.png']), 'Resolution', 300)
 
 
-
-    %% Save the data
-
+    % -----------------------------------
+    % Save data
     %
-    str_filename = ['spotter_L1_' list_spotters{i}(1:3) '_' list_spotters{i}(9:12)];
+    str_filename = ['roxsi_spotter_L1_' list_spotters{i}(1:3) '_' list_spotters{i}(9:12)];
     str_fullpath_file = fullfile(dir_outlvl1, [str_filename '.mat']);
-
     %
     disp(['----- Saving level 1 data from Spotter ' list_spotters{i} ' at:-----'])
     str_fullpath_file
@@ -909,9 +948,12 @@ for i = 1:length(list_spotters)
     %
     save(str_fullpath_file, 'spotterL1', '-v7.3')
 
+
+    % -----------------------------------
     %
     disp(['----------------- Done with level 1 data processing for Spotter ' list_spotters{i} ' -----------------'])
 
+    keyboard
     %
     clear spotterL1
 

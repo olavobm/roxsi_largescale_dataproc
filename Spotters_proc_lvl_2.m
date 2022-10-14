@@ -8,14 +8,33 @@ close all
 
 
 %%
-% -----------------------------------------------------
-% ----------------- PRELIMINARY STUFF -----------------
-% -----------------------------------------------------
+% --------------------------------------
+% -------- SET DIRECTORY PATHS ---------
+% --------------------------------------
+
 
 %%
 
 %
-dir_data_level_1 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+% % dir_data_level_1 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+dir_data_level_1 = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+
+
+%%
+
+% Output directory
+% % dir_output_level_2 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
+dir_output_level_2 = pwd;
+
+
+%%
+% -------------------------------------------
+% --- DEFINE VARIABLES FOR DATA PROCESSING --
+% -------------------------------------------
+
+%%
+
+
 
  
 % % All Spotters and Smart Moorings
@@ -44,19 +63,6 @@ list_Spotters = {'B03_spot1152', 'B05_spot1153', ...
 % list_Spotters = {'B01_spot1150', 'B01_spot1158'};
 list_Spotters = {'B01_spot1158'};
 
-% Output directory
-dir_output_level_2 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
-
-
-% Print message to the screen:
-disp(' '), disp(' ')
-%
-disp('Will compute directional spectrum for Spotters:')
-list_Spotters
-%
-disp('Output directory is')
-dir_output_level_2
-
 
 %% Load the location file with bathymetry
 % (actually, elevation to mean sea level)
@@ -83,31 +89,28 @@ spotter_location = spotter_location.spotter_location;
 
 %% Add WAFO toolbox to Matlab path
 
+% % %
+% % % addpath(genpath(fullfile(repo_dirpath(), 'wafo')))
+% % addpath(genpath(fullfile(repo_dirpath(), 'Spotter_DirectionalSpectra', 'wafo')))
 %
-% addpath(genpath(fullfile(repo_dirpath(), 'wafo')))
-addpath(genpath(fullfile(repo_dirpath(), 'Spotter_DirectionalSpectra', 'wafo')))
+roxsi_add_libraries()
 
 
 %%
-% ------------------------------------------------------
-% --------- DEFINE PARAMETERS FOR DIRECTIONAL ----------
-% ----------------- SPECTRA CALCULATION ----------------
-% ------------------------------------------------------
 
-
-%%
 %
-dt = 0.4; %the sampling interval in seconds
-nfft = 256; %the number of points in each window (nfft)
-dtheta = 1; %the angle bin width for the spectral analysis
-analysis_period_hours = 0.5; %the analysis period in hours. 
+dt = 0.4;    % the sampling interval in seconds
+nfft = 256;    % the number of points in each window (nfft)
+dtheta = 1;    % the angle bin width for the spectral analysis
+analysis_period_hours = 0.5;    % the analysis period in hours. 
 
 
 %%
+
 % % dspec_method = ["EMEM","IMLM","MLM","MEM"]; % the directional algorithms to use
-
 % dspec_method = ["EMEM","IMLM","MLM"]; % the directional algorithms to use
 
+%
 dspec_method = "EMEM";
 
 % CHECK that the index for the displacement and location files are
@@ -119,6 +122,7 @@ dspec_method = "EMEM";
 % 'IMLM' Iterative  Maximum Likelihood Method 
 % 'MEM'  Maximum Entropy Method   (slow)
 % 'EMEM' Extended Maximum Entropy Method
+
 
 %%
 
@@ -156,9 +160,28 @@ pos = [0,  0,  0; ...
 
 
 %%
-% ------------------------------------------------------
-% ------------ COMPUTE DIRECTIONAL SPECTRA -------------
-% ------------------------------------------------------
+% -------------------------------------------------------------------------
+% --------------------------- DO DATA PROCESSING --------------------------
+% --------------------- (COMPUTE DIRECTIONAL SPECTRA) ---------------------
+% -------------------------------------------------------------------------
+
+%%
+
+%
+log_file_name = ['log_Spotter_procL2_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
+diary(fullfile(dir_outlvl1, log_file_name))
+%
+totalRunTime = tic;
+
+
+%%
+
+disp(' '), disp(' ')
+disp('------------------------------ L2 data processing for Spotters: ------------------------------')
+for i = 1:length(list_Spotters)
+    disp([num2str(i) ' - ' list_Spotters{i}])
+end
+
 
 %%
 
@@ -214,6 +237,7 @@ for i = 1:length(list_Spotters)
     vars2dirspectra.spotterdisp.y = data_buoy.displacement.("y (m)")(lintrim_edges);
     vars2dirspectra.spotterdisp.z = data_buoy.displacement.("z (m)")(lintrim_edges);
 
+    
     %%
     %
 % %     %
@@ -325,13 +349,10 @@ for i = 1:length(list_Spotters)
             if lprogress_switch
 
                 %
-                disp(' ')
-                disp(' ')
-                %
-                toc
-                %
+                disp(' '), disp(' ')
                 disp(['----- Done with analysis period ' num2str(sample) ' ' ...
                       'out of ' num2str(analysis_periods) ' -----'])
+                toc
                 %
                 lprogress_switch = false;
             end
@@ -359,45 +380,45 @@ keyboard
 
     % ---------------------------------
     %
-    dspec.site = list_Spotters{i}(1:3);
-    dspec.SN = list_Spotters{i}(end-3:end);
+    spotterL2.site = list_Spotters{i}(1:3);
+    spotterL2.SN = list_Spotters{i}(end-3:end);
     %
-    dspec.latitude = lat(:);
-    dspec.longitude = lon(:);
+    spotterL2.latitude = lat(:);
+    spotterL2.longitude = lon(:);
     %
-    dspec.depth = depth(:);
+    spotterL2.depth = depth(:);
     
     %
-    dspec.dthour = analysis_period_hours;
-    dspec.dtime = dtime(:);
+    spotterL2.dthour = analysis_period_hours;
+    spotterL2.dtime = dtime(:);
     
     % ---------------------------------
 
     % 
-    dspec.df = f(2) - f(1);
-    dspec.nfft = nfft;
-    dspec.frequency = f;
+    spotterL2.df = f(2) - f(1);
+    spotterL2.nfft = nfft;
+    spotterL2.frequency = f;
     
     %
-    dspec.S_f = S_f_temp;
+    spotterL2.S_f = S_f_temp;
 
     % ---------------------------------
     % Directional spectrum
 
     %
-    dspec.direction_nautical = dir_naut;
+    spotterL2.direction_nautical = dir_naut;
     
 
     % The list of methods used in the calculation
     % of the directional spectra
-    dspec.list_methods_dirspec = dspec_method;
+    spotterL2.list_methods_dirspec = dspec_method;
 
-    % Save each dspec method to the dspec structure
+    % Save each dspec method to the spotterL2 structure
     for jj = 1 : length(dspec_method)
 
         %
-        dspec.(dspec_method(jj)).S_f_theta = S_f_theta_temp(:, ind, :, jj);
-        dspec.(dspec_method(jj)).D_f_theta = D_f_theta_temp(:, ind, :, jj);
+        spotterL2.(dspec_method(jj)).S_f_theta = S_f_theta_temp(:, ind, :, jj);
+        spotterL2.(dspec_method(jj)).D_f_theta = D_f_theta_temp(:, ind, :, jj);
 
     end
 
@@ -406,29 +427,29 @@ keyboard
     %% Compute bulk parameters from wave spectrum
 
     %
-    [freq_peak, freq_mean, Hsig] = bulkstats_from_wave_spectrum(dspec.frequency, dspec.S_f);
+    [freq_peak, freq_mean, Hsig] = bulkstats_from_wave_spectrum(spotterL2.frequency, spotterL2.S_f);
     %
-    dspec.peak_f = freq_peak(:);
-    dspec.mean_f = freq_mean(:);
-    dspec.Hsig = Hsig(:);
+    spotterL2.peak_f = freq_peak(:);
+    spotterL2.mean_f = freq_mean(:);
+    spotterL2.Hsig = Hsig(:);
 
     %
     for i2 = 1 : length(dspec_method)
 
         %
-        bulkstats_aux = bulkstats_from_wave_dirspectrum(dspec.frequency, dspec.direction_nautical, ...
-                                                        dspec.(dspec_method(i2)).D_f_theta, dspec.(dspec_method(i2)).S_f_theta, ...
-                                                        dspec.S_f);
+        bulkstats_aux = bulkstats_from_wave_dirspectrum(spotterL2.frequency, spotterL2.direction_nautical, ...
+                                                        spotterL2.(dspec_method(i2)).D_f_theta, spotterL2.(dspec_method(i2)).S_f_theta, ...
+                                                        spotterL2.S_f);
     
         %
-        dspec.(dspec_method(i2)).mean_dir_f = bulkstats_aux.dir_mean_f;
-        dspec.(dspec_method(i2)).mean_spread_f = bulkstats_aux.spread_mean_f;
+        spotterL2.(dspec_method(i2)).mean_dir_f = bulkstats_aux.dir_mean_f;
+        spotterL2.(dspec_method(i2)).mean_spread_f = bulkstats_aux.spread_mean_f;
         %
-        dspec.(dspec_method(i2)).mean_dir = bulkstats_aux.dir_mean(:);
-        dspec.(dspec_method(i2)).mean_spread = bulkstats_aux.spread_mean(:);
+        spotterL2.(dspec_method(i2)).mean_dir = bulkstats_aux.dir_mean(:);
+        spotterL2.(dspec_method(i2)).mean_spread = bulkstats_aux.spread_mean(:);
         %
-        dspec.(dspec_method(i2)).peak_dir = bulkstats_aux.dir_peak(:);
-        dspec.(dspec_method(i2)).peak_spread = bulkstats_aux.spread_peak(:);
+        spotterL2.(dspec_method(i2)).peak_dir = bulkstats_aux.dir_peak(:);
+        spotterL2.(dspec_method(i2)).peak_spread = bulkstats_aux.spread_peak(:);
     end
 
 
@@ -437,18 +458,18 @@ keyboard
     disp(['--- Saving full directional spectra for ' list_Spotters{i} ' ---'])
     %
     fname = fullfile(dir_output_level_2, [list_Spotters{i} '_dspec.mat']);
-    save(fname, "dspec" , '-v7.3')
+    save(fname, "spotterL2" , '-v7.3')
 
     %
     disp(['--- Saving reduced (averaged) spectra for ' list_Spotters{i} ' ---'])
     %
     for i2 = 1:length(dspec_method)
-        dspec.(dspec_method(i2)) = rmfield(dspec.(dspec_method(i2)), 'S_f_theta');
-        dspec.(dspec_method(i2)) = rmfield(dspec.(dspec_method(i2)), 'D_f_theta');
+        spotterL2.(dspec_method(i2)) = rmfield(spotterL2.(dspec_method(i2)), 'S_f_theta');
+        spotterL2.(dspec_method(i2)) = rmfield(spotterL2.(dspec_method(i2)), 'D_f_theta');
     end
     %
     fname = fullfile(dir_output_level_2, [list_Spotters{i} '_dspec_reduced.mat']);
-    save(fname, "dspec" , '-v7.3')
+    save(fname, "spotterL2" , '-v7.3')
 
 
     %% Plot displacement spectrum (averaged in direcion, 
@@ -456,7 +477,7 @@ keyboard
 
     %
     hfig_spec = figure;
-        pcolor(dspec.dtime, dspec.f, log10(dspec.S_f))
+        pcolor(spotterL2.dtime, spotterL2.f, log10(spotterL2.S_f))
         shading flat
 
         %
@@ -500,6 +521,21 @@ keyboard
           'for Spotter ' list_Spotters{i} ' ------------------'])
 end
 
+
+
+%% End log file
+
+%
+disp('###################### Done with L2 data processing for all Spotters ######################')
+
+%
+disp(' '), disp(' ')
+disp('*** The total time to run the data processing was:')
+%
+toc(totalRunTime)
+
+% Close the log file
+diary('off');
 
 
 

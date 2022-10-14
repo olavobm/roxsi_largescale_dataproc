@@ -958,9 +958,12 @@ for i = 1:length(list_spotters)
     %
     disp(['----------------- Done with level 1 data processing for Spotter ' list_spotters{i} ' -----------------'])
 
-    keyboard
     %
     clear spotterL1
+% %     close% close figures
+
+    %
+    toc(totalRunTime)
 
 
 end

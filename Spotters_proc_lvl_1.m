@@ -664,12 +664,12 @@ for i = 1:length(list_spotters)
     data_out.bulkparameters.Hsig = bulkpars_matrix_dummy(:, 1);
     %
     data_out.bulkparameters.Tmean = bulkpars_matrix_dummy(:, 2);
-    data_out.bulkparameters.dirmean = bulkpars_matrix_dummy(:, 4);
-    data_out.bulkparameters.dirspreadmean = bulkpars_matrix_dummy(:, 6);
+    data_out.bulkparameters.meandir = bulkpars_matrix_dummy(:, 4);
+    data_out.bulkparameters.meandirspread = bulkpars_matrix_dummy(:, 6);
     %
     data_out.bulkparameters.Tpeak = bulkpars_matrix_dummy(:, 3);
-    data_out.bulkparameters.dirpeak = bulkpars_matrix_dummy(:, 5);
-    data_out.bulkparameters.dirspreadpeak = bulkpars_matrix_dummy(:, 7);
+    data_out.bulkparameters.peakdir = bulkpars_matrix_dummy(:, 5);
+    data_out.bulkparameters.peakdirspread = bulkpars_matrix_dummy(:, 7);
     %
     data_out.bulkparameters.a1_bar = bulkpars_matrix_dummy(:, 8);
     data_out.bulkparameters.b1_bar = bulkpars_matrix_dummy(:, 9);
@@ -853,10 +853,10 @@ for i = 1:length(list_spotters)
 
             %
             time_raw_displacement = data_aux.displacement.time;
-            time_raw_displacement.TimeZone = spotterL1.timestats.TimeZone;
+            time_raw_displacement.TimeZone = spotterL1.displacement.dtime.TimeZone;
             %
             time_raw_stats = data_aux.bulkparameters.time;
-            time_raw_stats.TimeZone = spotterL1.timestats.TimeZone;
+            time_raw_stats.TimeZone = spotterL1.bulkparameters.dtime.TimeZone;
 
             % Plot vertical displacement
             if any(strcmp(data_aux.displacement.Properties.VariableNames, "z(m)"))
@@ -868,21 +868,21 @@ for i = 1:length(list_spotters)
             
             % Plot significant wave hieght
             plot(haxs_2, time_raw_stats, data_aux.bulkparameters.("Significant Wave Height"), '.-')
-            plot(haxs_2, spotterL1.timestats, spotterL1.bulkparameters.("Significant Wave Height"), '.-k')
+            plot(haxs_2, spotterL1.bulkparameters.dtime, spotterL1.bulkparameters.Hsig, '.-k')
             
             % Plot mean period
             plot(haxs_3, time_raw_stats, data_aux.bulkparameters.("Mean Period"), '.-')
-            plot(haxs_3, spotterL1.timestats, spotterL1.bulkparameters.("Mean Period"), '.-k')
+            plot(haxs_3, spotterL1.bulkparameters.dtime, spotterL1.bulkparameters.Tmean, '.-k')
             % Plot mean direction
             plot(haxs_4, time_raw_stats, data_aux.bulkparameters.("Mean Direction"), '.-')
-            plot(haxs_4, spotterL1.timestats, spotterL1.bulkparameters.("Mean Direction"), '.-k')
+            plot(haxs_4, spotterL1.bulkparameters.dtime, spotterL1.bulkparameters.meandir, '.-k')
 
         %
         time_trim_1 = trim_edge_1;
         time_trim_2 = trim_edge_2;
         %
-        time_trim_1.TimeZone = spotterL1.timestats.TimeZone;
-        time_trim_2.TimeZone = spotterL1.timestats.TimeZone;
+        time_trim_1.TimeZone = spotterL1.bulkparameters.dtime.TimeZone;
+        time_trim_2.TimeZone = spotterL1.bulkparameters.dtime.TimeZone;
         %
         time_lims_plt = [time_trim_1; time_trim_2] + [-hours(24); +hours(24)];
 
@@ -892,9 +892,9 @@ for i = 1:length(list_spotters)
                       'XLim', time_lims_plt);
         set(haxs_all(1:end-1), 'XTickLabel', [])
         % Set ylims of plots 2-4
-        set(haxs_all(2), 'YLim', [0, 1.1*max(spotterL1.bulkparameters.("Significant Wave Height"))])
-        set(haxs_all(3), 'YLim', [min(spotterL1.bulkparameters.("Mean Period")), max(spotterL1.bulkparameters.("Mean Period"))])
-        set(haxs_all(4), 'YLim', [min(spotterL1.bulkparameters.("Mean Direction")), max(spotterL1.bulkparameters.("Mean Direction"))])
+        set(haxs_all(2), 'YLim', [0, 1.1*max(spotterL1.bulkparameters.Hsig)])
+        set(haxs_all(3), 'YLim', [min(spotterL1.bulkparameters.Tmean), max(spotterL1.bulkparameters.Tmean)])
+        set(haxs_all(4), 'YLim', [min(spotterL1.bulkparameters.meandir), max(spotterL1.bulkparameters.meandir)])
         %
         linkaxes(haxs_all, 'x')
 

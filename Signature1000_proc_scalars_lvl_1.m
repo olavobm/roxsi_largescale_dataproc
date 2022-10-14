@@ -71,8 +71,8 @@ list_Signature = {'A01_103043', ...
                   'X05_100231', ...
                   'X11_101941'};
 
-% % % Just a test
-% % list_Signature = {'A01_103043'};
+% Just a test
+list_Signature = {'A01_103043'};
 
 %
 Nsignatures = length(list_Signature);
@@ -272,6 +272,11 @@ for i1 = 1:Nsignatures
         sig1000.vel2 = prealloc_aux;
         sig1000.vel3 = prealloc_aux;
         sig1000.vel4 = prealloc_aux;
+        %
+        sig1000.cor1 = prealloc_aux;
+        sig1000.cor2 = prealloc_aux;
+        sig1000.cor3 = prealloc_aux;
+        sig1000.cor4 = prealloc_aux;
     end
 
     %
@@ -305,6 +310,11 @@ for i1 = 1:Nsignatures
             sig1000.vel2{i2} = dataread_aux.Data.Burst_VelBeam2(:, 1);
             sig1000.vel3{i2} = dataread_aux.Data.Burst_VelBeam3(:, 1);
             sig1000.vel4{i2} = dataread_aux.Data.Burst_VelBeam4(:, 1);
+            %
+            sig1000.cor1{i2} = dataread_aux.Data.Burst_CorBeam1(:, 1);
+            sig1000.cor2{i2} = dataread_aux.Data.Burst_CorBeam2(:, 1);
+            sig1000.cor3{i2} = dataread_aux.Data.Burst_CorBeam3(:, 1);
+            sig1000.cor4{i2} = dataread_aux.Data.Burst_CorBeam4(:, 1);
         end
 
 

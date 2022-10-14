@@ -146,7 +146,9 @@ totalRunTime = tic;
 
 disp(' '), disp(' ')
 disp('------------------------------ Processing data from Spotters: ------------------------------')
-list_spotters
+for i = 1:length(list_spotters)
+    disp([num2str(i) ' - ' list_spotters{i}])
+end
 
 
 %%
@@ -156,7 +158,7 @@ for i = 1:length(list_spotters)
 
     %
     disp(' '), disp(' ')
-    disp(['----------------- Loading data from Spotter ' list_spotters{i} ' -----------------'])
+    disp(['---- Loading data from Spotter ' list_spotters{i} ' ----'])
 
     %%
     data_aux = load(fullfile(dir_data_parsed(i), list_spotters{i}, 'parsed', [list_spotters{i} '.mat']));
@@ -680,8 +682,8 @@ for i = 1:length(list_spotters)
     %
     data_out.bulkparameters.a1 = data_out.bulkparameters.a1(:, 4:end);
     data_out.bulkparameters.a2 = data_out.bulkparameters.a2(:, 4:end);
-    data_out.bulkparameters.a3 = data_out.bulkparameters.a3(:, 4:end);
-    data_out.bulkparameters.a4 = data_out.bulkparameters.a4(:, 4:end);
+    data_out.bulkparameters.b1 = data_out.bulkparameters.b1(:, 4:end);
+    data_out.bulkparameters.b2 = data_out.bulkparameters.b2(:, 4:end);
     %
     data_out.bulkparameters.See = data_out.bulkparameters.Ezz(:, 4:end);
 

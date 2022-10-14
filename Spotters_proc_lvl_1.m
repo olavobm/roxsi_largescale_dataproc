@@ -550,7 +550,8 @@ for i = 1:length(list_spotters)
     data_out.bulkparameters.df = 1/(dt*nfft);
     data_out.bulkparameters.frequency = [];
     %
-    data_out.bulkparameters.Ezz = prealloc_aux;
+% %     data_out.bulkparameters.Ezz = prealloc_aux;
+    data_out.bulkparameters.See = [];
     % DOF assuming 50% and subtracting 2 because the overlap
     % makes the chunks not entirely independent
     data_out.bulkparameters.DOF = 2*(2*floor((60*dt_bulkstats/0.4)/nfft) - 1) - 2;
@@ -680,12 +681,18 @@ for i = 1:length(list_spotters)
     % above can compute them)
 
     %
+    data_out.bulkparameters.f = data_out.bulkparameters.f(4:end);
+
+    %
     data_out.bulkparameters.a1 = data_out.bulkparameters.a1(:, 4:end);
     data_out.bulkparameters.a2 = data_out.bulkparameters.a2(:, 4:end);
     data_out.bulkparameters.b1 = data_out.bulkparameters.b1(:, 4:end);
     data_out.bulkparameters.b2 = data_out.bulkparameters.b2(:, 4:end);
     %
     data_out.bulkparameters.See = data_out.bulkparameters.Ezz(:, 4:end);
+
+    %
+    data_out.bulkparameters = rmfield(data_out.bulkparameters, 'Ezz');
 
 
     %% Rename variables to be consistent with Sofar
@@ -776,7 +783,7 @@ for i = 1:length(list_spotters)
     %
     data_out.bulkparameters.dtime.TimeZone = 'America/Los_Angeles';
     data_out.displacement.dtime.TimeZone = 'America/Los_Angeles';
-    data_out.location.time.dtime.TimeZone = 'America/Los_Angeles';
+    data_out.location.dtime.dtime.TimeZone = 'America/Los_Angeles';
 
 
     %% Create and organize output structure (including metadata)
@@ -935,7 +942,7 @@ for i = 1:length(list_spotters)
     %
     disp(['----- Save level 1 data plot at -----'])
     dir_QCfig
-    exportgraphics(hfig_aux, fullfile(dir_QCfig, ['spotter_L1_data_' list_spotters{i} '.png']), 'Resolution', 300)
+    exportgraphics(hfig_aux, fullfile(dir_QCfig, ['spotter_L1_' list_spotters{i} '_data.png']), 'Resolution', 300)
 
 
     % -----------------------------------

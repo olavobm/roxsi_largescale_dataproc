@@ -68,8 +68,8 @@ list_Signature = {'A01_103043', ...
                   'B15_103056', ...
                   'B17_101923', ...
                   'C01_102128', ...
-                  'X05_100231', ...
-                  'X11_101941'};
+                  'X11_101941', ...
+                  'X05_100231'};
 
 % Just a test
 list_Signature = {'A01_103043'};
@@ -340,6 +340,11 @@ for i1 = 1:Nsignatures
         sig1000.vel2 = cat(1, sig1000.vel2{:});
         sig1000.vel3 = cat(1, sig1000.vel3{:});
         sig1000.vel4 = cat(1, sig1000.vel4{:});
+        %
+        sig1000.cor1 = double(cat(1, sig1000.cor1{:}));
+        sig1000.cor2 = double(cat(1, sig1000.cor2{:}));
+        sig1000.cor3 = double(cat(1, sig1000.cor3{:}));
+        sig1000.cor4 = double(cat(1, sig1000.cor4{:}));
     end
 
 

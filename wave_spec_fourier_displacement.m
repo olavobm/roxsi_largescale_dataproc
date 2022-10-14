@@ -1,12 +1,13 @@
-function [a1, a2, b1, b2, ...
-          Ezz, Hsig, T_mean, ...
-          dir_mean, spread_mean, f_peak, T_peak, dir_peak, spread_peak, ...
-          f, DoF] = wave_spec_fourier_displacement(x, y, z, dt, nfft, noverlap, window, freq_lims)
-%% function [a1, a2, b1, b2, ...
-%           Ezz, Hsig, T_mean, ...
-%           dir_mean, spread_mean, f_peak, ...
-%           T_peak, dir_peak, spread_peak, f, DoF] = ...
-%                          wave_spec_fourier_displacement(x, y, z, dt, nfft, noverlap, window, freq_lims)
+function [f, a1, a2, b1, b2, ...
+          Ezz, Hsig, ...
+          T_mean, dir_mean, spread_mean, ...
+          T_peak, dir_peak, spread_peak, ...
+          a1_bar, b1_bar, DOF] = wave_spec_fourier_displacement(x, y, z, dt, nfft, noverlap, window, freq_lims)
+%% function [f, a1, a2, b1, b2, ...
+%            Ezz, Hsig, ...
+%            T_mean, dir_mean, spread_mean, ...
+%            T_peak, dir_peak, spread_peak, ...
+%            a1_bar, b1_bar, DOF] = wave_spec_fourier_displacement(x, y, z, dt, nfft, noverlap, window, freq_lims)
 %
 %   inputs
 %       - x, y, z:
@@ -16,19 +17,21 @@ function [a1, a2, b1, b2, ...
 %       - window:
 %
 %   outputs
-%       - 
-%       - Ezz
-%
-%
-%
-%
+%       - f: frequency vector (in Hz).
+%       - a1, a2, b1, b2:
+%       - Ezz:
+%       - Hsig:
+%       - T_mean, dir_mean, spread_mean:
+%       - T_peak, dir_peak, spread_peak:
+%       - a1_bar, b1_bar:
+%       - DOF: degrees of freedom.
 %
 %
 % WAVE_SPEC_FOURIER_DISPLACEMENT.m takes displacement data and calculates
 % the wave spectra using the fourier method. This approach is coded in a
 % similar way to the sofar script, their documentation is useful here.
 %
-% PC Apr 2022
+% Based on PC Apr 2022. Adapted by Olavo Marques Oct/2022.
 
 %%
 
@@ -73,6 +76,7 @@ linfreqlims = (f >= freq_lims(1)) & (f <= freq_lims(2));
 %
 m0 = trapz(f(linfreqlims), Ezz(linfreqlims));
 m1 = trapz(f(linfreqlims), Ezz(linfreqlims) .* f(linfreqlims));
+%
 a1_bar = 1./m0 .* trapz(f(linfreqlims), a1(linfreqlims).*Ezz(linfreqlims));
 b1_bar = 1./m0 .* trapz(f(linfreqlims), b1(linfreqlims).*Ezz(linfreqlims));
 
@@ -110,7 +114,7 @@ spread_peak = rad2deg(sqrt(2.*(1 - sqrt(a1(f_peak_ind).^2 + b1(f_peak_ind).^2)))
 
 %
 numwin = floor(length(x)./nfft) + floor(length(x)./nfft) - 1;
-DoF = 8/3 * 2 * numwin;    % what is this 8/3 ??? numwin looks like the
-                           % correct number of chunks over which fft was
-                           % computed for
-
+% DOF = 8/3 * 2 * numwin;    % what is this 8/3 ??? numwin looks like the
+%                            % correct number of chunks over which fft was
+%                            % computed for
+DOF = 2 * numwin;

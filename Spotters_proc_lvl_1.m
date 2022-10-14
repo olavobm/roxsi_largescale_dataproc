@@ -550,7 +550,7 @@ for i = 1:length(list_spotters)
     data_out.bulkparameters.df = 1/(dt*nfft);
     data_out.bulkparameters.frequency = [];
     %
-% %     data_out.bulkparameters.Ezz = prealloc_aux;
+    data_out.bulkparameters.Ezz = prealloc_aux;
     data_out.bulkparameters.See = [];
     % DOF assuming 50% and subtracting 2 because the overlap
     % makes the chunks not entirely independent
@@ -681,7 +681,7 @@ for i = 1:length(list_spotters)
     % above can compute them)
 
     %
-    data_out.bulkparameters.f = data_out.bulkparameters.f(4:end);
+    data_out.bulkparameters.frequency = f(4:end);
 
     %
     data_out.bulkparameters.a1 = data_out.bulkparameters.a1(:, 4:end);

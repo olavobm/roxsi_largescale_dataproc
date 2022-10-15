@@ -380,7 +380,7 @@ for i = 1:length(list_spotters)
 
     % First plot the diff(time) in the data and new
     % diff(time) in case interpolation was done
-    hfig_aux = figure;
+    hfig_QCclock = figure;
         %
         if ~isempty(ind_short_gaps)
             haxs_1 = axes('Position', [0.1, 0.55, 0.8, 0.35]);
@@ -422,12 +422,9 @@ for i = 1:length(list_spotters)
                        'Interpreter', 'Latex', 'FontSize', 18)
        
         %
-        set(hfig_aux, 'Units', 'normalized')
-        set(hfig_aux, 'Position', [0.4227, 0.2632, 0.3773, 0.4063])
+        set(hfig_QCclock, 'Units', 'normalized')
+        set(hfig_QCclock, 'Position', [0.4227, 0.2632, 0.3773, 0.4063])
        
-    %
-    exportgraphics(hfig_aux, fullfile(dir_QCfig, [list_spotters{i} '_difftime_displacement_data.png']), 'Resolution', 300)
-
 
     % Copy interpolated data to the data structure and keep
     % the original names
@@ -608,7 +605,7 @@ for i = 1:length(list_spotters)
 
         % Put Spectra in output structure
         if i2==1
-            data_out.spectra.frequency = f(1:end-1);
+            data_out.spectra.frequency = f;
         end
         %
         data_out.spectra.Ezz(i2, 4:end) = Ezz(4:end-1);
@@ -843,7 +840,7 @@ for i = 1:length(list_spotters)
     % and computed by this code), and mean period.
 
     %
-    hfig_aux = figure;
+    hfig_QCdata = figure;
         %
         haxs_1 = axes('Position', [0.15, 0.7, 0.7, 0.15]);
         haxs_2 = axes('Position', [0.15, 0.5, 0.7, 0.15]);
@@ -926,19 +923,22 @@ for i = 1:length(list_spotters)
                        'Interpreter', 'Latex', 'FontSize', 18)
        
         %
-        set(hfig_aux, 'Units', 'normalized')
-        set(hfig_aux, 'Position', [0.5023, 0.0778, 0.2844, 0.3917])
+        set(hfig_QCdata, 'Units', 'normalized')
+        set(hfig_QCdata, 'Position', [0.5023, 0.0778, 0.2844, 0.3917])
 
 
 
     %% Save the data and QC figure
 
     % -----------------------------------
-    % Save QC figure
+    % Save QC figures
     %
-    disp('----- Save level 1 data plot at: -----')
+    disp('----- Save L1 QC figures at: -----')
     disp(dir_QCfig)
-    exportgraphics(hfig_aux, fullfile(dir_QCfig, ['spotter_L1_' list_spotters{i} '_data.png']), 'Resolution', 300)
+    %
+    %
+    exportgraphics(hfig_QCclock, fullfile(dir_QCfig, ['spotter_L1_' list_spotters{i} '_difftime_displacement.png']), 'Resolution', 300)
+    exportgraphics(hfig_QCdata, fullfile(dir_QCfig, ['spotter_L1_' list_spotters{i} '_data.png']), 'Resolution', 300)
 
 
     % -----------------------------------

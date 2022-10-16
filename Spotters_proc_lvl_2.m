@@ -27,6 +27,15 @@ dir_data_level_1 = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level1_Data/Spotte
 dir_output_level_2 = pwd;
 
 
+%% Add WAFO toolbox to Matlab path
+
+% % %
+% % % addpath(genpath(fullfile(repo_dirpath(), 'wafo')))
+% % addpath(genpath(fullfile(repo_dirpath(), 'Spotter_DirectionalSpectra', 'wafo')))
+%
+roxsi_add_libraries()
+
+
 %%
 % -------------------------------------------
 % --- DEFINE VARIABLES FOR DATA PROCESSING --
@@ -86,14 +95,6 @@ spotter_location = spotter_location.spotter_location;
 % %                      '/deploymentInfo_Spotters_ROXSI2022.mat']);
 % % dplySpotters = dplySpotters.dployInfo_Spotters;
 
-
-%% Add WAFO toolbox to Matlab path
-
-% % %
-% % % addpath(genpath(fullfile(repo_dirpath(), 'wafo')))
-% % addpath(genpath(fullfile(repo_dirpath(), 'Spotter_DirectionalSpectra', 'wafo')))
-%
-roxsi_add_libraries()
 
 
 %%

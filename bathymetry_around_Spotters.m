@@ -8,11 +8,26 @@ clear
 close all
 
 
-%% Load (CSUMB) bathymetry
+%%
+
+%
+% dir_data = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+dir_data = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Level1/';
+
+%
+dir_output = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
 
 %
 % % dir_CSUMB = '/Users/olavobm/Library/CloudStorage/Box-Box/olavo_jamie/ROXSI_experiments/';
 dir_CSUMB = '/home/omarques/Documents/obm_ROXSI/bathymetry_roxsi/';
+
+%%
+% -------------------------------------------------------
+% -------------------------------------------------------
+% -------------------------------------------------------
+
+%% Load (CSUMB) bathymetry
+
 
 %
 bathyCSUMB.CyPt_PtPn = load(fullfile(dir_CSUMB, 'bathy_CyPt_PtPn2m_xyz.mat'));
@@ -68,10 +83,6 @@ spotter_dplt = spotter_dplt.dployInfo_Spotters;
 
 
 %% Spotters that will be loaded
-
-%
-% dir_data = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
-dir_data = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Level1/';
 
 % % RAW/parsed files
 % list_files = {'B01_spot1150.mat', 'B01_spot1158.mat', 'B03_spot1152.mat', ...
@@ -501,8 +512,11 @@ return
 % I will just use the pressure data for now
 
 %
-dir_SmartMoorings_pressure = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Smart_Level1/gridded/';
-dir_SmartMoorings_buoy = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+% % dir_SmartMoorings_pressure = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Smart_Level1/gridded/';
+% % dir_SmartMoorings_buoy = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+dir_SmartMoorings_buoy = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/';
+%
+dir_SmartMoorings_pressure = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/gridded/';
 
 %
 list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
@@ -510,6 +524,7 @@ list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
                       'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
                       'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
+% % % % !!! TO BE DELETED !!!
 % % % Significant wave height and trimming for Smart Moorings
 % % %
 % % for i = 1:length(list_SmartMoorings)
@@ -568,19 +583,17 @@ for i = 1:length(list_SmartMoorings)
 
     % Buoy data
     %
-    data_BUOY = load(fullfile(dir_SmartMoorings_buoy, ...
-                    [list_SmartMoorings{i} '.mat']));
-    data_BUOY = data_BUOY.s;
+    data_Smart_BUOY = load(fullfile(dir_SmartMoorings_buoy, ['roxsi_spotter_L1_' list_SmartMoorings{i}(1:3) '_' list_SmartMoorings{i}(end-3:end) '.mat']));
+    
+% %     data_Smart_BUOY = data_Smart_BUOY.s;
     %
-    data_BUOY.bulkparameters.time.TimeZone = 'America/Los_Angeles';
-    data_BUOY.location.time.TimeZone = 'America/Los_Angeles';
+% %     data_Smart_BUOY.bulkparameters.time.TimeZone = 'America/Los_Angeles';
+% %     data_Smart_BUOY.location.time.TimeZone = 'America/Los_Angeles';
 
 
     % Pressure data
-    data_PRES = load(fullfile(dir_SmartMoorings_pressure, ...
-                     ['smart_mooring_' list_SmartMoorings{i}(1:3) ...
-                      'sp_' list_SmartMoorings{i}(9:12) '_L1_gridded.mat']));
-    data_PRES = data_PRES.spotsmart;
+    data_Smart_PRES = load(fullfile(dir_SmartMoorings_pressure, ['roxsi_smartmooring_L1_' list_SmartMoorings{i}(1:3) '_' list_SmartMoorings{i}(9:12) '_gridded.mat']));
+    data_Smart_PRES = data_Smart_PRES.spotsmart;
 
     
 % %     % Check mean pressure and median pressure and if gaps are a problem
@@ -594,52 +607,53 @@ for i = 1:length(list_SmartMoorings)
 
    
     % Compute easting/northing coordinates
-    [data_BUOY.location.easting, ...
-     data_BUOY.location.northing] = ll2utm(data_BUOY.location.("latitude (decimal degrees)"), ...
-                                           data_BUOY.location.("longitude (decimal degrees)"));
+    [data_Smart_BUOY.location.easting, ...
+     data_Smart_BUOY.location.northing] = lltoUTM(data_Smart_BUOY.location.latitude, ...
+                                                  data_Smart_BUOY.location.longitude);
 
     %
-    lmatch_aux = strcmp(dplySpotters.SN, list_SmartMoorings{i}(9:12));
-    %
-    time_trim_1 = dplySpotters.time_begin_trim(lmatch_aux);
-    time_trim_2 = dplySpotters.time_end_trim(lmatch_aux);
-    %
-    time_trim_1 = datetime(datenum(time_trim_1, "yyyy/mm/dd HH:MM:SS"), 'ConvertFrom', 'datenum');
-    time_trim_2 = datetime(datenum(time_trim_2, "yyyy/mm/dd HH:MM:SS"), 'ConvertFrom', 'datenum');
-    %
-    time_trim_1.TimeZone = 'America/Los_Angeles';
-    time_trim_2.TimeZone = 'America/Los_Angeles';
-    %
-    if strcmp(list_SmartMoorings{i}, 'E09_spot1850')
-        time_trim_2 = datetime(2022, 06, 24, 06, 00, 00, 'TimeZone', 'America/Los_Angeles');
-    end
-    %
-    ltrimedges = (data_BUOY.location.time >= time_trim_1) & ...
-                 (data_BUOY.location.time <= time_trim_2);
+% %     lmatch_aux = strcmp(dplySpotters.SN, list_SmartMoorings{i}(9:12));
+% %     %
+% %     time_trim_1 = dplySpotters.time_begin_trim(lmatch_aux);
+% %     time_trim_2 = dplySpotters.time_end_trim(lmatch_aux);
+% %     %
+% %     time_trim_1 = datetime(datenum(time_trim_1, "yyyy/mm/dd HH:MM:SS"), 'ConvertFrom', 'datenum');
+% %     time_trim_2 = datetime(datenum(time_trim_2, "yyyy/mm/dd HH:MM:SS"), 'ConvertFrom', 'datenum');
+% %     %
+% %     time_trim_1.TimeZone = 'America/Los_Angeles';
+% %     time_trim_2.TimeZone = 'America/Los_Angeles';
+% %     %
+% %     if strcmp(list_SmartMoorings{i}, 'E09_spot1850')
+% %         time_trim_2 = datetime(2022, 06, 24, 06, 00, 00, 'TimeZone', 'America/Los_Angeles');
+% %     end
+% %     %
+% %     ltrimedges = (data_Smart_BUOY.location.time >= time_trim_1) & ...
+% %                  (data_Smart_BUOY.location.time <= time_trim_2);
 
     %
-    data_BUOY.location.z_msl = NaN(size(data_BUOY.location, 1), 1);
+    data_Smart_BUOY.location.z_msl = NaN(size(data_Smart_BUOY.location, 1), 1);
     
     %
-    tides_interp_aux = interp1(tidal_elevation.dtime, ...
-                               tidal_elevation.zMSL, ...
-                               data_BUOY.location.time(ltrimedges));
+    data_Smart_BUOY.location.tidal_elevation = ...
+                                        interp1(tidal_elevation.dtime, ...
+                                                tidal_elevation.zMSL, ...
+                                                data_Smart_BUOY.location.dtime)
 
-    % Save depth to Smart moorings (without taking the bathymetry into
-    % account)
-    data_BUOY.location.z_msl(ltrimedges) = -mean(data_PRES.pressure, 'omitnan') - tides_interp_aux;
+    % Save depth to Smart moorings (without taking the bathymetry into account)
+    data_Smart_BUOY.location.z_msl(ltrimedges) = -mean(data_Smart_PRES.pressure, 'omitnan') - data_Smart_BUOY.location.tidal_elevation;
     % RIGOROUSLY, SHOULD INCLUDE THE CONVERSION FROM DBAR TO M
     
-    %
-    spotterSmartAll(i).dataID = list_SmartMoorings{i};
-    spotterSmartAll(i).location = data_BUOY.location;
-    spotterSmartAll(i).timetrimedges = [time_trim_1, time_trim_2];
-    spotterSmartAll(i).ltrimedges = ltrimedges;
+% %     %
+% %     spotterSmartAll(i).dataID = list_SmartMoorings{i};
+% %     spotterSmartAll(i).location = data_Smart_BUOY.location;
+% %     spotterSmartAll(i).timetrimedges = [time_trim_1, time_trim_2];
+% %     spotterSmartAll(i).ltrimedges = ltrimedges;
     
 end
 
 
-
+%%
+return
 
 %%
 % ------------------------------------------------------------------

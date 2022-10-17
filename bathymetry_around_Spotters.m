@@ -106,61 +106,63 @@ for i = 1:length(list_files)
     
     %
     data_aux = load(fullfile(dir_data, list_files{i}));
-% %     data_aux = data_aux.s;
+    data_aux = data_aux.spotterL1;
     
     %
 % %     data_aux.location.time.TimeZone = 'America/Los_Angeles';
     
     %
-    spotterAll(i).dataID = list_files{i}(1:12);
+% %     spotterAll(i).mooringID = list_files{i}(1:12);
+    spotterAll(i).mooringID = data_aux.mooringID;
+    spotterAll(i).SN = data_aux.SN;
+
     %
     spotterAll(i).location = data_aux.location;
 
 
-    % Trim Spotter location data
-    %
-    lmatch = strcmp(dplySpotters.SN, list_files{i}(9:12));
-    
-    %
-    time_trim_1 = dplySpotters.time_begin_trim(lmatch);
-    time_trim_2 = dplySpotters.time_end_trim(lmatch);
-    %
-    time_trim_1 = datetime(datenum(time_trim_1, "yyyy/mm/dd HH:MM:SS"), 'ConvertFrom', 'datenum');
-    time_trim_2 = datetime(datenum(time_trim_2, "yyyy/mm/dd HH:MM:SS"), 'ConvertFrom', 'datenum');
-    %
-    time_trim_1.TimeZone = 'America/Los_Angeles';
-    time_trim_2.TimeZone = 'America/Los_Angeles';
-    
-    %
-    spotterAll(i).timetrimedges = [time_trim_1, time_trim_2];
-
-    %
-    spotterAll(i).ltrimedges = (spotterAll(i).location.time >= time_trim_1) & ...
-                                  (spotterAll(i).location.time <= time_trim_2);
-
-    % Compute easting/northing coordinates
-    [spotterAll(i).location.easting, ...
-     spotterAll(i).location.northing] = ll2utm(spotterAll(i).location.("latitude (decimal degrees)"), ...
-                                               spotterAll(i).location.("longitude (decimal degrees)"));
+% %     % Trim Spotter location data -- not necessary when loading L1 data
+% %     %
+% %     lmatch = strcmp(dplySpotters.SN, list_files{i}(9:12));
+% %     
+% %     %
+% %     time_trim_1 = dplySpotters.time_begin_trim(lmatch);
+% %     time_trim_2 = dplySpotters.time_end_trim(lmatch);
+% %     %
+% %     time_trim_1 = datetime(datenum(time_trim_1, "yyyy/mm/dd HH:MM:SS"), 'ConvertFrom', 'datenum');
+% %     time_trim_2 = datetime(datenum(time_trim_2, "yyyy/mm/dd HH:MM:SS"), 'ConvertFrom', 'datenum');
+% %     %
+% %     time_trim_1.TimeZone = 'America/Los_Angeles';
+% %     time_trim_2.TimeZone = 'America/Los_Angeles';
+% %     
+% %     %
+% %     spotterAll(i).timetrimedges = [time_trim_1, time_trim_2];
+% % 
+% %     %
+% %     spotterAll(i).ltrimedges = (spotterAll(i).location.time >= time_trim_1) & ...
+% %                                   (spotterAll(i).location.time <= time_trim_2);
 
     %
     clear data_aux
 end
 
 
-%% Get bathymetry around each Spotter
-
+%% Get bathymetry interpolant around each Spotter
 
 %
 for i = 1:length(list_files)
 
-    %
-    mean_easting = mean(spotterAll(i).location.easting(spotterAll(i).ltrimedges));
-    mean_northing = mean(spotterAll(i).location.northing(spotterAll(i).ltrimedges));
+    % Compute easting/northing coordinates
+    [spotterAll(i).location.easting, ...
+     spotterAll(i).location.northing] = ll2utm(spotterAll(i).location.latitude, ...
+                                               spotterAll(i).location.longitude);
 
     %
-    minmax_easting = [min(spotterAll(i).location.easting(spotterAll(i).ltrimedges)), max(spotterAll(i).location.easting(spotterAll(i).ltrimedges))];
-    minmax_northing = [min(spotterAll(i).location.northing(spotterAll(i).ltrimedges)), max(spotterAll(i).location.northing(spotterAll(i).ltrimedges))];
+    mean_easting = mean(spotterAll(i).location.easting);
+    mean_northing = mean(spotterAll(i).location.northing);
+
+    %
+    minmax_easting = [min(spotterAll(i).location.easting), max(spotterAll(i).location.easting)];
+    minmax_northing = [min(spotterAll(i).location.northing), max(spotterAll(i).location.northing)];
     
     %
     max_easting_dist = max(abs(minmax_easting - mean_easting));
@@ -170,7 +172,8 @@ for i = 1:length(list_files)
     max_dist = max([max_easting_dist, max_northing_dist]);
 
     %
-    dist_get_bathy = 1.35*max_dist;
+    dist_get_bathy = 1.35*max_dist;    % with a factor greater than 1 to
+                                       % look at bathy around Spotter
 
     %
     lbathyinlims = (bathyCSUMB.CyPt_PtPn.utm_east >= (mean_easting - dist_get_bathy)) & ...
@@ -259,12 +262,15 @@ toc
 for i = 1:length(spotterAll)
 
     %
-    interp_tidal_elevation = interp1(tidal_elevation.dtime, tidal_elevation.zMSL, ...
-                                     spotterAll(i).location.time);
+    spotterAll(i).location.tidal_elevation = ...
+                                    interp1(tidal_elevation.dtime, ...
+                                            tidal_elevation.zMSL, ...
+                                            spotterAll(i).location.time);
 
     % Minus tidal elevation means that z_msl gets bigger
     % bigger magnitude (deeper water depth)
-    spotterAll(i).location.z_msl = spotterAll(i).location.z_msl - interp_tidal_elevation;
+    spotterAll(i).location.z_msl = spotterAll(i).location.z_msl - ...
+                                   spotterAll(i).location.tidal_elevation;
 
 end
 
@@ -418,7 +424,7 @@ for i = 1:length(list_files)
              spotterAll(i).location.northing(indsplt_aux(1:20:end)), '.k')
     
         % Plot reference location
-        lmatch_mooringtable = strcmp(mooringLocs.mooringID, [spotterAll(i).dataID(1:3) 's']);
+        lmatch_mooringtable = strcmp(mooringLocs.mooringID, [char(spotterAll(i).mooringID) 's']);
         plot(mooringLocs.easting(lmatch_mooringtable), ...
              mooringLocs.northing(lmatch_mooringtable), '.r', 'MarkerSize', 32)
     
@@ -440,7 +446,7 @@ for i = 1:length(list_files)
         xlabel(['Easting (' num2str(round(diff(xlim))) ' m)'], 'Interpreter', 'Latex', 'FontSize', 20)
         ylabel(['Northing (' num2str(round(diff(ylim))) ' m)'], 'Interpreter', 'Latex', 'FontSize', 20)
         %
-        title([spotterAll(i).dataID(1:3) ' SN ' spotterAll(i).dataID(9:end)], ...
+        title([char(spotterAll(i).mooringID) ' SN ' char(spotterAll(i).SN)], ...
               'Interpreter', 'Latex', 'FontSize', 20)
 
     %
@@ -450,7 +456,6 @@ end
 
 
 %% Plot timeseries of bathymetry for each Spotter
-% (NOT ADDING TIDAL ELEVATION THOUGH!!!)
 
 %
 for i = 1:length(spotterAll)
@@ -468,11 +473,11 @@ for i = 1:length(spotterAll)
 % %         xlabel(['Easting (' num2str(round(diff(xlim))) ' m)'], 'Interpreter', 'Latex', 'FontSize', 20)
 % %         ylabel(['Northing (' num2str(round(diff(ylim))) ' m)'], 'Interpreter', 'Latex', 'FontSize', 20)
         %
-        title([spotterAll(i).dataID(1:3) ' SN ' spotterAll(i).dataID(9:end)], ...
+        title([char(spotterAll(i).mooringID) ' SN ' char(spotterAll(i).SN)], ...
               'Interpreter', 'Latex', 'FontSize', 20)
 end
 
-
+return
 %%
 % -----------------------------------------------
 % ----- GET SMART MOORING DATA AND ONLY USE -----

@@ -46,6 +46,10 @@ bathyCSUMB.CyPt_PtPn.z_msl = bathyCSUMB.CyPt_PtPn.z_msl(lsub_aux);
 %
 mooringLocs = ROXSI_mooringlocation();
 
+% Compute easting/northing coordinates
+[mooringLocs.easting, ...
+ mooringLocs.northing] = lltoUTM(mooringLocs.latitude, ...
+                                 mooringLocs.longitude);
 
 %% Load Spotter deployment info table
 
@@ -153,8 +157,8 @@ for i = 1:length(list_files)
 
     % Compute easting/northing coordinates
     [spotterAll(i).location.easting, ...
-     spotterAll(i).location.northing] = ll2utm(spotterAll(i).location.latitude, ...
-                                               spotterAll(i).location.longitude);
+     spotterAll(i).location.northing] = lltoUTM(spotterAll(i).location.latitude, ...
+                                                spotterAll(i).location.longitude);
 
     %
     mean_easting = mean(spotterAll(i).location.easting);
@@ -265,7 +269,7 @@ for i = 1:length(spotterAll)
     spotterAll(i).location.tidal_elevation = ...
                                     interp1(tidal_elevation.dtime, ...
                                             tidal_elevation.zMSL, ...
-                                            spotterAll(i).location.time);
+                                            spotterAll(i).location.dtime);
 
     % Minus tidal elevation means that z_msl gets bigger
     % bigger magnitude (deeper water depth)
@@ -418,7 +422,8 @@ for i = 1:length(list_files)
         hold on
 
         % Plot Spotter location (a subset so the plot is less crowded) 
-        indsplt_aux = find(spotterAll(i).ltrimedges);
+% %         indsplt_aux = find(spotterAll(i).ltrimedges);
+        indsplt_aux = 1:length(spotterAll(i).location.easting);
         %
         plot(spotterAll(i).location.easting(indsplt_aux(1:20:end)), ...
              spotterAll(i).location.northing(indsplt_aux(1:20:end)), '.k')
@@ -463,7 +468,7 @@ for i = 1:length(spotterAll)
     %
     figure
         %
-        plot(spotterAll(i).location.time, ...
+        plot(spotterAll(i).location.dtime, ...
              spotterAll(i).location.z_msl, '.-')
 
         %

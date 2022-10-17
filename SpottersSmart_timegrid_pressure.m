@@ -10,13 +10,20 @@ close all
 
 %
 % dir_data_L1 = '/Users/olavobm/Documents/ROXSI_Postdoc/MyResearch/ROXSI/Common_Code/LargeScale_Data_2022/code_proc';
-dir_data_L1 = pwd;
+% dir_data_L1 = pwd;
+%
+dir_data_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/not_gridded/';
+
+
+%%
+
+dir_output = fullfile(dir_data_L1, '..', 'gridded');
 
 
 %% Get all L1 file names in folder
 
 %
-dir_all_L1 = dir(fullfile(dir_data_L1, '*_L1_notgridded.mat'));
+dir_all_L1 = dir(fullfile(dir_data_L1, '*_notgridded.mat'));
 %
 list_files = cell(1, length(dir_all_L1));
 
@@ -271,7 +278,8 @@ for i = 1:length(list_fields)
     %
     disp('---- Saving smart mooring level 1 data ---- ')
     % Save Level 1 gridded data
-    save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmartL1.mooringID '_' spotsmartL1.SN '_L1_gridded.mat']), 'spotsmartL1');
+% %     save(fullfile(repo_dirpath(), ['smart_mooring_' spotsmartL1.mooringID '_' spotsmartL1.SN '_L1_gridded.mat']), 'spotsmartL1');
+    save(fullfile(dir_output, ['roxsi_smartmooring_L1_' spotsmartL1.mooringID '_' spotsmartL1.SN '_gridded.mat']), 'spotsmartL1');
     %
     disp(['---- Done with level 1 time-gridding pressure from smart mooring ' spotsmartL1.mooringID ' - SN ' spotsmartL1.SN ' ----'])
 

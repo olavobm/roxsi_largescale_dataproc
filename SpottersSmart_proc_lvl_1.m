@@ -44,8 +44,12 @@ dir_rawsmartmooring = fullfile(dir_rawdata_parent, 'Spotters_Smart', 'SDcards');
 % dir_output_data_L1 = '/Volumes/OBM-HD/docs/researchPostdoc/datasets/ROXSI/fieldworks/experiment_2022/Aquadopp/';
 % dir_output_figs_L1 = fullfile(dir_output_data_L1, 'qc_p lots');
 
+% % %
+% % dir_output_data_L1 = pwd;
+% % dir_output_figs_L1 = dir_output_data_L1;
+
 %
-dir_output_data_L1 = pwd;
+dir_output_data_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/';
 dir_output_figs_L1 = dir_output_data_L1;
 
 % Logical switches to save or not save data and figures
@@ -1124,12 +1128,12 @@ for i1 = 1:length(list_SmartMoorings)
     time_dataproc = datestr(datetime('now', 'TimeZone', 'America/Los_Angeles'), 'yyyy/mm/dd HH:MM:SS');
     %
     spotsmartL1.REAMDE = ['Level 1 smart mooring data from ROXSI 2022. Data processed by script ' ...
-                        mfilename() '.m on ' time_dataproc ' (PDT). ' ...
-                        'Pressure is in decibar and atmospheric pressure was subtracted from ' ...
-                        'the data. Longitude and latitude (for the pressure measurement) ' ...
-                        'were computed from the mean watch circle obtained ' ...
-                        'from Spotter coordinates over the whole deployment. ' ...
-                        'zhab is the the height in meters of the pressure sensor above the bottom.'];
+                           mfilename() '.m on ' time_dataproc ' (PDT). ' ...
+                          'Pressure is in decibar and atmospheric pressure was subtracted from ' ...
+                          'the data. Longitude and latitude (for the pressure measurement) ' ...
+                          'were computed from the mean watch circle obtained ' ...
+                          'from Spotter coordinates over the whole deployment. ' ...
+                          'zhab is the the height in meters of the pressure sensor above the bottom.'];
 
 
     %% Save data and figures
@@ -1139,7 +1143,7 @@ for i1 = 1:length(list_SmartMoorings)
     %
     disp('---- Saving smart mooring level 1 data ---- ')
     %
-    save(fullfile(dir_output_data_L1, ['roxsi_smartmooring_L1_' spotsmartL1.mooringID '_' spotsmartL1.SN '_notgridded.mat']), 'spotsmartL1');
+    save(fullfile(dir_output_data_L1, 'not_gridded', ['roxsi_smartmooring_L1_' spotsmartL1.mooringID '_' spotsmartL1.SN '_notgridded.mat']), 'spotsmartL1');
 
 
     % ------------------------------------------
@@ -1147,7 +1151,7 @@ for i1 = 1:length(list_SmartMoorings)
     %
 % % %     disp('---- Saving smart mooring level 1 data ---- ')
     %
-% % %     save(fullfile(dir_output_data_L1, ['roxsi_smartmooring_L1_' spotsmart.mooringID '_' spotsmart.SN '.mat']), 'spotsmart');
+% % %     save(fullfile(dir_output_data_L1, 'not_gridded', ['roxsi_smartmooring_L1_' spotsmart.mooringID '_' spotsmart.SN '.mat']), 'spotsmart');
 
     % ------------------------------------------
     %

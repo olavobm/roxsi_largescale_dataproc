@@ -445,7 +445,7 @@ for i = 1:length(list_spotters)
     % These are the first and last timestamps that could work as grid
     % points (where there is sufficient data at the edges). Since these
     % timestamps are very likely not "on whole hours", the appropriate
-    % grid points need to be taken as the timese adjacent to these
+    % grid points need to be taken as the times adjacent to these
     first_indata = data_trimmed.bulkparameters.time(1) + minutes(dt_bulkstats/2);
     last_indata = data_trimmed.bulkparameters.time(end) - minutes(dt_bulkstats/2);
 

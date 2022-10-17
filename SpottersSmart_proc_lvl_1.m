@@ -49,8 +49,8 @@ dir_rawsmartmooring = fullfile(dir_rawdata_parent, 'Spotters_Smart', 'SDcards');
 % % dir_output_figs_L1 = dir_output_data_L1;
 
 %
-dir_output_data_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/';
-dir_output_figs_L1 = dir_output_data_L1;
+dir_output_data_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/not_gridded/';
+dir_output_figs_L1 = fullfile(dir_output_data_L1, 'figs_QC');
 
 % Logical switches to save or not save data and figures
 lsave_file = false;

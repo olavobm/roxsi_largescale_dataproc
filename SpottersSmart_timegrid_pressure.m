@@ -47,7 +47,7 @@ for i = 1:length(list_files)
     data_loaded = load(fullfile(dir_data_L1, list_files{i}));
 
     %
-    smartMoorlvl1.([list_files{i}(15:17) '_' list_files{i}(21:24)]) = data_loaded.spotsmartL1;
+    smartMoorlvl1.([list_files{i}(23:25) '_' list_files{i}(29:32)]) = data_loaded.spotsmartL1;
 
 end
 

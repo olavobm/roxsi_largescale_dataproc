@@ -1139,7 +1139,7 @@ for i1 = 1:length(list_SmartMoorings)
     %
     disp('---- Saving smart mooring level 1 data ---- ')
     %
-    save(fullfile(dir_output_data_L1, ['smart_mooring_' spotsmartL1.mooringID '_' spotsmartL1.SN '_L1_notgridded.mat']), 'spotsmartL1');
+    save(fullfile(dir_output_data_L1, ['roxsi_smartmooring_L1_' spotsmartL1.mooringID '_' spotsmartL1.SN '_notgridded.mat']), 'spotsmartL1');
 
 
     % ------------------------------------------
@@ -1147,7 +1147,7 @@ for i1 = 1:length(list_SmartMoorings)
     %
 % % %     disp('---- Saving smart mooring level 1 data ---- ')
     %
-% % %     save(fullfile(dir_output_data_L1, ['smart_mooring_' spotsmart.mooringID '_' spotsmart.SN '_L1.mat']), 'spotsmart');
+% % %     save(fullfile(dir_output_data_L1, ['roxsi_smartmooring_L1_' spotsmart.mooringID '_' spotsmart.SN '.mat']), 'spotsmart');
 
     % ------------------------------------------
     %

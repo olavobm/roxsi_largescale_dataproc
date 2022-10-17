@@ -19,17 +19,22 @@ dir_data_parent = fullfile(dir_parent_location, dir_parent_name);
 %% Remove (or rename) an existing dir tree that
 % matches with what this script creates
 
-% % %
-% % command_remove = ['rm -rf ' dir_data_parent];
-% % system(command_remove)
 
-% Or change name
-%
-time_dataproc = datetime('now', 'TimeZone', 'Local');
-time_dataproc_char = datestr(time_dataproc, 'yyyy_mm_dd_HH_MM');
-%
-command_rename_old = ['mv ./' dir_data_parent ' ./' dir_data_parent '_' time_dataproc_char];
-system(command_rename_old)
+if isfolder(dir_data_parent)
+
+    % % %
+    % % command_remove = ['rm -rf ' dir_data_parent];
+    % % system(command_remove)
+
+    % Or change name
+    %
+    time_dataproc = datetime('now', 'TimeZone', 'Local');
+    time_dataproc_char = datestr(time_dataproc, 'yyyy_mm_dd_HH_MM');
+    %
+    command_rename_old = ['mv ' dir_data_parent ' ' dir_data_parent '_' time_dataproc_char];
+    system(command_rename_old)
+
+end
 
 
 %% Create the data directory tree

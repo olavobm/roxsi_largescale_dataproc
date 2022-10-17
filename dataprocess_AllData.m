@@ -6,6 +6,10 @@ clear
 close all
 
 
+%% 
+% BUT BE CAREFUL BECAUSE IT MIGHT ERASE!!!
+
+run('create_data_emptydirtree.m')
 
 %% Process  Smart Moorings
 

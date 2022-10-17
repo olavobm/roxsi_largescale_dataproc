@@ -96,6 +96,14 @@ spotter_location = spotter_location.spotter_location;
 % % dplySpotters = dplySpotters.dployInfo_Spotters;
 
 
+%% Define time limits for computing directional spectra
+% (or comment this out if you just want to use all of
+% the data available).
+
+timelims_L2proc = [datetime(2022, 06, 20, 00, 00, 00), ...
+                   datetime(2022, 07, 10, 00, 00, 00)];
+timelims_L2proc.TimeZone = 'America/Los_Angeles';
+
 
 %%
 
@@ -103,7 +111,8 @@ spotter_location = spotter_location.spotter_location;
 dt = 0.4;    % the sampling interval in seconds
 nfft = 256;    % the number of points in each window (nfft)
 dtheta = 1;    % the angle bin width for the spectral analysis
-analysis_period_hours = 0.5;    % the analysis period in hours. 
+% analysis_period_hours = 0.5;    % the analysis period in hours.
+analysis_period_hours = 1;
 
 
 %%
@@ -139,7 +148,8 @@ dspec_method = "EMEM";
 %
 analysis_period_seconds = analysis_period_hours * 3600; % hourly estimates are being generated
 N = analysis_period_seconds/dt;
-t = 0:dt:(N-1)*dt;    % a time vector that will be passed to wafo 
+% t = 0:dt:(N-1)*dt;    % a time vector that will be passed to wafo 
+t = [0:1:(N-1)].*dt;    % a time vector that will be passed to wafo 
 t = t(:);
 
 %
@@ -201,11 +211,14 @@ for i = 1:length(list_Spotters)
     disp(' ')
     %
     disp(['------------------ Load Spotter data from ' list_Spotters{i} ' ------------------'])
+% %     %
+% %     data_buoy = load(fullfile(dir_data_level_1, [list_Spotters{i} '.mat']));
+% %     data_buoy = data_buoy.s;
+% %     %
+% %     data_buoy.displacement.time.TimeZone = 'America/Los_Angeles';
     %
-    data_buoy = load(fullfile(dir_data_level_1, [list_Spotters{i} '.mat']));
-    data_buoy = data_buoy.s;
-    %
-    data_buoy.displacement.time.TimeZone = 'America/Los_Angeles';
+    spotterL1 = load(fullfile(dir_data_level_1, [list_Spotters{i} '.mat']));
+    spotterL1 = spotterL1.s;
 
 
     %% --------- GET LOCATION FILE ---------
@@ -230,16 +243,17 @@ for i = 1:length(list_Spotters)
     vars2dirspectra.spotterloc.depth = -spotter_location(ind_match).location.z_msl(spotter_location(ind_match).ltrimedges);
 
     %
-    lintrim_edges = (data_buoy.displacement.time >= vars2dirspectra.timeedges(1)) & ...
-                    (data_buoy.displacement.time <= vars2dirspectra.timeedges(2));
+    lintrim_edges = (spotterL1.displacement.time >= vars2dirspectra.timeedges(1)) & ...
+                    (spotterL1.displacement.time <= vars2dirspectra.timeedges(2));
     % 
-    vars2dirspectra.spotterdisp.dtime = data_buoy.displacement.time(lintrim_edges);
-    vars2dirspectra.spotterdisp.x = data_buoy.displacement.("x (m)")(lintrim_edges);
-    vars2dirspectra.spotterdisp.y = data_buoy.displacement.("y (m)")(lintrim_edges);
-    vars2dirspectra.spotterdisp.z = data_buoy.displacement.("z (m)")(lintrim_edges);
+    vars2dirspectra.spotterdisp.dtime = spotterL1.displacement.time(lintrim_edges);
+    vars2dirspectra.spotterdisp.x = spotterL1.displacement.("x (m)")(lintrim_edges);
+    vars2dirspectra.spotterdisp.y = spotterL1.displacement.("y (m)")(lintrim_edges);
+    vars2dirspectra.spotterdisp.z = spotterL1.displacement.("z (m)")(lintrim_edges);
 
     
-    %%
+    %% Check clock  of the data -- THESE SHOULD BE GRIDDED!
+
     %
 % %     %
 % %     figure
@@ -268,19 +282,37 @@ for i = 1:length(list_Spotters)
 
 
 % %     keyboard
-    continue
+% %     continue
     
-    %% Select the analysis periods
 
-    % pull out an analysis period of data
-    % ind is the index of the start of the first full hour
-    ind_start = find(minute(vars2dirspectra.spotterdisp.dtime) == 0, 1);
+    %% Select the analysis time vector
 
-    dtime = vars2dirspectra.spotterdisp.dtime(ind_start) : ...
-                    hours(analysis_period_hours) : ...
-            (vars2dirspectra.spotterdisp.dtime(end) - hours(analysis_period_hours));
+    %
+    if ~exist('timelims_L2proc', 'var')
+        %
+        dtime_proc_aux = spotterL1.spectra.dtime;
+    else
+        %
+        dtime_proc_aux = timelims_L2proc(1) : hours(analysis_period_hours) : timelims_L2proc(2);
+    end
 
-    analysis_periods = length(dtime); % this is the number of analysis period in the data
+    %
+    analysis_periods = length(dtime_proc_aux);
+
+
+% % % %     !!!TO BE DELETED!!!
+% % 
+% %     %% Select the analysis periods
+% % 
+% %     % pull out an analysis period of data
+% %     % ind is the index of the start of the first full hour
+% %     ind_start = find(minute(vars2dirspectra.spotterdisp.dtime) == 0, 1);
+% % 
+% %     dtime = vars2dirspectra.spotterdisp.dtime(ind_start) : ...
+% %                     hours(analysis_period_hours) : ...
+% %             (vars2dirspectra.spotterdisp.dtime(end) - hours(analysis_period_hours));
+% % 
+% %     analysis_periods = length(dtime); % this is the number of analysis period in the data
 
 
     %% Do the calculation
@@ -294,8 +326,7 @@ for i = 1:length(list_Spotters)
     lon = NaN(1, analysis_periods);
 
     % Print message to the screen
-    disp(' ')
-    disp(' ')
+    disp(' '), disp(' ')
     %
     disp(['--------- Computing directional spectrum ' ...
           'for Spotter ' list_Spotters{i} ' ---------'])
@@ -307,22 +338,29 @@ for i = 1:length(list_Spotters)
     tic
     for sample = 1:(analysis_periods)    % - 1 until I check what could be a minor bug/feature in the demo script
         
+% %         % Old stuff
+% %         data_index = ind_start + (sample -1) *N : ...
+% %                      ind_start + sample *N -1;
+        % 
+        linanalysis_disp = (vars2dirspectra.spotterdisp.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
+                           (vars2dirspectra.spotterdisp.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
+        % This is slower than the index approach, but shouldn't
+        % make much of a difference because the directional 
+        % spectra takes a lot more time
         %
-        data_index = ind_start + (sample -1) *N : ...
-                     ind_start + sample *N -1;
-        xt = vars2dirspectra.spotterdisp.x(data_index);
-        yt = vars2dirspectra.spotterdisp.y(data_index);
-        zt = vars2dirspectra.spotterdisp.z(data_index);
-        dtime_sample  = vars2dirspectra.spotterdisp.dtime(data_index); 
+        xt = vars2dirspectra.spotterdisp.x(linanalysis_disp);
+        yt = vars2dirspectra.spotterdisp.y(linanalysis_disp);
+        zt = vars2dirspectra.spotterdisp.z(linanalysis_disp);
+        dtime_sample  = vars2dirspectra.spotterdisp.dtime(linanalysis_disp); 
      
 
         % the index of the depth record with the same dtime as the displacement 
-        good = vars2dirspectra.spotterloc.dtime >= dtime_sample(1) & ...
-               vars2dirspectra.spotterloc.dtime <= dtime_sample(end);
+        linanalysis_location = (vars2dirspectra.spotterloc.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
+                               (vars2dirspectra.spotterloc.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
         %
-        lat(sample) = mean(vars2dirspectra.spotterloc.latitude(good), 'omitnan');
-        lon(sample) = mean(vars2dirspectra.spotterloc.longitude(good), 'omitnan');
-        depth(sample) = mean(vars2dirspectra.spotterloc.depth(good), 'omitnan');
+        lat(sample) = mean(vars2dirspectra.spotterloc.latitude(linanalysis_location), 'omitnan');
+        lon(sample) = mean(vars2dirspectra.spotterloc.longitude(linanalysis_location), 'omitnan');
+        depth(sample) = mean(vars2dirspectra.spotterloc.depth(linanalysis_location), 'omitnan');
         h = abs(depth(sample));
     
         %
@@ -364,7 +402,7 @@ for i = 1:length(list_Spotters)
         % ------------------------------
         
     end
-keyboard
+
     % from the wafo documentation
 %             theta  = angle vector -pi..pi of length Nt 
 %                      (theta = 0 -> + x-axis, theta = pi/2 -> + y-axis) 
@@ -379,9 +417,10 @@ keyboard
 
     %% Organize directional spectra output
 
+
     % ---------------------------------
     %
-    spotterL2.site = list_Spotters{i}(1:3);
+    spotterL2.mooringID = list_Spotters{i}(1:3);
     spotterL2.SN = list_Spotters{i}(end-3:end);
     %
     spotterL2.latitude = lat(:);

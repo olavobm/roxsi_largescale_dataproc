@@ -134,6 +134,13 @@ dspec_method = "EMEM";
 % 'EMEM' Extended Maximum Entropy Method
 
 
+% For the reduced data structure (i.e. that does not
+% have the full directional spectra). Use only 1
+% method to compute the time-averaged directional
+% spectrum
+dspec_method_reduced = "EMEM";
+
+
 %%
 
 % % % index the displacement and depth files
@@ -157,9 +164,10 @@ Nt = 360/dtheta + 1; % the number of anglular bins, dtheta makes more sense
 
 %
 T = nfft.*dt; % the window length in seconds
-df = 1/T; % frequency resolution, a consequence of T
-fN = 0.5/dt; % nyquist frequency
-f = 0:df:fN; f = f(:);
+df = 1/T;    % frequency resolution, a consequence of T
+fN = 0.5/dt; % Nyquist frequency
+f = 0:df:fN;
+f = f(:);
 
 %
 pos = [0,  0,  0; ...
@@ -377,7 +385,7 @@ for i = 1:length(list_Spotters)
             D_f_theta_temp(:, :, sample, jj) = D.S';
         end
         %       
-        S_f_temp(:,sample) = Sw.S.*(2*pi);    
+        S_f_temp(:, sample) = Sw.S.*(2*pi);    
         
         % ------------------------------
         % Print progress message to the screen (the
@@ -419,35 +427,50 @@ for i = 1:length(list_Spotters)
 
 
     % ---------------------------------
-    %
-    spotterL2.mooringID = list_Spotters{i}(1:3);
-    spotterL2.SN = list_Spotters{i}(end-3:end);
-    %
-    spotterL2.latitude = lat(:);
-    spotterL2.longitude = lon(:);
-    %
-    spotterL2.depth = depth(:);
-    
-    %
-    spotterL2.dthour = analysis_period_hours;
-    spotterL2.dtime = dtime(:);
+    % First copy fields from L1 to L2 data strcture
+    spotterL2.mooringID = spotterL1.mooringID;
+    spotterL2.SN = spotterL1.SN;
+    spotterL2.site = spotterL1.site;
+    spotterL2.latitude = spotterL1.latitude;
+    spotterL2.latitude = spotterL1.longitude;
+    spotterL2.X = spotterL1.X;
+    spotterL2.Y = spotterL1.Y;
+
+
+    % ---------------------------------
+% %     %
+% %     spotterL2.latitude = lat(:);
+% %     spotterL2.longitude = lon(:);
+% %     %
+% %     spotterL2.depth = depth(:);
+% %     
+% %     %
+% %     spotterL2.dthour = analysis_period_hours;
+% %     spotterL2.dtime = dtime(:);
     
     % ---------------------------------
+    spotterL2.dtime =   dtime_proc_aux(:);
 
     % 
-    spotterL2.df = f(2) - f(1);
-    spotterL2.nfft = nfft;
     spotterL2.frequency = f;
     
-    %
+    % REMOVE 0'TH FREQUENCY???
+
+    % The sea surface elevation spectra from WAFO
+    % (L1 already has these spectra, but NOT computed
+    % by WAFO)
     spotterL2.S_f = S_f_temp;
 
+    %
+    spotterL2.nfft = nfft;
+    spotterL2.df = f(2) - f(1);
+
+
     % ---------------------------------
-    % Directional spectrum
+    % Directional spectra
 
     %
     spotterL2.direction_nautical = dir_naut;
-    
 
     % The list of methods used in the calculation
     % of the directional spectra
@@ -461,6 +484,9 @@ for i = 1:length(list_Spotters)
         spotterL2.(dspec_method(jj)).D_f_theta = D_f_theta_temp(:, ind, :, jj);
 
     end
+
+    % Compute time-averaged direction spectrum
+
 
 
     

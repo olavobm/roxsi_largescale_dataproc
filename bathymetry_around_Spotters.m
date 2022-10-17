@@ -652,8 +652,6 @@ for i = 1:length(list_SmartMoorings)
 end
 
 
-%%
-return
 
 %%
 % ------------------------------------------------------------------
@@ -663,43 +661,43 @@ return
 % ------------------------------------------------------------------
 
 %% Now save output for all spotters in a good format
-
-%
-dir_output = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
-
-%
-spotter_location = struct('dataID', [], 'location', [], ...
-                          'timetrimedges', [], 'ltrimedges', [], ...
-                          'bathy', []);
-
-%
-for i = 1:length(spotterAll)
-    %
-    spotter_location(i).dataID = spotterAll(i).dataID;
-    spotter_location(i).location = spotterAll(i).location;
-    spotter_location(i).timetrimedges = spotterAll(i).timetrimedges;
-    spotter_location(i).ltrimedges = spotterAll(i).ltrimedges;
-    spotter_location(i).bathy = spotterAll(i).bathy;
-
-end
-
-
-%
-for i = 1:length(spotterSmartAll)
-    %
-    ind_aux = length(spotterAll) + i;
-    %
-    spotter_location(ind_aux).dataID = spotterSmartAll(i).dataID;
-    spotter_location(ind_aux).location = spotterSmartAll(i).location;
-    spotter_location(ind_aux).timetrimedges = spotterSmartAll(i).timetrimedges;
-    spotter_location(ind_aux).ltrimedges = spotterSmartAll(i).ltrimedges;
-
-end
-
-
-%
-disp(' '), disp(' ')
-disp(['Saving Spotter location and depth at ' dir_output])
-save('-v7.3', fullfile(dir_output, 'Spotter_all_location_depth.mat'), 'spotter_location')
+% % 
+% % %
+% % dir_output = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+% % 
+% % %
+% % spotter_location = struct('dataID', [], 'location', [], ...
+% %                           'timetrimedges', [], 'ltrimedges', [], ...
+% %                           'bathy', []);
+% % 
+% % %
+% % for i = 1:length(spotterAll)
+% %     %
+% %     spotter_location(i).dataID = spotterAll(i).dataID;
+% %     spotter_location(i).location = spotterAll(i).location;
+% %     spotter_location(i).timetrimedges = spotterAll(i).timetrimedges;
+% %     spotter_location(i).ltrimedges = spotterAll(i).ltrimedges;
+% %     spotter_location(i).bathy = spotterAll(i).bathy;
+% % 
+% % end
+% % 
+% % 
+% % %
+% % for i = 1:length(spotterSmartAll)
+% %     %
+% %     ind_aux = length(spotterAll) + i;
+% %     %
+% %     spotter_location(ind_aux).dataID = spotterSmartAll(i).dataID;
+% %     spotter_location(ind_aux).location = spotterSmartAll(i).location;
+% %     spotter_location(ind_aux).timetrimedges = spotterSmartAll(i).timetrimedges;
+% %     spotter_location(ind_aux).ltrimedges = spotterSmartAll(i).ltrimedges;
+% % 
+% % end
+% % 
+% % 
+% % %
+% % disp(' '), disp(' ')
+% % disp(['Saving Spotter location and depth at ' dir_output])
+% % save('-v7.3', fullfile(dir_output, 'Spotter_all_location_depth.mat'), 'spotter_location')
 
 

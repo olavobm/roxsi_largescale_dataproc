@@ -11,7 +11,8 @@ close all
 %% Load (CSUMB) bathymetry
 
 %
-dir_CSUMB = '/Users/olavobm/Library/CloudStorage/Box-Box/olavo_jamie/ROXSI_experiments/';
+% % dir_CSUMB = '/Users/olavobm/Library/CloudStorage/Box-Box/olavo_jamie/ROXSI_experiments/';
+dir_CSUMB = '/home/omarques/Documents/obm_ROXSI/bathymetry_roxsi/';
 
 %
 bathyCSUMB.CyPt_PtPn = load(fullfile(dir_CSUMB, 'bathy_CyPt_PtPn2m_xyz.mat'));
@@ -31,40 +32,56 @@ bathyCSUMB.CyPt_PtPn.z_msl = bathyCSUMB.CyPt_PtPn.z_msl(lsub_aux);
 
 %% Mooring table with reference locations
 
-%
-mooringLocs = load(['/Users/olavobm/Documents/ROXSI_Postdoc' ...
-                    '/MyResearch/ROXSI/Common_Code/LargeScale_Data_2022' ...
-                    '/code_proc/ROXSI2022_mooringtable.mat']);
-mooringLocs = mooringLocs.mooringtable;
+% % %
+% % mooringLocs = load(['/Users/olavobm/Documents/ROXSI_Postdoc' ...
+% %                     '/MyResearch/ROXSI/Common_Code/LargeScale_Data_2022' ...
+% %                     '/code_proc/ROXSI2022_mooringtable.mat']);
+% % mooringLocs = mooringLocs.mooringtable;
+% % 
+% % 
+% % %
+% % [mooringLocs.easting, ...
+% %  mooringLocs.northing] = ll2utm(mooringLocs.latitude, mooringLocs.longitude);
 
-
 %
-[mooringLocs.easting, ...
- mooringLocs.northing] = ll2utm(mooringLocs.latitude, mooringLocs.longitude);
+mooringLocs = ROXSI_mooringlocation();
 
 
 %% Load Spotter deployment info table
 
-dplySpotters = load(['/Users/olavobm/Documents/ROXSI_Postdoc' ...
-                     '/MyResearch/ROXSI/Common_Code' ...
-                     '/LargeScale_Data_2022/code_proc' ...
-                     '/deploymentInfo_Spotters_ROXSI2022.mat']);
-dplySpotters = dplySpotters.dployInfo_Spotters;
+% % %
+% % dplySpotters = load(['/Users/olavobm/Documents/ROXSI_Postdoc' ...
+% %                      '/MyResearch/ROXSI/Common_Code' ...
+% %                      '/LargeScale_Data_2022/code_proc' ...
+% %                      '/deploymentInfo_Spotters_ROXSI2022.mat']);
+% % dplySpotters = dplySpotters.dployInfo_Spotters;
+
+%
+file_spotter_deployment = 'deploymentInfo_Spotters_ROXSI2022.mat';
+%
+spotter_dplt = load(fullfile(repo_dirpath(), file_spotter_deployment));
+spotter_dplt = spotter_dplt.dployInfo_Spotters;
 
 
 %% Spotters that will be loaded
 
-% % %
-% % dir_data = ['/Volumes/GoogleDrive/Shared drives/ROXSI' ...
-% %             '/LargeScale_Data_2022/Level1_Data/Spotter_Level1/'];
-
 %
-dir_data = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+% dir_data = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+dir_data = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Level1/';
 
-%
-list_files = {'B01_spot1150.mat', 'B01_spot1158.mat', 'B03_spot1152.mat', ...
-              'B05_spot1153.mat', 'X01_spot1151.mat', 'X03_spot1157.mat', ...
-              'X04_spot1155.mat'};
+% % RAW/parsed files
+% list_files = {'B01_spot1150.mat', 'B01_spot1158.mat', 'B03_spot1152.mat', ...
+%               'B05_spot1153.mat', 'X01_spot1151.mat', 'X03_spot1157.mat', ...
+%               'X04_spot1155.mat'};
+
+% L1 data
+list_files = {'roxsi_spotter_L1_B01_1150.mat', ...
+              'roxsi_spotter_L1_B01_1158.mat', ...
+              'roxsi_spotter_L1_B03_1152.mat', ...
+              'roxsi_spotter_L1_B05_1153.mat', ...
+              'roxsi_spotter_L1_X01_1151.mat', ...
+              'roxsi_spotter_L1_X03_1157.mat', ...
+              'roxsi_spotter_L1_X04_1155.mat'};
 
 
 %% Load tides (I could also compute a tide product from the
@@ -73,7 +90,11 @@ list_files = {'B01_spot1150.mat', 'B01_spot1158.mat', 'B03_spot1152.mat', ...
 % be minor)
 
 %
-tidal_elevation = load(['/Volumes/ROXSI_Data/LargeScale_Data_2022', ...
+% tidal_elevation = load(['/Volumes/ROXSI_Data/LargeScale_Data_2022', ...
+%                         '/RAW/noaa_mry_tides/tides_NOAA_MRY.mat']);
+
+%
+tidal_elevation = load(['/project/CSIDE/ROXSI/LargeScale_Data_2022' ...
                         '/RAW/noaa_mry_tides/tides_NOAA_MRY.mat']);
 tidal_elevation = tidal_elevation.noaaTides;
 
@@ -85,10 +106,10 @@ for i = 1:length(list_files)
     
     %
     data_aux = load(fullfile(dir_data, list_files{i}));
-    data_aux = data_aux.s;
+% %     data_aux = data_aux.s;
     
     %
-    data_aux.location.time.TimeZone = 'America/Los_Angeles';
+% %     data_aux.location.time.TimeZone = 'America/Los_Angeles';
     
     %
     spotterAll(i).dataID = list_files{i}(1:12);
@@ -126,7 +147,7 @@ for i = 1:length(list_files)
     clear data_aux
 end
 
-return
+
 %% Get bathymetry around each Spotter
 
 

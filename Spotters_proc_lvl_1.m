@@ -32,10 +32,11 @@ dir_data_parent = '/project/CSIDE/ROXSI/LargeScale_Data_2022/RAW/';
 
 %
 % dir_outlvl1 = "/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1_new/";
-dir_outlvl1 = pwd;
+% dir_outlvl1 = pwd;
+dir_outlvl1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Level1/';
 %
-% dir_QCfig = fullfile(dir_outlvl1, 'figs_QC');
-dir_QCfig = dir_outlvl1;
+dir_QCfig = fullfile(dir_outlvl1, 'figs_QC');
+% % dir_QCfig = dir_outlvl1;
 
 
 %%

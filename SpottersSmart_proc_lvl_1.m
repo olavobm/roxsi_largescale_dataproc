@@ -75,7 +75,7 @@ list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
 % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', 'E08_spot1852', 'E10_spot1848'};
 % Same, but separately
 % list_SmartMoorings = {'E01_spot1851'};
-list_SmartMoorings = {'E02_spot1859'};
+%list_SmartMoorings = {'E02_spot1859'};
 % % list_SmartMoorings = {'E08_spot1852'};
 % % list_SmartMoorings = {'E10_spot1848'};
 
@@ -120,7 +120,7 @@ Nspotters = length(list_SmartMoorings);
 %
 log_file_name = ['log_SmartMooring_procL1_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
 %
-diary(fullfile(dir_output_data_L1, log_file_name))
+diary(fullfile(dir_output_data_L1, 'not_gridded', log_file_name))
 
 %
 totalRunTime = tic;

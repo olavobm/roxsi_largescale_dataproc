@@ -88,18 +88,28 @@ tic
 for i1 = 1:Ntime
 
     % Loop over frequency
-    for i2 = 1 : Nfrequency
+    for i2 = 1:Nfrequency
     
         % Create a circular version of the directional spread 
         D = Dir_f_fcn(i2, :, i1);
         D = D(:);
+
+        % If there was a gap in the data that prevented
+        % the calculation of the directional spectrum,
+        % then skip loop iteration
+        if all(isnan(D))
         %
-        [~, ind_max] = max(D);
-        guess = dirinradians(ind_max);
-        
-        % use fzero to solve for theta0, per timestep, per frequency.
-        theta0(i2, i1) = fzero(@(theta0find) trapz(dirinradians, sin(dirinradians-theta0find).*D), guess);
-        sigma0(i2, i1) = rad2deg(sqrt(4.*trapz(dirinradians, (sin((dirinradians-theta0(i2, i1))./2).^2).*D)));
+        else
+            % Otherwise do the calculation as expected
+
+            %
+            [~, ind_max] = max(D);
+            guess = dirinradians(ind_max);
+            
+            % use fzero to solve for theta0, per timestep, per frequency.
+            theta0(i2, i1) = fzero(@(theta0find) trapz(dirinradians, sin(dirinradians-theta0find).*D), guess);
+            sigma0(i2, i1) = rad2deg(sqrt(4.*trapz(dirinradians, (sin((dirinradians-theta0(i2, i1))./2).^2).*D)));
+        end
     end
 
     % Print progress message

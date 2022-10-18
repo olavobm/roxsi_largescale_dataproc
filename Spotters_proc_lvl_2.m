@@ -514,7 +514,7 @@ for i = 1:length(list_Spotters)
     %% Compute bulk parameters from wave spectrum
 
     %
-    [Hsig, freq_mean, freq_peak] = bulkstats_from_wave_spectrum(spotterL2.frequency, spotterL2.S_f);
+    [Hsig, freq_mean, freq_peak] = bulkstats_from_wave_spectrum(spotterL2.frequency, spotterL2.See);
     %
     spotterL2.peak_f = freq_peak(:);
     spotterL2.mean_f = freq_mean(:);
@@ -530,7 +530,7 @@ for i = 1:length(list_Spotters)
         %
         bulkstats_aux = bulkstats_from_wave_dirspectrum(spotterL2.frequency, spotterL2.direction_nautical, ...
                                                         spotterL2.(dspec_method(i2)).D_f_theta, spotterL2.(dspec_method(i2)).See_theta, ...
-                                                        spotterL2.S_f);
+                                                        spotterL2.See);
     
         %
         spotterL2.(dspec_method(i2)).meandir_f = bulkstats_aux.dir_mean_f;

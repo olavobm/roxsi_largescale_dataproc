@@ -250,25 +250,25 @@ for i = 1:length(list_Spotters)
 
     %% --------- GET ONLY THE NECESSARY VARIABLES ---------
 
-    %
-    vars2dirspectra.timeedges = spotter_location(ind_match).timetrimedges;
-
-    %
-    vars2dirspectra.spotterloc.dtime = spotter_location(ind_match).location.time(spotter_location(ind_match).ltrimedges);
-    vars2dirspectra.spotterloc.latitude = spotter_location(ind_match).location.("latitude (decimal degrees)")(spotter_location(ind_match).ltrimedges);
-    vars2dirspectra.spotterloc.longitude = spotter_location(ind_match).location.("longitude (decimal degrees)")(spotter_location(ind_match).ltrimedges);
-    vars2dirspectra.spotterloc.depth = -spotter_location(ind_match).location.z_msl(spotter_location(ind_match).ltrimedges);
-
-    % IF THERE IS NO z_msl FIELD THEN SKIP THE ENTIRE L2 PROC FOR THIS SPOTTER
-
-    %
-    lintrim_edges = (spotterL1.displacement.time >= vars2dirspectra.timeedges(1)) & ...
-                    (spotterL1.displacement.time <= vars2dirspectra.timeedges(2));
-    % 
-    vars2dirspectra.spotterdisp.dtime = spotterL1.displacement.time(lintrim_edges);
-    vars2dirspectra.spotterdisp.x = spotterL1.displacement.("x (m)")(lintrim_edges);
-    vars2dirspectra.spotterdisp.y = spotterL1.displacement.("y (m)")(lintrim_edges);
-    vars2dirspectra.spotterdisp.z = spotterL1.displacement.("z (m)")(lintrim_edges);
+% %     %
+% %     vars2dirspectra.timeedges = spotter_location(ind_match).timetrimedges;
+% % 
+% %     %
+% %     vars2dirspectra.spotterloc.dtime = spotter_location(ind_match).location.time(spotter_location(ind_match).ltrimedges);
+% %     vars2dirspectra.spotterloc.latitude = spotter_location(ind_match).location.("latitude (decimal degrees)")(spotter_location(ind_match).ltrimedges);
+% %     vars2dirspectra.spotterloc.longitude = spotter_location(ind_match).location.("longitude (decimal degrees)")(spotter_location(ind_match).ltrimedges);
+% %     vars2dirspectra.spotterloc.depth = -spotter_location(ind_match).location.z_msl(spotter_location(ind_match).ltrimedges);
+% % 
+% %     % IF THERE IS NO z_msl FIELD THEN SKIP THE ENTIRE L2 PROC FOR THIS SPOTTER
+% % 
+% %     %
+% %     lintrim_edges = (spotterL1.displacement.time >= vars2dirspectra.timeedges(1)) & ...
+% %                     (spotterL1.displacement.time <= vars2dirspectra.timeedges(2));
+% %     % 
+% %     vars2dirspectra.spotterdisp.dtime = spotterL1.displacement.time(lintrim_edges);
+% %     vars2dirspectra.spotterdisp.x = spotterL1.displacement.("x (m)")(lintrim_edges);
+% %     vars2dirspectra.spotterdisp.y = spotterL1.displacement.("y (m)")(lintrim_edges);
+% %     vars2dirspectra.spotterdisp.z = spotterL1.displacement.("z (m)")(lintrim_edges);
 
     
     %% Check clock  of the data -- THESE SHOULD BE GRIDDED!
@@ -289,7 +289,7 @@ for i = 1:length(list_Spotters)
 
     figure
         plot(spotterL1.location.dtime(1:end-1), ...
-             diff(spotterL1.location.spotterloc.dtime), '.-')
+             diff(spotterL1.location.dtime), '.-')
         %
         grid on
         set(gca, 'FontSize', 16)
@@ -377,9 +377,9 @@ for i = 1:length(list_Spotters)
         linanalysis_location = (spotterL1.location.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
                                (spotterL1.location.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
         %
-        lat(sample) = mean(spotterL1.locationlatitude(linanalysis_location), 'omitnan');
+        lat(sample) = mean(spotterL1.location.latitude(linanalysis_location), 'omitnan');
         lon(sample) = mean(spotterL1.location.longitude(linanalysis_location), 'omitnan');
-        depth(sample) = mean(spotterL1.location.depth(linanalysis_location), 'omitnan');
+        depth(sample) = mean(spotterL1.location.z_msl(linanalysis_location), 'omitnan');
         %
         h = abs(depth(sample));
     

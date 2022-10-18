@@ -150,7 +150,7 @@ for i = 1:length(list_files)
     spotterAll(i).SN = data_aux.SN;
 
     %
-    spotte  rAll(i).location = data_aux.location;
+    spotterAll(i).location = data_aux.location;
 
 
 % %     % Trim Spotter location data -- not necessary when loading L1 data

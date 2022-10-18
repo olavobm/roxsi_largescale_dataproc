@@ -346,8 +346,8 @@ for i = 1:length(list_Spotters)
     % Print message to the screen
     disp(' '), disp(' ')
     %
-    disp(['---open Computing directional spectrum ' ...
-          'for Spotter ' list_Spotters{i} ' ---------'])
+    disp(['--- Computing directional spectrum ' ...
+          'for Spotter ' list_Spotters{i} ' ---'])
     %
     disp(['The total number of analysis ' ...
           'periods is: ' num2str(analysis_periods)])
@@ -412,7 +412,6 @@ for i = 1:length(list_Spotters)
                 if lprogress_switch
     
                     %
-                    disp(' '), disp(' ')
                     disp(['----- Done with analysis period ' num2str(sample) ' ' ...
                           'out of ' num2str(analysis_periods) ' -----'])
                     toc
@@ -711,8 +710,8 @@ for i = 1:length(list_Spotters)
         pcolor(spotterL2.dtime, spotterL2.frequency, log10(spotterL2.EMEM.meandirspread_f))
         shading flat
 
-        %
-        caxis([0, 90])
+% %         % ????
+% %         caxis([0, 90])
         %
         hcb = colorbar;
             hcb.Label.Interpreter = 'Latex';
@@ -737,11 +736,11 @@ for i = 1:length(list_Spotters)
     %
     disp(['--- Saving QC figure with timeseries of spectra of directional spread ' list_Spotters{i} ' ---'])
     %
-    exportgraphics(hfig_dirspec_avg, fullfile(dir_output_level_2, 'figs_QC', ['meandirspread_spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
+    exportgraphics(hfig_dirspec_meandir, fullfile(dir_output_level_2, 'figs_QC', ['meandirspread_spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
     %
     pause(5)
     %
-    close(hfig_dirspec_avg)
+    close(hfig_dirspec_meandir)
 
 
     %%

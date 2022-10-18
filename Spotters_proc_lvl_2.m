@@ -57,13 +57,13 @@ roxsi_add_libraries()
 %               'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
 %               'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
-% All Spotters and Smart Moorings
-list_Spotters = {'B03_spot1152', 'B05_spot1153', ...
-                 'X01_spot1151', 'X03_spot1157', 'X04_spot1155', ...
-                 'E01_spot1851', 'E02_spot1859', 'E05_spot1853', ...
-                 'E07_spot1855', 'E07_spot1857', ...
-                 'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
-                 'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
+% % % All Spotters and Smart Moorings
+% % list_Spotters = {'B03_spot1152', 'B05_spot1153', ...
+% %                  'X01_spot1151', 'X03_spot1157', 'X04_spot1155', ...
+% %                  'E01_spot1851', 'E02_spot1859', 'E05_spot1853', ...
+% %                  'E07_spot1855', 'E07_spot1857', ...
+% %                  'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
+% %                  'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
 
 % Just a few to test
 % % list_Spotters = {'B03_spot1152'};
@@ -72,7 +72,15 @@ list_Spotters = {'B03_spot1152', 'B05_spot1153', ...
 % list_Spotters = {'X03_spot1157'};
 
 % list_Spotters = {'B01_spot1150', 'B01_spot1158'};
-list_Spotters = {'B01_spot1158'};
+% % list_Spotters = {'B01_spot1158'};
+
+
+
+% All Spotters and Smart Moorings
+list_Spotters = {'B03_1152', 'B05_1153', ...
+                 'X01_1151', 'X03_1157', 'X04_spot1155'};
+
+list_Spotters = {'B01_1158'};
 
 
 %% Load the location file with bathymetry
@@ -226,21 +234,18 @@ for i = 1:length(list_Spotters)
 % %     %
 % %     data_buoy.displacement.time.TimeZone = 'America/Los_Angeles';
     %
-    spotterL1 = load(fullfile(dir_data_level_1, [list_Spotters{i} '.mat']));
-    spotterL1 = spotterL1.s;
+    spotterL1 = load(fullfile(dir_data_level_1, ['roxsi_spotter_L1_' list_Spotters{i} '.mat']));
+    spotterL1 = spotterL1.spotterL1;
 
 
-    %% --------- GET LOCATION FILE ---------
-
-    keyboard
-
-    %
-    for i2 = 1:length(spotter_location)
-        %
-        if strcmp(spotter_location(i2).dataID, list_Spotters{i})
-            ind_match = i2;
-        end
-    end
+% %     %% --------- GET LOCATION FILE ---------
+% %     %
+% %     for i2 = 1:length(spotter_location)
+% %         %
+% %         if strcmp(spotter_location(i2).dataID, list_Spotters{i})
+% %             ind_match = i2;
+% %         end
+% %     end
 
 
     %% --------- GET ONLY THE NECESSARY VARIABLES ---------
@@ -283,8 +288,8 @@ for i = 1:length(list_Spotters)
 % %     title([list_Spotters{i}(1:3) ' SN:' list_Spotters{i}(end-3:end)], 'FontSize', 16)
 
     figure
-        plot(vars2dirspectra.spotterloc.dtime(1:end-1), ...
-             diff(vars2dirspectra.spotterloc.dtime), '.-')
+        plot(spotterL1.location.dtime(1:end-1), ...
+             diff(spotterL1.location.spotterloc.dtime), '.-')
         %
         grid on
         set(gca, 'FontSize', 16)
@@ -292,7 +297,7 @@ for i = 1:length(list_Spotters)
         lims_dates.TimeZone = 'America/Los_Angeles';
         xlim(lims_dates)
         %
-        title([list_Spotters{i}(1:3) ' SN:' list_Spotters{i}(end-3:end)], 'FontSize', 16)
+        title([list_Spotters{i}(1:3) ' SN:' list_Spotters{i}(5:end)], 'FontSize', 16)
 
 
 % %     keyboard
@@ -356,25 +361,26 @@ for i = 1:length(list_Spotters)
 % %         data_index = ind_start + (sample -1) *N : ...
 % %                      ind_start + sample *N -1;
         % 
-        linanalysis_disp = (vars2dirspectra.spotterdisp.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
-                           (vars2dirspectra.spotterdisp.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
+        linanalysis_disp = (spotterL1.displacement.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
+                           (spotterL1.displacement.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
         % This is slower than the index approach, but shouldn't
         % make much of a difference because the directional 
         % spectra takes a lot more time
         %
-        xt = vars2dirspectra.spotterdisp.x(linanalysis_disp);
-        yt = vars2dirspectra.spotterdisp.y(linanalysis_disp);
-        zt = vars2dirspectra.spotterdisp.z(linanalysis_disp);
-        dtime_sample  = vars2dirspectra.spotterdisp.dtime(linanalysis_disp); 
+        xt = spotterL1.displacement.x(linanalysis_disp);
+        yt = spotterL1.displacement.y(linanalysis_disp);
+        zt = spotterL1.displacement.z(linanalysis_disp);
+        dtime_sample = spotterL1.displacement.dtime(linanalysis_disp); 
      
 
         % the index of the depth record with the same dtime as the displacement 
-        linanalysis_location = (vars2dirspectra.spotterloc.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
-                               (vars2dirspectra.spotterloc.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
+        linanalysis_location = (spotterL1.location.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
+                               (spotterL1.location.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
         %
-        lat(sample) = mean(vars2dirspectra.spotterloc.latitude(linanalysis_location), 'omitnan');
-        lon(sample) = mean(vars2dirspectra.spotterloc.longitude(linanalysis_location), 'omitnan');
-        depth(sample) = mean(vars2dirspectra.spotterloc.depth(linanalysis_location), 'omitnan');
+        lat(sample) = mean(spotterL1.locationlatitude(linanalysis_location), 'omitnan');
+        lon(sample) = mean(spotterL1.location.longitude(linanalysis_location), 'omitnan');
+        depth(sample) = mean(spotterL1.location.depth(linanalysis_location), 'omitnan');
+        %
         h = abs(depth(sample));
     
         %
@@ -387,7 +393,7 @@ for i = 1:length(list_Spotters)
             else
                 [Sd,D] = dat2dspec(Data, pos, h, nfft, Nt, dspec_method(jj));
             end
-            S_f_theta_temp(:, :, sample, jj) = Sd.S'.*(2*pi); %scaled because I want direction in degrees
+            S_f_theta_temp(:, :, sample, jj) = Sd.S'.*(2*pi);    % scaled because I want direction in degrees
             D_f_theta_temp(:, :, sample, jj) = D.S';
         end
         %       
@@ -425,7 +431,7 @@ for i = 1:length(list_Spotters)
 
     % change the angular definition from cartesian to nautical
     dir = rad2deg(Sd.theta(1:end));
-    dir_naut_unsorted= mod(270 - rad2deg(Sd.theta(1:end-1)),360);
+    dir_naut_unsorted = mod(270 - rad2deg(Sd.theta(1:end-1)), 360);
     [dir_naut, ind] = sort(dir_naut_unsorted);
 
 

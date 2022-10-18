@@ -84,10 +84,8 @@ disp(['-------------- Total number of time stamps is = ' num2str(Ntime) ' ------
 %% Compute frequency spectra of the mean direction and mean direction spread
 
 % Loop over time
-%
-% (Skip the last one because I need to fix the code that computes spectrum)
 tic
-for i1 = 1:(Ntime-1)
+for i1 = 1:Ntime
 
     % Loop over frequency
     for i2 = 1 : Nfrequency

@@ -535,7 +535,7 @@ for i = 1:length(list_files)
     str_filename = ['roxsi_spotter_L1_' char(spotterL1.mooringID) '_' char(spotterL1.SN)];
     str_fullpath_file = fullfile(dir_data, [str_filename '.mat']);
     %
-    disp(['----- Saving (overwriting) new level 1 data from Spotter ' list_spotters{i} ' at:-----'])
+    disp(['----- Saving (overwriting) new level 1 data from Spotter ' list_files{i} ' at:-----'])
     disp(str_fullpath_file)
 
     %

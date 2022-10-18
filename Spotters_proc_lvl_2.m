@@ -385,7 +385,7 @@ for i = 1:length(list_Spotters)
         % Only compute directional spectrum if there is no gap
         % in displacement data (i.e. the data must have the same
         % length as the relative time "t")
-        if length(t)~=length(zt)
+        if length(t)==length(zt)
 
             %
             Data = [t, zt, xt, yt];
@@ -428,7 +428,7 @@ for i = 1:length(list_Spotters)
         %
         else
             % Print warning message about gap and don't do the calculation
-            warning(['Gap in ' list_Spotters{i} ' around ' dtime_proc_aux(sample) ' prevented ' ...
+            warning(['Gap in ' list_Spotters{i} ' around ' datestr(dtime_proc_aux(sample)) ' prevented ' ...
                      'the calculation of directional spectrum. Skipping to the next time stamp.'])
             %
         end

@@ -346,7 +346,7 @@ for i = 1:length(list_Spotters)
     % Print message to the screen
     disp(' '), disp(' ')
     %
-    disp(['--------- Computing directional spectrum ' ...
+    disp(['---open Computing directional spectrum ' ...
           'for Spotter ' list_Spotters{i} ' ---------'])
     %
     disp(['The total number of analysis ' ...
@@ -514,10 +514,16 @@ for i = 1:length(list_Spotters)
     %% Compute bulk parameters from wave spectrum
 
     %
-    [Hsig, freq_mean, freq_peak] = bulkstats_from_wave_spectrum(spotterL2.frequency, spotterL2.See);
+    spotterL2.freqband = [0, +Inf];
+
     %
-    spotterL2.peak_f = freq_peak(:);
-    spotterL2.mean_f = freq_mean(:);
+    [Hsig, freq_mean, freq_peak] = ...
+                    bulkstats_from_wave_spectrum(spotterL2.frequency, ...
+                                                 spotterL2.See, ...
+                                                 spotterL2.freqband);
+    %
+    spotterL2.peakfreq = freq_peak(:);
+    spotterL2.meanfreq = freq_mean(:);
     spotterL2.Hsig = Hsig(:);
 
     %
@@ -656,7 +662,7 @@ for i = 1:length(list_Spotters)
 
 
     %%
-    
+
     %
     disp(['------------------ Done with directional spectra ' ...
           'for Spotter ' list_Spotters{i} ' ------------------'])

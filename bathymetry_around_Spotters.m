@@ -15,11 +15,12 @@ close all
 dir_data = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Level1/';
 
 %
-dir_output = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+dir_output = fullfile(dir_data, 'figs_QC');
 
 %
 % % dir_CSUMB = '/Users/olavobm/Library/CloudStorage/Box-Box/olavo_jamie/ROXSI_experiments/';
 dir_CSUMB = '/home/omarques/Documents/obm_ROXSI/bathymetry_roxsi/';
+
 
 %%
 % -------------------------------------------------------
@@ -466,7 +467,7 @@ for i = 1:length(list_files)
               'Interpreter', 'Latex', 'FontSize', 20)
 
     %
-    exportgraphics(hfig_aux, fullfile(dir_data, [list_files{i}(1:end-4) '.png']), 'Resolution', 300)
+    exportgraphics(hfig_aux, fullfile(dir_output, [list_files{i}(1:end-4) '.png']), 'Resolution', 300)
 
 end
 

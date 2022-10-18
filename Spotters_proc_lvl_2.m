@@ -79,7 +79,7 @@ roxsi_add_libraries()
 % All Spotters and Smart Moorings
 list_Spotters = {'B01_1158', 'B01_1150', ...
                  'B03_1152', 'B05_1153', ...
-                 'X01_1151', 'X03_1157', 'X04_spot1155'};
+                 'X01_1151', 'X03_1157', 'X04_1155'};
 
 
 %% Load the location file with bathymetry

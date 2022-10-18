@@ -115,6 +115,23 @@ tidal_elevation = load(['/project/CSIDE/ROXSI/LargeScale_Data_2022' ...
 tidal_elevation = tidal_elevation.noaaTides;
 
 
+%%
+% --------------------------------------------------------------------
+% --------------------------------------------------------------------
+% --------------------------------------------------------------------
+% --------------------------------------------------------------------
+
+%%
+
+%
+log_file_name = ['log_proc_bathyaroundSpotter_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
+%
+diary(fullfile(dir_data, log_file_name))
+
+%
+totalRunTime = tic;
+
+
 %% Load data and get trimming variable
 
 %
@@ -133,7 +150,7 @@ for i = 1:length(list_files)
     spotterAll(i).SN = data_aux.SN;
 
     %
-    spotterAll(i).location = data_aux.location;
+    spotte  rAll(i).location = data_aux.location;
 
 
 % %     % Trim Spotter location data -- not necessary when loading L1 data
@@ -493,6 +510,58 @@ for i = 1:length(spotterAll)
         title([char(spotterAll(i).mooringID) ' SN ' char(spotterAll(i).SN)], ...
               'Interpreter', 'Latex', 'FontSize', 20)
 end
+
+%%
+% ----------------------------------------------------------------
+% ------------ ADD RELEVANT VARIABLES TO LEVEL 1 DATA ------------
+% - (the bathymetry is necessary to compute directional spectra) -
+% ----------------------------------------------------------------
+
+%%
+
+%
+for i = 1:length(list_files)
+    
+    %
+    spotterL1 = load(fullfile(dir_data, list_files{i}));
+    spotterL1 = spotterL1.spotterL1;
+
+    %
+    spotterL1.location.z_msl = spotterAll(i).location.z_msl;
+    spotterL1.location.tidal_elevation = spotterAll(i).location.tidal_elevation;
+
+
+    % Overwrite L1 data files with additional fields
+    str_filename = ['roxsi_spotter_L1_' char(spotterL1.mooringID) '_' char(spotterL1.SN)];
+    str_fullpath_file = fullfile(dir_data, [str_filename '.mat']);
+    %
+    disp(['----- Saving (overwriting) new level 1 data from Spotter ' list_spotters{i} ' at:-----'])
+    disp(str_fullpath_file)
+
+    %
+    save(str_fullpath_file, 'spotterL1', '-v7.3')
+
+end
+
+
+%%
+
+%
+disp('###################### Done with adding bathymetry to L1 Spotter data ######################')
+
+%
+disp(' '), disp(' ')
+disp('*** The total time to run the data processing was:')
+%
+toc(totalRunTime)
+
+% Close the log file
+diary('off');
+
+
+
+%%
+
 
 return
 %%

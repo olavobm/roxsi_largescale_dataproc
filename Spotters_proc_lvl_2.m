@@ -581,7 +581,7 @@ for i = 1:length(list_Spotters)
         hcb = colorbar;
             hcb.Label.Interpreter = 'Latex';
             hcb.Label.String = '$\log_{10}$ of displacement variance [m$^2$ Hz$^{-1}$]';
-            hcb.Label.FontSize = 18;
+            hcb.Label.FontSize = 14;
 
     %
     set(gca, 'FontSize', 16, 'Box', 'on', ...
@@ -591,11 +591,11 @@ for i = 1:length(list_Spotters)
                       datetime(2022, 07, 23, 12, 0, 0, 'TimeZone', 'America/Los_Angeles')], ...
              'YLim', [0, 1.25])
     %
-    xlabel('Time [PDT]', 'Interpreter', 'Latex', 'FOntSize', 22)
-    ylabel('Frequency [Hz]', 'Interpreter', 'Latex', 'FOntSize', 22)
+    xlabel('Time [PDT]', 'Interpreter', 'Latex', 'FOntSize', 14)
+    ylabel('Frequency [Hz]', 'Interpreter', 'Latex', 'FOntSize', 14)
     %
     title(['ROXSI 2022: displacement spectra. Spotter ' list_Spotters{i}(1:3) ...
-           ' SN ' list_Spotters{i}(9:12)], 'Interpreter', 'Latex', 'FOntSize', 22)
+           ' SN ' list_Spotters{i}(5:end)], 'Interpreter', 'Latex', 'FOntSize', 14)
 
     %
     set(gcf, 'units', 'normalized')
@@ -610,9 +610,54 @@ for i = 1:length(list_Spotters)
     %
     close(hfig_spec)
 
+
+    %% Plot and save time-averaged directional spectrum
+
+    %
+    hfig_dirspec_avg = figure;
+        pcolor(spotterL2.frequency, spotterL2.direction_nautical, ...
+               log10(spotterL2.EMEM.See_theta_avg).')
+        shading flat
+
+        %
+        caxis([-4.5, 0.8])
+        %
+        hcb = colorbar;
+            hcb.Label.Interpreter = 'Latex';
+            hcb.Label.String = '$\log_{10}$ of displacement variance [m$^2$ Hz$^{-1}$ per degree]';
+            hcb.Label.FontSize = 12;
+
+    %
+    set(gca, 'FontSize', 16, 'Box', 'on', ...
+             'XGrid', 'on', 'YGrid', 'on', ...
+             'XScale', 'log')
+
+    %
+    xlabel('Frequency [Hz]', 'Interpreter', 'Latex', 'FOntSize', 14)
+    ylabel('Direction [degrees]', 'Interpreter', 'Latex', 'FOntSize', 14)
+    %
+    title(['ROXSI 2022: time-averaged directional spectrum. Spotter ' list_Spotters{i}(1:3) ...
+           ' SN ' list_Spotters{i}(5:end)], 'Interpreter', 'Latex', 'FOntSize', 14)
+
+    %
+    set(gcf, 'units', 'normalized')
+    set(gcf, 'Position', [0.35, 0.28, 0.41, 0.27])
+
+    %
+    disp(['--- Saving QC figure with time-averaged directional spectrum for ' list_Spotters{i} ' ---'])
+    %
+    exportgraphics(hfig_dirspec_avg, fullfile(dir_output_level_2, 'figs_QC', ['dir_avgspectrum_' list_Spotters{i} '.png']), 'Resolution', 300)
+    %
+    pause(5)
+    %
+    close(hfig_dirspec_avg)
+
+
+
+
     %%
     %
-    disp(['------------------ Done with directional spectrum ' ...
+    disp(['------------------ Done with directional spectra ' ...
           'for Spotter ' list_Spotters{i} ' ------------------'])
 end
 

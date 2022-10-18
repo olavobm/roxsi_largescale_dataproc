@@ -77,10 +77,9 @@ roxsi_add_libraries()
 
 
 % All Spotters and Smart Moorings
-list_Spotters = {'B03_1152', 'B05_1153', ...
+list_Spotters = {'B01_1158', 'B01_1150', ...
+                 'B03_1152', 'B05_1153', ...
                  'X01_1151', 'X03_1157', 'X04_spot1155'};
-
-list_Spotters = {'B01_1158'};
 
 
 %% Load the location file with bathymetry
@@ -110,9 +109,9 @@ list_Spotters = {'B01_1158'};
 % (or comment this out if you just want to use all of
 % the data available).
 
-timelims_L2proc = [datetime(2022, 06, 20, 00, 00, 00), ...
-                   datetime(2022, 07, 10, 00, 00, 00)];
-timelims_L2proc.TimeZone = 'America/Los_Angeles';
+% % timelims_L2proc = [datetime(2022, 06, 20, 00, 00, 00), ...
+% %                    datetime(2022, 07, 10, 00, 00, 00)];
+% % timelims_L2proc.TimeZone = 'America/Los_Angeles';
 
 
 %%
@@ -383,44 +382,56 @@ for i = 1:length(list_Spotters)
         %
         h = abs(depth(sample));
     
-        %
-        Data = [t, zt, xt, yt];
-        
-        % Loop over methods to compute directional spectra
-        for jj = 1 : length(dspec_method)
-            if jj == 1
-                [Sd,D,Sw] = dat2dspec(Data, pos, h, nfft, Nt, dspec_method(jj));
-            else
-                [Sd,D] = dat2dspec(Data, pos, h, nfft, Nt, dspec_method(jj));
-            end
-            S_f_theta_temp(:, :, sample, jj) = Sd.S'.*(2*pi);    % scaled because I want direction in degrees
-            D_f_theta_temp(:, :, sample, jj) = D.S';
-        end
-        %       
-        S_f_temp(:, sample) = Sw.S.*(2*pi);    
-        
-        % ------------------------------
-        % Print progress message to the screen (the
-        % second argument is the percentage step when
-        % the progress will be printed to the screen)
-        if mod(round(100*sample/analysis_periods), 25)==0
+        % Only compute directional spectrum if there is no gap
+        % in displacement data (i.e. the data must have the same
+        % length as the relative time "t")
+        if length(t)~=length(zt)
+
             %
-            if lprogress_switch
-
-                %
-                disp(' '), disp(' ')
-                disp(['----- Done with analysis period ' num2str(sample) ' ' ...
-                      'out of ' num2str(analysis_periods) ' -----'])
-                toc
-                %
-                lprogress_switch = false;
+            Data = [t, zt, xt, yt];
+            
+            % Loop over methods to compute directional spectra
+            for jj = 1 : length(dspec_method)
+                if jj == 1
+                    [Sd,D,Sw] = dat2dspec(Data, pos, h, nfft, Nt, dspec_method(jj));
+                else
+                    [Sd,D] = dat2dspec(Data, pos, h, nfft, Nt, dspec_method(jj));
+                end
+                S_f_theta_temp(:, :, sample, jj) = Sd.S'.*(2*pi);    % scaled because I want direction in degrees
+                D_f_theta_temp(:, :, sample, jj) = D.S';
             end
+            %       
+            S_f_temp(:, sample) = Sw.S.*(2*pi);    
+            
+            % ------------------------------
+            % Print progress message to the screen (the
+            % second argument is the percentage step when
+            % the progress will be printed to the screen)
+            if mod(round(100*sample/analysis_periods), 25)==0
+                %
+                if lprogress_switch
+    
+                    %
+                    disp(' '), disp(' ')
+                    disp(['----- Done with analysis period ' num2str(sample) ' ' ...
+                          'out of ' num2str(analysis_periods) ' -----'])
+                    toc
+                    %
+                    lprogress_switch = false;
+                end
+    
+            else
+                lprogress_switch = true;
+            end
+            % ------------------------------
 
+        %
         else
-            lprogress_switch = true;
+            % Print warning message about gap and don't do the calculation
+            warning(['Gap in ' list_Spotters{i} ' around ' dtime_proc_aux(sample) ' prevented ' ...
+                     'the calculation of directional spectrum. Skipping to the next time stamp.'])
+            %
         end
-        % ------------------------------
-        
     end
 
     % from the wafo documentation
@@ -471,7 +482,7 @@ for i = 1:length(list_Spotters)
     % The sea surface elevation spectra from WAFO
     % (L1 already has these spectra, but NOT computed
     % by WAFO)
-    spotterL2.S_f = S_f_temp;
+    spotterL2.See = S_f_temp;
 
     %
     spotterL2.nfft = nfft;
@@ -492,12 +503,12 @@ for i = 1:length(list_Spotters)
     for jj = 1 : length(dspec_method)
 
         %
-        spotterL2.(dspec_method(jj)).S_f_theta = S_f_theta_temp(:, ind, :, jj);
+        spotterL2.(dspec_method(jj)).See_theta = S_f_theta_temp(:, ind, :, jj);
         spotterL2.(dspec_method(jj)).D_f_theta = D_f_theta_temp(:, ind, :, jj);
 
     end
 
-    % Compute time-averaged direction spectrum
+    
 
     
     %% Compute bulk parameters from wave spectrum
@@ -512,23 +523,30 @@ for i = 1:length(list_Spotters)
     %
     for i2 = 1 : length(dspec_method)
 
+        % Compute time-averaged directional spectrum
+        spotterL2.(dspec_method(i2)).See_theta_avg = mean(spotterL2.(dspec_method(i2)).See_theta, 3, 'omitnan');
+
+        % Compute bulk statistics
         %
         bulkstats_aux = bulkstats_from_wave_dirspectrum(spotterL2.frequency, spotterL2.direction_nautical, ...
-                                                        spotterL2.(dspec_method(i2)).D_f_theta, spotterL2.(dspec_method(i2)).S_f_theta, ...
+                                                        spotterL2.(dspec_method(i2)).D_f_theta, spotterL2.(dspec_method(i2)).See_theta, ...
                                                         spotterL2.S_f);
     
         %
-        spotterL2.(dspec_method(i2)).mean_dir_f = bulkstats_aux.dir_mean_f;
-        spotterL2.(dspec_method(i2)).mean_spread_f = bulkstats_aux.spread_mean_f;
+        spotterL2.(dspec_method(i2)).meandir_f = bulkstats_aux.dir_mean_f;
+        spotterL2.(dspec_method(i2)).meandirspread_f = bulkstats_aux.spread_mean_f;
         %
-        spotterL2.(dspec_method(i2)).mean_dir = bulkstats_aux.dir_mean(:);
-        spotterL2.(dspec_method(i2)).mean_spread = bulkstats_aux.spread_mean(:);
+        spotterL2.(dspec_method(i2)).meandir = bulkstats_aux.dir_mean(:);
+        spotterL2.(dspec_method(i2)).meandirspread = bulkstats_aux.spread_mean(:);
         %
-        spotterL2.(dspec_method(i2)).peak_dir = bulkstats_aux.dir_peak(:);
-        spotterL2.(dspec_method(i2)).peak_spread = bulkstats_aux.spread_peak(:);
+        spotterL2.(dspec_method(i2)).peakdir = bulkstats_aux.dir_peak(:);
+        spotterL2.(dspec_method(i2)).peakdirspread = bulkstats_aux.spread_peak(:);
+
+        
+
     end
 
-keyboard
+
     %% Save directional spectra
 
     %
@@ -536,12 +554,12 @@ keyboard
     %
     fname = fullfile(dir_output_level_2, ['roxsi_spotter_L2_' list_Spotters{i} '.mat']);
     save(fname, "spotterL2" , '-v7.3')
-keyboard
+
     %
     disp(['--- Saving reduced (averaged) spectra for ' list_Spotters{i} ' ---'])
     %
     for i2 = 1:length(dspec_method)
-        spotterL2.(dspec_method(i2)) = rmfield(spotterL2.(dspec_method(i2)), 'S_f_theta');
+        spotterL2.(dspec_method(i2)) = rmfield(spotterL2.(dspec_method(i2)), 'See_theta');
         spotterL2.(dspec_method(i2)) = rmfield(spotterL2.(dspec_method(i2)), 'D_f_theta');
     end
     %
@@ -554,7 +572,7 @@ keyboard
 
     %
     hfig_spec = figure;
-        pcolor(spotterL2.dtime, spotterL2.f, log10(spotterL2.S_f))
+        pcolor(spotterL2.dtime, spotterL2.frequency, log10(spotterL2.See))
         shading flat
 
         %

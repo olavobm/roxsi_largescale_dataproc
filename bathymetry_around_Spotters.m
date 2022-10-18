@@ -484,7 +484,7 @@ for i = 1:length(list_files)
               'Interpreter', 'Latex', 'FontSize', 20)
 
     %
-    exportgraphics(hfig_aux, fullfile(dir_output, [list_files{i}(1:end-4) '.png']), 'Resolution', 300)
+    exportgraphics(hfig_aux, fullfile(dir_output, ['spotter_L1_' char(spotterAll(i).mooringID) '_spot' char(spotterAll(i).SN) '_bathymap.png']), 'Resolution', 300)
 
 end
 

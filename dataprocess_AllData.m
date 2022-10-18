@@ -27,6 +27,7 @@ run('SpottersSmart_timegrid_pressure.m')
 
 %
 run('Spotters_proc_lvl_1.m')
+run('bathymetry_around_Spotters.m')
 run('Spotters_proc_lvl_2.m')
 
 

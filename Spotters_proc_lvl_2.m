@@ -17,7 +17,8 @@ close all
 
 %
 % % dir_data_level_1 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
-dir_data_level_1 = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+% % dir_data_level_1 = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+dir_data_level_1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Level1/';
 
 
 %%
@@ -25,7 +26,7 @@ dir_data_level_1 = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level1_Data/Spotte
 % Output directory
 % % dir_output_level_2 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
 % % dir_output_level_2 = pwd;
-dir_output_level_2 = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
+dir_output_level_2 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level2_Data/Spotter_Level2/';
 
 
 %% Add WAFO toolbox to Matlab path
@@ -216,8 +217,7 @@ for i = 1:length(list_Spotters)
     %% --------- LOAD DISPLACEMENT FILE ---------
 
     % Print message to the screen
-    disp(' ')
-    disp(' ')
+    disp(' '), disp(' ')
     %
     disp(['------------------ Load Spotter data from ' list_Spotters{i} ' ------------------'])
 % %     %
@@ -250,6 +250,8 @@ for i = 1:length(list_Spotters)
     vars2dirspectra.spotterloc.latitude = spotter_location(ind_match).location.("latitude (decimal degrees)")(spotter_location(ind_match).ltrimedges);
     vars2dirspectra.spotterloc.longitude = spotter_location(ind_match).location.("longitude (decimal degrees)")(spotter_location(ind_match).ltrimedges);
     vars2dirspectra.spotterloc.depth = -spotter_location(ind_match).location.z_msl(spotter_location(ind_match).ltrimedges);
+
+    % IF THERE IS NO z_msl FIELD THEN SKIP THE ENTIRE L2 PROC FOR THIS SPOTTER
 
     %
     lintrim_edges = (spotterL1.displacement.time >= vars2dirspectra.timeedges(1)) & ...
@@ -488,13 +490,11 @@ for i = 1:length(list_Spotters)
 
     % Compute time-averaged direction spectrum
 
-
-
     
     %% Compute bulk parameters from wave spectrum
 
     %
-    [freq_peak, freq_mean, Hsig] = bulkstats_from_wave_spectrum(spotterL2.frequency, spotterL2.S_f);
+    [Hsig, freq_mean, freq_peak] = bulkstats_from_wave_spectrum(spotterL2.frequency, spotterL2.S_f);
     %
     spotterL2.peak_f = freq_peak(:);
     spotterL2.mean_f = freq_mean(:);
@@ -519,14 +519,15 @@ for i = 1:length(list_Spotters)
         spotterL2.(dspec_method(i2)).peak_spread = bulkstats_aux.spread_peak(:);
     end
 
-
+keyboard
     %% Save directional spectra
+
     %
     disp(['--- Saving full directional spectra for ' list_Spotters{i} ' ---'])
     %
-    fname = fullfile(dir_output_level_2, [list_Spotters{i} '_dspec.mat']);
+    fname = fullfile(dir_output_level_2, ['roxsi_spotter_L2_' list_Spotters{i} '.mat']);
     save(fname, "spotterL2" , '-v7.3')
-
+keyboard
     %
     disp(['--- Saving reduced (averaged) spectra for ' list_Spotters{i} ' ---'])
     %
@@ -535,11 +536,11 @@ for i = 1:length(list_Spotters)
         spotterL2.(dspec_method(i2)) = rmfield(spotterL2.(dspec_method(i2)), 'D_f_theta');
     end
     %
-    fname = fullfile(dir_output_level_2, [list_Spotters{i} '_dspec_reduced.mat']);
+    fname = fullfile(dir_output_level_2, ['roxsi_spotter_L2_' list_Spotters{i} '_reduced.mat']);
     save(fname, "spotterL2" , '-v7.3')
 
 
-    %% Plot displacement spectrum (averaged in direcion, 
+    %% Plot displacement spectra (averaged in direcion, 
     % as a function of time and frequency)
 
     %
@@ -576,7 +577,7 @@ for i = 1:length(list_Spotters)
     %
     disp(['--- Saving spectra figure for ' list_Spotters{i} ' ---'])
     %
-    exportgraphics(hfig_spec, fullfile(dir_output_level_2, ['spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
+    exportgraphics(hfig_spec, fullfile(dir_output_level_2, 'figs_QC', ['spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
     %
     pause(5)
     %

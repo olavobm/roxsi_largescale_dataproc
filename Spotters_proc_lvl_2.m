@@ -663,7 +663,7 @@ for i = 1:length(list_Spotters)
     %
     hfig_dirspec_meandir = figure;
         %
-        pcolor(spotterL2.dtime, spotterL2.frequency, log10(spotterL2.EMEM.meandir_f))
+        pcolor(spotterL2.dtime, spotterL2.frequency, spotterL2.EMEM.meandir_f)
         shading flat
 
         %
@@ -695,17 +695,17 @@ for i = 1:length(list_Spotters)
     %
     disp(['--- Saving QC figure with timeseries of mean direction spectra for ' list_Spotters{i} ' ---'])
     %
-    exportgraphics(hfig_dirspec_avg, fullfile(dir_output_level_2, 'figs_QC', ['meandir_spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
+    exportgraphics(hfig_dirspec_meandir, fullfile(dir_output_level_2, 'figs_QC', ['meandir_spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
     %
     pause(5)
     %
-    close(hfig_dirspec_avg)
+    close(hfig_dirspec_meandir)
 
 
     %% Plot and save time-frequency pcolor of mean directional spread
 
     %
-    hfig_dirspec_meandir = figure;
+    hfig_dirspec_dirspread = figure;
         %
         pcolor(spotterL2.dtime, spotterL2.frequency, log10(spotterL2.EMEM.meandirspread_f))
         shading flat
@@ -736,11 +736,11 @@ for i = 1:length(list_Spotters)
     %
     disp(['--- Saving QC figure with timeseries of spectra of directional spread ' list_Spotters{i} ' ---'])
     %
-    exportgraphics(hfig_dirspec_meandir, fullfile(dir_output_level_2, 'figs_QC', ['meandirspread_spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
+    exportgraphics(hfig_dirspec_dirspread, fullfile(dir_output_level_2, 'figs_QC', ['meandirspread_spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
     %
     pause(5)
     %
-    close(hfig_dirspec_meandir)
+    close(hfig_dirspec_dirspread)
 
 
     %%

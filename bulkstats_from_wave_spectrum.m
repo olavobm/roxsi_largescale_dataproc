@@ -1,5 +1,5 @@
-function [freq_peak, freq_mean, Hsig] = bulkstats_from_wave_spectrum(freq, wvspec, freqband)
-%%  [freq_peak, freq_mean, Hsig] = BULKSTATS_FROM_WAVE_SPECTRUM(freq, wvspec, freqband)
+function [Hsig, freq_mean, freq_peak] = bulkstats_from_wave_spectrum(freq, wvspec, freqband)
+%%  [Hsig, freq_mean, freq_peak] = BULKSTATS_FROM_WAVE_SPECTRUM(freq, wvspec, freqband)
 %
 %   inputs
 %       - freq: in Hz.
@@ -9,9 +9,9 @@ function [freq_peak, freq_mean, Hsig] = bulkstats_from_wave_spectrum(freq, wvspe
 %                   will be computed.
 %
 %   outputs
-%       - freq_peak:
-%       - freq_mean:
 %       - Hsig: 
+%       - freq_mean:
+%       - freq_peak:
 %
 %
 % Adapted from bulk_statistics_from_dspec_onshore_offshore_V3.m
@@ -44,6 +44,12 @@ freq = freq(linfreqband);
 wvspec = wvspec(linfreqband, :);
 
 
+%% Significant wave height
+
+%
+Hsig = 4.*sqrt(trapz(freq, wvspec));
+
+
 %%
 
 % Find index of the peak for each column in the wave height spectrum
@@ -57,7 +63,4 @@ T_mean = trapz(freq, wvspec) ./ trapz(freq, freq.* wvspec);
 freq_mean = 1./T_mean;
 
 
-%% Significant wave height
 
-%
-Hsig = 4.*sqrt(trapz(freq, wvspec));

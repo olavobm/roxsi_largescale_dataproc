@@ -631,7 +631,7 @@ for i = 1:length(list_Spotters)
         hcb = colorbar;
             hcb.Label.Interpreter = 'Latex';
             hcb.Label.String = '$\log_{10}$ of displacement variance [m$^2$ Hz$^{-1}$ per degree]';
-            hcb.Label.FontSize = 12;
+            hcb.Label.FontSize = 10;
 
     %
     set(gca, 'FontSize', 16, 'Box', 'on', ...
@@ -647,7 +647,7 @@ for i = 1:length(list_Spotters)
 
     %
     set(gcf, 'units', 'normalized')
-    set(gcf, 'Position', [0.35, 0.28, 0.41, 0.27])
+    set(gcf, 'Position', [0.35, 0.28, 0.36, 0.392])
 
     %
     disp(['--- Saving QC figure with time-averaged directional spectrum for ' list_Spotters{i} ' ---'])
@@ -659,6 +659,89 @@ for i = 1:length(list_Spotters)
     close(hfig_dirspec_avg)
 
 
+    %% Plot and save time-frequency pcolor of mean direction
+
+    %
+    hfig_dirspec_meandir = figure;
+        %
+        pcolor(spotterL2.dtime, spotterL2.frequency, log10(spotterL2.EMEM.meandir_f))
+        shading flat
+
+        %
+        colormap hsv
+
+        %
+        caxis([0, 360])
+        %
+        hcb = colorbar;
+            hcb.Label.Interpreter = 'Latex';
+            hcb.Label.String = 'Direction [degrees]';
+            hcb.Label.FontSize = 10;
+
+    %
+    set(gca, 'FontSize', 14, 'Box', 'on', ...
+             'XGrid', 'on', 'YGrid', 'on', ...
+             'YScale', 'log')
+
+    %
+    ylabel('Frequency [Hz]', 'Interpreter', 'Latex', 'FOntSize', 14)
+    %
+    title(['ROXSI 2022: mean direction. Spotter ' list_Spotters{i}(1:3) ...
+           ' SN ' list_Spotters{i}(5:end)], 'Interpreter', 'Latex', 'FOntSize', 14)
+
+    %
+    set(gcf, 'units', 'normalized')
+    set(gcf, 'Position', [0.28, 0.24, 0.63, 0.41])
+
+    %
+    disp(['--- Saving QC figure with timeseries of mean direction spectra for ' list_Spotters{i} ' ---'])
+    %
+    exportgraphics(hfig_dirspec_avg, fullfile(dir_output_level_2, 'figs_QC', ['meandir_spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
+    %
+    pause(5)
+    %
+    close(hfig_dirspec_avg)
+
+
+    %% Plot and save time-frequency pcolor of mean directional spread
+
+    %
+    hfig_dirspec_meandir = figure;
+        %
+        pcolor(spotterL2.dtime, spotterL2.frequency, log10(spotterL2.EMEM.meandirspread_f))
+        shading flat
+
+        %
+        caxis([0, 90])
+        %
+        hcb = colorbar;
+            hcb.Label.Interpreter = 'Latex';
+            hcb.Label.String = 'Direction [degrees]';
+            hcb.Label.FontSize = 10;
+
+    %
+    set(gca, 'FontSize', 14, 'Box', 'on', ...
+             'XGrid', 'on', 'YGrid', 'on', ...
+             'YScale', 'log')
+
+    %
+    ylabel('Frequency [Hz]', 'Interpreter', 'Latex', 'FOntSize', 14)
+    %
+    title(['ROXSI 2022: mean directional spread. Spotter ' list_Spotters{i}(1:3) ...
+           ' SN ' list_Spotters{i}(5:end)], 'Interpreter', 'Latex', 'FOntSize', 14)
+
+    %
+    set(gcf, 'units', 'normalized')
+    set(gcf, 'Position', [0.28, 0.24, 0.63, 0.41])
+
+    %
+    disp(['--- Saving QC figure with timeseries of spectra of directional spread ' list_Spotters{i} ' ---'])
+    %
+    exportgraphics(hfig_dirspec_avg, fullfile(dir_output_level_2, 'figs_QC', ['meandirspread_spectra_' list_Spotters{i} '.png']), 'Resolution', 300)
+    %
+    pause(5)
+    %
+    close(hfig_dirspec_avg)
 
 
     %%

@@ -46,33 +46,45 @@ mkdir(dir_data_parent)
 mkdir(fullfile(dir_data_parent, 'Level1_Data'))
 mkdir(fullfile(dir_data_parent, 'Level2_Data'))
 
+% --------------------------------------------------------
+% Level 1 subdirectories
 
 %
+mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Aquadopp_Level1'))
 mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Level1'))
 mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Smart_Level1'))
+mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Signature_Level1'))
 
 % --------------------
+
 %
 mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Smart_Level1', 'not_gridded'))
 mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Smart_Level1', 'gridded'))
 
+% ---------
+
 %
+mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Aquadopp_Level1', 'figs_QC'))
+mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Level1', 'figs_QC'))
 mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Smart_Level1', 'not_gridded', 'figs_QC'))
 mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Smart_Level1', 'gridded', 'figs_QC'))
-
-
-% --------------------
-mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Level1', 'figs_QC'))
-
+mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Signature_Level1', 'figs_QC'))
 
 
 % --------------------------------------------------------
+% Level 2 subdirectories
 
 %
+mkdir(fullfile(dir_data_parent, 'Level2_Data', 'Aquadopp_Level2'))
 mkdir(fullfile(dir_data_parent, 'Level2_Data', 'Spotter_Level2'))
 mkdir(fullfile(dir_data_parent, 'Level2_Data', 'Spotter_Smart_Level2'))
-
+mkdir(fullfile(dir_data_parent, 'Level2_Data', 'Signature_Level2'))
 
 %
+mkdir(fullfile(dir_data_parent, 'Level2_Data', 'Aquadopp_Level2', 'figs_QC'))
 mkdir(fullfile(dir_data_parent, 'Level2_Data', 'Spotter_Level2', 'figs_QC'))
 mkdir(fullfile(dir_data_parent, 'Level2_Data', 'Spotter_Smart_Level2', 'figs_QC'))
+mkdir(fullfile(dir_data_parent, 'Level2_Data', 'Signature_Level2', 'figs_QC'))
+
+
+

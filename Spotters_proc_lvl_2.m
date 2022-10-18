@@ -24,7 +24,8 @@ dir_data_level_1 = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level1_Data/Spotte
 
 % Output directory
 % % dir_output_level_2 = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
-dir_output_level_2 = pwd;
+% % dir_output_level_2 = pwd;
+dir_output_level_2 = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level2_Data/Spotter_Level2/';
 
 
 %% Add WAFO toolbox to Matlab path

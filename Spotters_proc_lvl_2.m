@@ -78,8 +78,8 @@ list_Spotters = {'B01_spot1158'};
 %% Load the location file with bathymetry
 % (actually, elevation to mean sea level)
 
-spotter_location = load(fullfile(dir_data_level_1, 'Spotter_all_location_depth.mat'));
-spotter_location = spotter_location.spotter_location;
+% % spotter_location = load(fullfile(dir_data_level_1, 'Spotter_all_location_depth.mat'));
+% % spotter_location = spotter_location.spotter_location;
 
 % % %% Load trimming table for Spotters
 % % %
@@ -190,7 +190,7 @@ pos = [0,  0,  0; ...
 
 %
 log_file_name = ['log_Spotter_procL2_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
-diary(fullfile(dir_outlvl1, log_file_name))
+diary(fullfile(dir_output_level_2, log_file_name))
 %
 totalRunTime = tic;
 
@@ -231,6 +231,9 @@ for i = 1:length(list_Spotters)
 
 
     %% --------- GET LOCATION FILE ---------
+
+    keyboard
+
     %
     for i2 = 1:length(spotter_location)
         %

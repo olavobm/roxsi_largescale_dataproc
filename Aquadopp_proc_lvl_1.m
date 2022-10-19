@@ -65,12 +65,15 @@ list_Aquadopp = {'A03_5380', ...
 % list_Aquadopp = {'F03_5384'};
 % list_Aquadopp = {'A03_5380'};
 
-% A subset with a few
-list_Aquadopp = {'A03_5380', ...
-                 'B02_12507', 'B11_12280', ...
-                 'C03_0709', ...
-                 'E03_13300', ...
-                 'F01_9995', 'F02_5838', 'F03_5384'};
+% % % A subset with a few
+% % list_Aquadopp = {'A03_5380', ...
+% %                  'B02_12507', 'B11_12280', ...
+% %                  'C03_0709', ...
+% %                  'E03_13300', ...
+% %                  'F01_9995', 'F02_5838', 'F03_5384'};
+
+%
+list_Aquadopp = {'B02_12507', 'E03_13300'};
 
 %
 Naquadopps = length(list_Aquadopp);
@@ -437,6 +440,83 @@ for i = 1:Naquadopps
     % Rename w
     aquadoppL1.w = aquadoppL1.Wup;
 
+
+    %%
+    % ----------------------------------------------------
+    % Time-grid all the variables to the resolution of the sampling rate
+
+    %
+    disp('--- Gridding data in (date)time ---')
+
+    % As time edges of the grid, round to the whole minute (done in a more
+    % complicated way so that it doesn't rely on Matlab versions newer than
+    % at least 2021b)
+    dtime_edge_1 = datetime(aquadoppL1.dtime(1).Year, aquadoppL1.dtime(1).Month, aquadoppL1.dtime(1).Day, ...
+                            aquadoppL1.dtime(1).Hour, (aquadoppL1.dtime(1).Minute + 1), 00);
+    dtime_edge_2 = datetime(aquadoppL1.dtime(end).Year, aquadoppL1.dtime(end).Month, aquadoppL1.dtime(end).Day, ...
+                            aquadoppL1.dtime(end).Hour, aquadoppL1.dtime(end).Minute, 00);
+    % In seconds
+    dt_sampling = aquadoppL1.samplingtime;
+
+    %
+    dtime_grid = dtime_edge_1 : seconds(dt_sampling) : dtime_edge_2;
+    dtime_grid.TimeZone = aquadoppL1.dtime.TimeZone;
+
+    %
+    Nlengthtimeseries = length(sig1000.dtime);
+    list_time_vars = {'dtime'};
+    %
+    list_variables_aux = fieldnames(aquadoppL1);
+
+    %
+    for i2 = 1:length(list_variables_aux)
+
+        % Only interpolate fields that are NOT contained in list_time_vars
+        % and are vectors of the correct length
+        if ~any(contains(list_time_vars, list_variables_aux{i2})) && ...
+           isvector(aquadoppL1.(list_variables_aux{i2})) && ...
+           (length(aquadoppL1.(list_variables_aux{i2})) == Nlengthtimeseries)
+           
+            %
+            aquadoppL1.(list_variables_aux{i2}) = ...
+                            interp1(aquadoppL1.dtime, ...              
+                                    aquadoppL1.(list_variables_aux{i2}), ...
+                                    dtime_grid);
+
+            % Turn to column vector
+            aquadoppL1.(list_variables_aux{i2}) = aquadoppL1.(list_variables_aux{i2})(:);
+
+        end
+
+        % Only interpolate fields that are NOT contained in list_time_vars
+        % and are matrices with correct number of columns
+        if ~any(contains(list_time_vars, list_variables_aux{i2})) && ...
+           ~isvector(aquadoppL1.(list_variables_aux{i2})) && ...
+           (size(aquadoppL1.(list_variables_aux{i2}), 2) == Nlengthtimeseries)
+           
+            %
+            var_aux = NaN(size(aquadoppL1.(list_variables_aux{i2}), 1), Nlengthtimeseries);
+
+            %
+            for i3 = 1:size(aquadoppL1.(list_variables_aux{i2}), 1)
+                %
+                var_aux(i2, :) = interp1(aquadoppL1.dtime, ...              
+                                         aquadoppL1.(list_variables_aux{i2})(i3, :), ...
+                                         dtime_grid);
+            end
+
+            % Replace variable in data structure
+            aquadoppL1.(list_variables_aux{i2}) = var_aux;
+
+        end
+    end
+
+    % Replace measured time stamps by time grid
+    aquadoppL1.dtime = dtime_grid(:);
+
+    %
+    disp('--- Done with time gridding ---')
+    
     % ----------------------------------------------------
     % Filter out velocity where amplitude is below a threshold value
 

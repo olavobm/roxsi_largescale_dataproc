@@ -417,8 +417,8 @@ for i1 = 1:Nsignatures
     %% Construct height above the bottom of bin centers
     % (assuming the ADCP is at the bottom)
 
-    % In meters -- NEED TO CHECK/FIX THIS!!!!
-    sig1000.transducerHAB = ((12.44 + 10.53)/2)/100;
+    % In meters (based on the Solidworks drawing)
+    sig1000.transducerHAB = (31.88)/100;
 
     % In meters
     sig1000.binsize = sig1000.Config.Burst_CellSize;

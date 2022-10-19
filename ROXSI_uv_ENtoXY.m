@@ -52,6 +52,8 @@ if ~exist('lmagdec', 'var')
 end
 
 %
+nbinsTH = 1000;
+%
 if (~iscolumn(ue)) && size(ue, 1) > nbinsTH
     larrayopposite = true;
     %

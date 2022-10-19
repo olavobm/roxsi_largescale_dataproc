@@ -245,6 +245,24 @@ for i1 = 1:Nsignatures
     sig1000.Config = dataread_aux.Config;
     
 
+    %% Get height of the transducer and of the first
+    % velocity bin above the bottom
+
+    % In meters (based on the Solidworks drawing)
+    sig1000.transducerHAB = (31.88)/100;
+
+    % In meters
+    sig1000.binsize = sig1000.Config.Burst_CellSize;
+    
+    % Height of the first cell center relative to transducer
+    % (based on the Principles of Operation manual by Nortek, page 12)
+    cellcenter_first_bin = sig1000.Config.Burst_BlankingDistance + ...
+                           sig1000.Config.Burst_CellSize;
+
+    % Height of the first bin above the bottom
+    sig1000.zhab = sig1000.transducerHAB + cellcenter_first_bin;
+    
+
     %% First get the timeseries of scalar variables (these are the
     % "Burst" variables, which are given at the same time as the
     % data from the 4 beams. Signature1000 also gives these variables

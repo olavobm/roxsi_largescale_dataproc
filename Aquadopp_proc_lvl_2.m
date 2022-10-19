@@ -154,7 +154,7 @@ for i1 = 1:Naquadopps
     disp('--- Loading L1 data ---')
 
     %
-    aquadoppL1 = load(fullfile(dir_dataL1, ['roxsi_aquadopp_L1_' list_Aquadopp{i1}(1:3) '_' list_Aquadopp{i1}(4:end) '.mat']));
+    aquadoppL1 = load(fullfile(dir_dataL1, ['roxsi_aquadopp_L1_' list_Aquadopp{i1}(1:3) '_' list_Aquadopp{i1}(5:end) '.mat']));
     aquadoppL1 = aquadoppL1.aquadoppL1;
 
     % Get rid of the substructure with smoothed/low-passed velocity

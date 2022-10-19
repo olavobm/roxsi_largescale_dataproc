@@ -237,7 +237,6 @@ for i = 1:Naquadopps
 
     %
     aquadoppL1.SN = convertCharsToStrings(list_Aquadopp{i}(5:end));
-    %
     aquadoppL1.mooringID = deploymentInfo_ROXSI2022.mooringID(lmatch_ontable);
 
     % Latitude/longitude
@@ -245,6 +244,12 @@ for i = 1:Naquadopps
     %
     aquadoppL1.latitude = info_mooringtable.latitude;
     aquadoppL1.longitude = info_mooringtable.longitude;
+    %
+    aquadoppL1.site = aquadoppL1.roxsiarray;
+
+
+    % ----------------------------------------------------
+    % Metadata of the ADCP settings
 
     %
     aquadoppL1.header = header_aux.header;
@@ -262,7 +267,15 @@ for i = 1:Naquadopps
     % Height of the transducers above the bottom (in meters)
     if strcmp(aquadoppL1.mooringID, "B02at")
         %
-        aquadoppL1.transducerHAB = 1;   % PLACEHOLDER VALUE until we take the measurement (1 m seems like a reasonable guess)
+% %         aquadoppL1.transducerHAB = 1;   % PLACEHOLDER VALUE
+        %
+        aquadoppL1.transducerHAB = (80)/100;
+        % approximate value (taking into account that the Aquadopp was
+        % positioned such that the end of the dummy plug was just above the
+        % ground, when the SeaSpider did not have the lead feet). The
+        % height of the lead feet is 5.5 cm and the length between
+        % transducers and end of the ADCP (without dummy plug) is about
+        % 63 cm).
     %
     else
         % Based on top and bottom of the transducers
@@ -278,7 +291,7 @@ for i = 1:Naquadopps
     % Put all the raw data in a single structure that will be saved
 
     %
-    aquadoppL1.timezone = senAQDP_aux.time.TimeZone;
+% % %     aquadoppL1.timezone = senAQDP_aux.time.TimeZone;
     %
     aquadoppL1.dtime = senAQDP_aux.time(lin_deployment).';
     aquadoppL1.heading = senAQDP_aux.heading(lin_deployment).';
@@ -333,7 +346,8 @@ for i = 1:Naquadopps
 
     % ----------------------------------------------------
     %
-    aquadoppL1.coordsystem = 'ENU';
+%     aquadoppL1.coordsystem = 'ENU';
+    aquadoppL1.coordsystem = 'localXY';
 
     % In clockwise degrees from the true north
     aquadoppL1.magdec = 12.86;
@@ -375,35 +389,48 @@ for i = 1:Naquadopps
     aquadoppL1.a3(ind_abovesurface) = NaN;
 
 
+% %     % ----------------------------------------------------
+% %     % Rotate horizontal velocity from magnetic to true north
+% % 
+% %     %
+% %     disp(['----- Rotating horizontal velocity to ' ...
+% %           aquadoppL1.coordsystem ', with mag. declination of ' ...
+% %           num2str(aquadoppL1.magdec, '%.2f') ' degrees -----'])
+% % 
+% %     %
+% %     rotMatrix = [cosd(aquadoppL1.magdec), sind(aquadoppL1.magdec); ...
+% %                  -sind(aquadoppL1.magdec), cosd(aquadoppL1.magdec)];
+% % 
+% % % %     % Check the rotation (i.e. velocity aligned with magnetic north
+% % % %     % should have a small zonal component and large meridional
+% % % %     % component in a geographical north coordinate system)
+% % % %     rotMatrix * [0; 1]
+% % 
+% %     %
+% %     for i2 = 1:size(aquadoppL1.Ue, 1)
+% %         %
+% %         uv_aux = [aquadoppL1.Ue(i2, :); aquadoppL1.Vn(i2, :)];
+% %         %
+% %         uv_rot_aux = rotMatrix * uv_aux;
+% % 
+% %         %
+% %         aquadoppL1.Ue(i2, :) = uv_aux(1, :);
+% %         aquadoppL1.Vn(i2, :) = uv_aux(2, :);
+% %     end
+
+
     % ----------------------------------------------------
-    % Rotate horizontal velocity from magnetic to true north
+    % Rotate horizontal velocity from magnetic north to local X/Y
 
     %
-    disp(['----- Rotating horizontal velocity to ' ...
+    disp(['--- Rotating horizontal velocity to ' ...
           aquadoppL1.coordsystem ', with mag. declination of ' ...
-          num2str(aquadoppL1.magdec, '%.2f') ' degrees -----'])
+          num2str(aquadoppL1.magdec, '%.2f') ' degrees ---'])
 
     %
-    rotMatrix = [cosd(aquadoppL1.magdec), sind(aquadoppL1.magdec); ...
-                 -sind(aquadoppL1.magdec), cosd(aquadoppL1.magdec)];
+    [aquadoppL1.u, aquadoppL1.v] = ROXSI_uv_ENtoXY(aquadoppL1.Ue, aquadoppL1.Vn, site, true);
 
-% %     % Check the rotation (i.e. velocity aligned with magnetic north
-% %     % should have a small zonal component and large meridional
-% %     % component in a geographical north coordinate system)
-% %     rotMatrix * [0; 1]
 
-    %
-    for i2 = 1:size(aquadoppL1.Ue, 1)
-        %
-        uv_aux = [aquadoppL1.Ue(i2, :); aquadoppL1.Vn(i2, :)];
-        %
-        uv_rot_aux = rotMatrix * uv_aux;
-
-        %
-        aquadoppL1.Ue(i2, :) = uv_aux(1, :);
-        aquadoppL1.Vn(i2, :) = uv_aux(2, :);
-    end
-    
     % ----------------------------------------------------
     % Filter out velocity where amplitude is below a threshold value
 

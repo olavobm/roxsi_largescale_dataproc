@@ -67,7 +67,7 @@ list_Aquadopp = {'A03_5380', ...
 %                  'F01_9995', 'F02_5838', 'F03_5384'};
 
 % A subset with a few
-list_Aquadopp = {'F01_9995'};
+list_Aquadopp = {'B02_12507', 'E03_13300'};
 
 %
 Naquadopps = length(list_Aquadopp);
@@ -295,8 +295,8 @@ for i1 = 1:Naquadopps
     %% Print progress message
 
     %
-    disp(' '), disp(' ')
-    disp(['----- Done with L2 data processing for Aquadopp ' list_smartmoorings{i1} ' -----'])
+    disp(' ')
+    disp(['----- Done with L2 data processing for Aquadopp ' list_Aquadopp{i1} ' -----'])
 
     %
     toc(totalRunTime)

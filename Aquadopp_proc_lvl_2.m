@@ -173,6 +173,13 @@ for i1 = 1:Naquadopps
     %
     disp(['--- Computing averaged velocities over ' num2str(windowavg/60, '%.1f') ' min ---'])
 
+    % First compute depth-averaged velocity from the data
+    %
+    aquadoppL2.dtimedata = aquadoppL1.dtime;
+    aquadoppL2.udepthavg = mean(aquadoppL1.u, 1, 'omitnan');
+    aquadoppL2.vdepthavg = mean(aquadoppL1.v, 1, 'omitnan');
+    aquadoppL2.wdepthavg = mean(aquadoppL1.w, 1, 'omitnan');
+
     % Get first and last time stamps of hourly statistics where there is
     % sufficient data at the edges on either half of the averaging windo
     %
@@ -194,11 +201,6 @@ for i1 = 1:Naquadopps
     
     %
     aquadoppL2.dtime = timestatslims(1) : hours(windowavg/3600) : timestatslims(2);
-
-    % Compute depth-averaged velocity
-    aquadoppL2.udepthavg = mean(aquadoppL1.u, 1, 'omitnan');
-    aquadoppL2.vdepthavg = mean(aquadoppL1.v, 1, 'omitnan');
-    aquadoppL2.wdepthavg = mean(aquadoppL1.w, 1, 'omitnan');
 
     %
     aquadoppL2.umean = time_smooth_reg(aquadoppL1.dtime, aquadoppL2.udepthavg, windowavg, timestatslims);
@@ -239,16 +241,20 @@ for i1 = 1:Naquadopps
     if aquadoppL1.samplingtime == 1
 
         %
-        disp(['--- Sampling rate of Aquadopp ' list_Aquadopp{i1} ' is ' num2str(aquadoppL1.samplingtime) ' second(s). Computing velocity spectra ---'])
+        disp(['--- Sampling rate of Aquadopp ' list_Aquadopp{i1} ' is ' num2str(aquadoppL1.samplingtime) ' second(s). Computing spectra from depth-averaged velocity ---'])
 
         tic
-        % Loop over ADCP bins
-        for i2 = 1:length(aquadoppL1.zhab)
-% %             %
-% %             [Spp, timespec, freqvec, dof, avgpres] = ...
-% %                         spectra_scalar_reg(spotsmartL1.dtime, spotsmartL1.pressure, ...
-% %                                            windowfft, windowavg, timespeclims);
-        end
+        %
+        [Suu, ~, freqvec, dof_uvw] = ...
+                    spectra_scalar_reg(aquadoppL2.dtimedata, aquadoppL2.udepthavg, ...
+                                       windowfft, windowavg, timestatslims);
+        %
+        Svv = spectra_scalar_reg(aquadoppL2.dtimedata, aquadoppL2.vdepthavg, ...
+                                 windowfft, windowavg, timestatslims);
+        %
+        Sww = spectra_scalar_reg(aquadoppL2.dtimedata, aquadoppL2.wdepthavg, ...
+                                 windowfft, windowavg, timestatslims);
+
         toc
     end
 

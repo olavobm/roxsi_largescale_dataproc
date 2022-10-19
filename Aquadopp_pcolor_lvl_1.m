@@ -45,13 +45,13 @@ uvw_names = ["u", "v", "w"; ...
 llook_coord = true;
 indrow_aux = 0;
 %
-while llook_coord && (indrow_aux < size(coordinate_names, 1))
+while llook_coord && (indrow_aux < size(uvw_names, 1))
     %
     indrow_aux = indrow_aux + 1;
     %
-    if isfield(aquadoppL1, coordinate_names(indrow_aux, 1)) && ...
-       isfield(aquadoppL1, coordinate_names(indrow_aux, 2)) && ...
-       isfield(aquadoppL1, coordinate_names(indrow_aux, 3))
+    if isfield(aquadoppL1, uvw_names(indrow_aux, 1)) && ...
+       isfield(aquadoppL1, uvw_names(indrow_aux, 2)) && ...
+       isfield(aquadoppL1, uvw_names(indrow_aux, 3))
         %
         llook_coord = false;
     end
@@ -375,6 +375,11 @@ redbluecmap = [0.0932    0.1112    0.2615; ...
 %% Make the figure
 
 %
+v1plt_var = getfield(aquadoppL1, v1_dynfld{:});
+v2plt_var = getfield(aquadoppL1, v2_dynfld{:});
+v3plt_var = getfield(aquadoppL1, v3_dynfld{:});
+
+%
 fighandle = figure;
 
     %
@@ -394,9 +399,9 @@ fighandle = figure;
 
         % ----------------------------------------------------
         %
-        pcolor(haxs_v1, dtime, aquadoppL1.zhab, getfield(aquadoppL1, v1_dynfld{:}))
-        pcolor(haxs_v2, dtime, aquadoppL1.zhab, getfield(aquadoppL1, v2_dynfld{:}))
-        pcolor(haxs_v3, dtime, aquadoppL1.zhab, getfield(aquadoppL1, v3_dynfld{:}))
+        pcolor(haxs_v1, dtime, aquadoppL1.zhab, v1plt_var)
+        pcolor(haxs_v2, dtime, aquadoppL1.zhab, v2plt_var)
+        pcolor(haxs_v3, dtime, aquadoppL1.zhab, v3plt_var)
         %
         pcolor(haxs_a1, dtime, aquadoppL1.zhab, getfield(aquadoppL1, a1_dynfld{:}))
         pcolor(haxs_a2, dtime, aquadoppL1.zhab, getfield(aquadoppL1, a2_dynfld{:}))
@@ -450,8 +455,8 @@ fighandle = figure;
     % Something that might look better
     lbelowmeanp = aquadoppL1.zhab < mean(aquadoppL1.pressure, 'omitnan');
     %
-    U_ref_Clim = max([mean(std(aquadoppL1.averaged.Ue(lbelowmeanp, :), 0, 2, 'omitnan'), 'omitnan'), ...
-                      mean(std(aquadoppL1.averaged.Vn(lbelowmeanp, :), 0, 2, 'omitnan'), 'omitnan')]);
+    U_ref_Clim = max([mean(std(v1plt_var(lbelowmeanp, :), 0, 2, 'omitnan'), 'omitnan'), ...
+                      mean(std(v2plt_var(lbelowmeanp, :), 0, 2, 'omitnan'), 'omitnan')]);
     set([haxs_v1, haxs_v2], 'CLim', 1.25*U_ref_Clim .*[-1, 1])
 
     %

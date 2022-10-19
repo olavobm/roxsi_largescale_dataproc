@@ -274,7 +274,7 @@ for i = 1:Naquadopps
         % positioned such that the end of the dummy plug was just above the
         % ground, when the SeaSpider did not have the lead feet). The
         % height of the lead feet is 5.5 cm and the length between
-        % transducers and end of the ADCP (without dummy plug) is about
+        % transducer and end of the ADCP (without dummy plug) is about
         % 63 cm).
     %
     else
@@ -430,6 +430,8 @@ for i = 1:Naquadopps
     %
     [aquadoppL1.u, aquadoppL1.v] = ROXSI_uv_ENtoXY(aquadoppL1.Ue, aquadoppL1.Vn, site, true);
 
+    % Rename w
+    aquadoppL1.w = aquadoppL1.Wup;
 
     % ----------------------------------------------------
     % Filter out velocity where amplitude is below a threshold value
@@ -498,12 +500,15 @@ for i = 1:Naquadopps
     %
     aquadoppL1.averaged.dtime = aquadoppL1.averaged.dtime(:);
 
+    %
+    list_uvw = {'u', 'v', 'w'};
+
     % Now average the beam data
     prealloc_aux = NaN(size(aquadoppL1.Ue, 1), length(aquadoppL1.averaged.dtime));
     %
-    aquadoppL1.averaged.Ue = prealloc_aux;
-    aquadoppL1.averaged.Vn = prealloc_aux;
-    aquadoppL1.averaged.Wup = prealloc_aux;
+    for i2 = 1:length(list_uvw)
+        aquadoppL1.averaged.(list_uvw{i2}) = prealloc_aux;
+    end
     %
     aquadoppL1.averaged.a1 = prealloc_aux;
     aquadoppL1.averaged.a2 = prealloc_aux;
@@ -512,15 +517,18 @@ for i = 1:Naquadopps
     % Loop over rows
     for i2 = 1:length(aquadoppL1.zhab)
         %
-        aquadoppL1.averaged.Ue(i2, :) = regRunMean(npts_avg, aquadoppL1.Ue(i2, :), npts_avg, @rectwin);
-        aquadoppL1.averaged.Vn(i2, :) = regRunMean(npts_avg, aquadoppL1.Vn(i2, :), npts_avg, @rectwin);
-        aquadoppL1.averaged.Wup(i2, :) = regRunMean(npts_avg, aquadoppL1.Wup(i2, :), npts_avg, @rectwin);
+        for i3 = 1:length(list_uvw)
+            aquadoppL1.averaged.(list_uvw{i3})(i2, :) = regRunMean(npts_avg, aquadoppL1.(list_uvw{i3})(i2, :), npts_avg, @rectwin);
+        end
         %
         aquadoppL1.averaged.a1(i2, :) = regRunMean(npts_avg, aquadoppL1.a1(i2, :), npts_avg, @rectwin);
         aquadoppL1.averaged.a2(i2, :) = regRunMean(npts_avg, aquadoppL1.a2(i2, :), npts_avg, @rectwin);
         aquadoppL1.averaged.a3(i2, :) = regRunMean(npts_avg, aquadoppL1.a3(i2, :), npts_avg, @rectwin);
     end
 
+    % ----------------------------------------------------
+    % Remove ENU velocities
+    aquadoppL1 = rmfield(aquadoppL1, {'Ue', 'Vn', 'Wup'});
 
     % ----------------------------------------------------
     % Add README

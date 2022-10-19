@@ -438,13 +438,13 @@ fighandle = figure;
     %
     for i2 = 1:2:length(haxs_all)
         hcb_aux(i2).Position(1) = 0.46;
-    end
+        endx
     for i2 = 2:2:length(haxs_all)
         hcb_aux(i2).Position(1) = 0.91;
     end
 
     %
-    set(haxs_all, 'FontSize', 16, 'Box', 'on', ...
+    set(haxs_all, 'FontSize', 10, 'Box', 'on', ...
                   'XGrid', 'on', 'YGrid', 'on', ...
                   'YLim', [0, ceil(aquadoppL1.zhab(end))], ...
                   'Color', 0.7.*[1, 1, 1])
@@ -472,10 +472,10 @@ fighandle = figure;
     set(haxs_all(1:(end-2)), 'XTickLabel', [])
    
     %
-    ylabel(haxs_all(3), 'Height above the bottom [m]', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_all(3), 'Height above the bottom [m]', 'Interpreter', 'Latex', 'FontSize', 10)
     %
-    title(haxs_all(1), ['Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' char(aquadoppL1.SN) ': Ue, Vn, and Wup (' strplt ' fields)'], 'Interpreter', 'Latex', 'FontSize', 14)
-    title(haxs_all(2), ['Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' char(aquadoppL1.SN) ': a1, a2, and a3'], 'Interpreter', 'Latex', 'FontSize', 14)
+    title(haxs_all(1), ['Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' char(aquadoppL1.SN) ': Ue, Vn, and Wup (' strplt ' fields)'], 'Interpreter', 'Latex', 'FontSize', 8)
+    title(haxs_all(2), ['Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' char(aquadoppL1.SN) ': a1, a2, and a3'], 'Interpreter', 'Latex', 'FontSize', 8)
 
     %
     set(haxs_all(1:2:end), 'Colormap', redbluecmap)

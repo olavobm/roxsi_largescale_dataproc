@@ -463,7 +463,7 @@ for i = 1:Naquadopps
     dtime_grid.TimeZone = aquadoppL1.dtime.TimeZone;
 
     %
-    Nlengthtimeseries = length(sig1000.dtime);
+    Nlengthtimeseries = length(aquadoppL1.dtime);
     list_time_vars = {'dtime'};
     %
     list_variables_aux = fieldnames(aquadoppL1);
@@ -495,12 +495,12 @@ for i = 1:Naquadopps
            (size(aquadoppL1.(list_variables_aux{i2}), 2) == Nlengthtimeseries)
            
             %
-            var_aux = NaN(size(aquadoppL1.(list_variables_aux{i2}), 1), Nlengthtimeseries);
+            var_aux = NaN(size(aquadoppL1.(list_variables_aux{i2}), 1), length(dtime_grid));
 
             %
             for i3 = 1:size(aquadoppL1.(list_variables_aux{i2}), 1)
                 %
-                var_aux(i2, :) = interp1(aquadoppL1.dtime, ...              
+                var_aux(i3, :) = interp1(aquadoppL1.dtime, ...
                                          aquadoppL1.(list_variables_aux{i2})(i3, :), ...
                                          dtime_grid);
             end

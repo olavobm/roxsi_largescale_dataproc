@@ -212,6 +212,28 @@ ind_data_wholeintervals = ind_data_start_firstinterval + ...
                                (0 : 1 : ((nt_whole_intervals*npts_ininterval - 1)));
 % -1 because the round/0'th index is at the beginning and not the end of a whole interval
 
+
+%% If ind_data_wholeintervals is empty, there is no or little data,
+% so function should stop here.
+% 
+% HOWEVER THERE ARE OTHER WAYS WHERE
+% GAPS MAY NOT BE CAPTURED AND THE FUNCTION WILL BREAK LATER BELOW
+
+%
+if isempty(ind_data_wholeintervals)
+    %
+    Sxx = NaN;
+    timespec = NaN;
+    freqvec = NaN;
+    dof = NaN;
+    avgx = NaN;
+    %
+    return
+end
+
+
+%% Reshape data within whole intervals from a vector to a matrix
+
 %
 xdata_perinterval = reshape(xdata(ind_data_wholeintervals), npts_ininterval, nt_whole_intervals);
 

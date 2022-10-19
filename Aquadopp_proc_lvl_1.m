@@ -245,9 +245,7 @@ for i = 1:Naquadopps
     aquadoppL1.latitude = info_mooringtable.latitude;
     aquadoppL1.longitude = info_mooringtable.longitude;
     %
-    aquadoppL1.site = aquadoppL1.roxsiarray;
-    aquadoppL1.site = aquadoppL1.roxsiarray;
-
+    aquadoppL1.site = info_mooringtable.roxsiarray;
 
     % ----------------------------------------------------
     % Metadata of the ADCP settings
@@ -429,7 +427,7 @@ for i = 1:Naquadopps
           num2str(aquadoppL1.magdec, '%.2f') ' degrees ---'])
 
     %
-    [aquadoppL1.u, aquadoppL1.v] = ROXSI_uv_ENtoXY(aquadoppL1.Ue, aquadoppL1.Vn, site, true);
+    [aquadoppL1.u, aquadoppL1.v] = ROXSI_uv_ENtoXY(aquadoppL1.Ue, aquadoppL1.Vn, aquadoppL1.site, true);
 
     % Rename w
     aquadoppL1.w = aquadoppL1.Wup;

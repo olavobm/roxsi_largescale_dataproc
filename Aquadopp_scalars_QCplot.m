@@ -51,7 +51,7 @@ fig_L1_QC_tilt = figure;
     %
     title(haxs_1, ['ROXSI 2022: Aquadopp ' char(aquadoppL1.mooringID) ' - SN ' ...
                    char(aquadoppL1.SN) ': pressure, heading, pitch, and roll'], ...
-                  'Interpreter', 'Latex', 'FontSize', 14)
+                  'Interpreter', 'Latex', 'FontSize', 12)
     %
     linkaxes([haxs_1, haxs_2, haxs_3, haxs_4], 'x')
 

@@ -423,9 +423,15 @@ for i1 = 1:Nsignatures
     % In meters
     sig1000.binsize = sig1000.Config.Burst_CellSize;
     
-    % Height of cell centers relative to transducer
+    % Height of the first cell center relative to transducer
+    % (based on the Principles of Operation manual by Nortek, page 12)
     cellcenter_first_bin = sig1000.Config.Burst_BlankingDistance + ...
-                                         (sig1000.Config.Burst_CellSize/2);
+                           sig1000.Config.Burst_CellSize;
+
+% %  I expected there was a factor of 1/2
+% %     cellcenter_first_bin = sig1000.Config.Burst_BlankingDistance + ...
+% %                                          (sig1000.Config.Burst_CellSize/2);
+
     %
     sig1000.cellcenter = cellcenter_first_bin + ...
                         (0:1:(double(sig1000.Config.Burst_NCells) - 1)) .* sig1000.binsize;

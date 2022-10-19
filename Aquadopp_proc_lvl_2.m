@@ -191,18 +191,23 @@ for i1 = 1:Naquadopps
     
     %
     timestatslims = [time_edge_1, time_edge_2];
+    
+    %
+    aquadoppL2.dtime = timestatslims(1) : hours(windowavg/3600) : timestatslims(2);
+
 
     % Compute hourly mean velocities
-    aquadoppL2.u = NaN(length(aquadoppL2.zhab), );
-    aquadoppL2.v = NaN(length(aquadoppL2.zhab));
-    aquadoppL2.w = NaN(length(aquadoppL2.zhab));
+    aquadoppL2.u = NaN(length(aquadoppL2.zhab), length(aquadoppL2.dtime));
+    aquadoppL2.v = aquadoppL2.u;
+    aquadoppL2.w = aquadoppL2.u;
+
     tic
     % Loop over ADCP bins
     for i2 = 1:length(aquadoppL2.zhab)
         %
-        aquadoppL2.u(i2, :) = 
-        aquadoppL2.v(i2, :)
-        aquadoppL2.w(i2, :)
+        [aquadoppL2.u(i2, :), time_aux] = time_smooth_reg(aquadoppL1.dtime, aquadoppL1.u(i2, :), windowavg, timestatslims);
+        aquadoppL2.v(i2, :) = time_smooth_reg(aquadoppL1.dtime, aquadoppL1.v(i2, :), windowavg, timestatslims);
+        aquadoppL2.w(i2, :) = time_smooth_reg(aquadoppL1.dtime, aquadoppL1.w(i2, :), windowavg, timestatslims);
     end
     toc
    
@@ -211,68 +216,72 @@ for i1 = 1:Naquadopps
     aquadoppL2.vdepthavg = mean(aquadoppL2.v, 1, 'omitnan');
     aquadoppL2.wdepthavg = mean(aquadoppL2.w, 1, 'omitnan');
     
+    keyboard
 
-    % ----------------------------------------------------
-    % Compute spectra for u, v, and w if sampling is 1 Hz
-    if aquadoppL1.samplingtime == 1
+    %%
 
-        %
-        disp(['--- Sampling rate of Aquadopp ' list_Aquadopp{i1} ' is ' num2str(aquadoppL1.samplingtime) ' second(s). Computing velocity spectra ---'])
-
-        tic
-        % Loop over ADCP bins
-        for i2 = 1:length(aquadoppL1.zhab)
-% %             %
-% %             [Spp, timespec, freqvec, dof, avgpres] = ...
-% %                         spectra_scalar_reg(spotsmartL1.dtime, spotsmartL1.pressure, ...
-% %                                            windowfft, windowavg, timespeclims);
-        end
-        toc
-    end
-
-    % ----------------------------------------------------
-    % Compute variance in the sea-swell bands if sampling is 1 Hz
-    if aquadoppL1.samplingtime == 1
-        %
-        disp('--- Integrating spectra to compute variance for each velocity component in the sea-swell band ---')
-
-        %
-        aquadoppL2.spectra.freqband = freq_lims;
-
-        %
-        linfreqband_seaswell = (aquadoppL2.frequency >= aquadoppL2.freqband(1)) & ...
-                               (aquadoppL2.frequency  < aquadoppL2.freqband(2));
-
-        %
-        aquadoppL2.spectra.uvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
-                                        aquadoppL2.Suu(linfreqband_seaswell, :), 1);
-        %
-        aquadoppL2.spectra.vvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
-                                        aquadoppL2.Svv(linfreqband_seaswell, :), 1);
-        %
-        aquadoppL2.spectra.wvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
-                                        aquadoppL2.Sww(linfreqband_seaswell, :), 1);
-
-    end
-
-    % ----------------------------------------------------
-    % Organize L2 data structure
-
-    aquadoppL2.README = ['Level 2 Aquadopp data from ROXSI 2022'];
-
-    % ----------------------------------------------------
-    % Make QC plot
-
-    % ----------------------------------------------------
-    % Save L2 data structure
-
-    %
-    disp('----- Saving level 2 data -----')
-    %
-    str_filename = ['roxsi_aquadopp_L2_' char(spotsmartL2.mooringID) '_' char(spotsmartL2.SN)];
-    save(fullfile(dir_output_data_L2, [str_filename '.mat']), 'aquadoppL2', '-v7.3')
-    %
-    disp('----- Done saving data -----')
+% %     % ----------------------------------------------------
+% %     % Compute spectra for u, v, and w if sampling is 1 Hz
+% %     if aquadoppL1.samplingtime == 1
+% % 
+% %         %
+% %         disp(['--- Sampling rate of Aquadopp ' list_Aquadopp{i1} ' is ' num2str(aquadoppL1.samplingtime) ' second(s). Computing velocity spectra ---'])
+% % 
+% %         tic
+% %         % Loop over ADCP bins
+% %         for i2 = 1:length(aquadoppL1.zhab)
+% % % %             %
+% % % %             [Spp, timespec, freqvec, dof, avgpres] = ...
+% % % %                         spectra_scalar_reg(spotsmartL1.dtime, spotsmartL1.pressure, ...
+% % % %                                            windowfft, windowavg, timespeclims);
+% %         end
+% %         toc
+% %     end
+% % 
+% %     % ----------------------------------------------------
+% %     % Compute variance in the sea-swell bands if sampling is 1 Hz
+% %     if aquadoppL1.samplingtime == 1
+% %         %
+% %         disp('--- Integrating spectra to compute variance for each velocity component in the sea-swell band ---')
+% % 
+% %         %
+% %         aquadoppL2.spectra.freqband = freq_lims;
+% % 
+% %         %
+% %         linfreqband_seaswell = (aquadoppL2.frequency >= aquadoppL2.freqband(1)) & ...
+% %                                (aquadoppL2.frequency  < aquadoppL2.freqband(2));
+% % 
+% %         %
+% %         aquadoppL2.spectra.uvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
+% %                                         aquadoppL2.Suu(linfreqband_seaswell, :), 1);
+% %         %
+% %         aquadoppL2.spectra.vvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
+% %                                         aquadoppL2.Svv(linfreqband_seaswell, :), 1);
+% %         %
+% %         aquadoppL2.spectra.wvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
+% %                                         aquadoppL2.Sww(linfreqband_seaswell, :), 1);
+% % 
+% %     end
+% % 
+% %     %%
+% %     % ----------------------------------------------------
+% %     % Organize L2 data structure
+% % 
+% %     aquadoppL2.README = ['Level 2 Aquadopp data from ROXSI 2022'];
+% % 
+% %     % ----------------------------------------------------
+% %     % Make QC plot
+% % 
+% %     % ----------------------------------------------------
+% %     % Save L2 data structure
+% % 
+% %     %
+% %     disp('----- Saving level 2 data -----')
+% %     %
+% %     str_filename = ['roxsi_aquadopp_L2_' char(spotsmartL2.mooringID) '_' char(spotsmartL2.SN)];
+% %     save(fullfile(dir_output_data_L2, [str_filename '.mat']), 'aquadoppL2', '-v7.3')
+% %     %
+% %     disp('----- Done saving data -----')
 
 
 % % %     %

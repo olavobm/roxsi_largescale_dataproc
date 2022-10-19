@@ -195,30 +195,64 @@ for i1 = 1:Naquadopps
     %
     aquadoppL2.dtime = timestatslims(1) : hours(windowavg/3600) : timestatslims(2);
 
+    % Compute depth-averaged velocity
+    aquadoppL2.udepthavg = mean(aquadoppL1.u, 1, 'omitnan');
+    aquadoppL2.vdepthavg = mean(aquadoppL1.v, 1, 'omitnan');
+    aquadoppL2.wdepthavg = mean(aquadoppL1.w, 1, 'omitnan');
 
-    % Compute hourly mean velocities
-    aquadoppL2.u = NaN(length(aquadoppL2.zhab), length(aquadoppL2.dtime));
-    aquadoppL2.v = aquadoppL2.u;
-    aquadoppL2.w = aquadoppL2.u;
+    %
+    aquadoppL2.umean = time_smooth_reg(aquadoppL1.dtime, aquadoppL2.udepthavg, windowavg, timestatslims);
+    aquadoppL2.vmean = time_smooth_reg(aquadoppL1.dtime, aquadoppL2.vdepthavg, windowavg, timestatslims);
+    aquadoppL2.wmean = time_smooth_reg(aquadoppL1.dtime, aquadoppL2.wdepthavg, windowavg, timestatslims);
 
-    tic
-    % Loop over ADCP bins
-    for i2 = 1:length(aquadoppL2.zhab)
-        %
-        [aquadoppL2.u(i2, :), time_aux] = time_smooth_reg(aquadoppL1.dtime, aquadoppL1.u(i2, :), windowavg, timestatslims);
-        aquadoppL2.v(i2, :) = time_smooth_reg(aquadoppL1.dtime, aquadoppL1.v(i2, :), windowavg, timestatslims);
-        aquadoppL2.w(i2, :) = time_smooth_reg(aquadoppL1.dtime, aquadoppL1.w(i2, :), windowavg, timestatslims);
-    end
-    toc
-   
-    % Compute depth-averaged hourly mean velocity
-    aquadoppL2.udepthavg = mean(aquadoppL2.u, 1, 'omitnan');
-    aquadoppL2.vdepthavg = mean(aquadoppL2.v, 1, 'omitnan');
-    aquadoppL2.wdepthavg = mean(aquadoppL2.w, 1, 'omitnan');
+
+
+
+% % %     % Compute hourly mean velocities
+% % %     aquadoppL2.u = NaN(length(aquadoppL2.zhab), length(aquadoppL2.dtime));
+% % %     aquadoppL2.v = aquadoppL2.u;
+% % %     aquadoppL2.w = aquadoppL2.u;
+% % %     %
+% % % % %     aquadoppL2.nptsavg = aquadoppL2.u;
+% % % 
+% % %     tic
+% % %     % Loop over ADCP bins
+% % %     for i2 = 1:length(aquadoppL2.zhab)
+% % %         %
+% % % % %         [aquadoppL2.u(i2, :), ~, aquadoppL2.nptsavg(i2, :)] = time_smooth_reg(aquadoppL1.dtime, aquadoppL1.u(i2, :), windowavg, timestatslims);
+% % %         aquadoppL2.u(i2, :) = time_smooth_reg(aquadoppL1.dtime, aquadoppL1.u(i2, :), windowavg, timestatslims);
+% % %         aquadoppL2.v(i2, :) = time_smooth_reg(aquadoppL1.dtime, aquadoppL1.v(i2, :), windowavg, timestatslims);
+% % %         aquadoppL2.w(i2, :) = time_smooth_reg(aquadoppL1.dtime, aquadoppL1.w(i2, :), windowavg, timestatslims);
+% % %     end
+% % %     toc
+% % %    
+% % %     % Compute depth-averaged hourly mean velocity
+% % %     aquadoppL2.udepthavg = mean(aquadoppL2.u, 1, 'omitnan');
+% % %     aquadoppL2.vdepthavg = mean(aquadoppL2.v, 1, 'omitnan');
+% % %     aquadoppL2.wdepthavg = mean(aquadoppL2.w, 1, 'omitnan');
     
-    keyboard
 
     %%
+
+    % ----------------------------------------------------
+    % Compute spectra for DEPTH-AVERAGED u, v, and w if sampling is 1 Hz
+    if aquadoppL1.samplingtime == 1
+
+        %
+        disp(['--- Sampling rate of Aquadopp ' list_Aquadopp{i1} ' is ' num2str(aquadoppL1.samplingtime) ' second(s). Computing velocity spectra ---'])
+
+        tic
+        % Loop over ADCP bins
+        for i2 = 1:length(aquadoppL1.zhab)
+% %             %
+% %             [Spp, timespec, freqvec, dof, avgpres] = ...
+% %                         spectra_scalar_reg(spotsmartL1.dtime, spotsmartL1.pressure, ...
+% %                                            windowfft, windowavg, timespeclims);
+        end
+        toc
+    end
+
+
 
 % %     % ----------------------------------------------------
 % %     % Compute spectra for u, v, and w if sampling is 1 Hz

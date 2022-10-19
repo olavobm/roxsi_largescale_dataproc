@@ -438,7 +438,7 @@ fighandle = figure;
     %
     for i2 = 1:2:length(haxs_all)
         hcb_aux(i2).Position(1) = 0.46;
-        endx
+    end
     for i2 = 2:2:length(haxs_all)
         hcb_aux(i2).Position(1) = 0.91;
     end

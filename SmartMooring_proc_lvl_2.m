@@ -16,19 +16,19 @@ close all
 
 %
 % % dirparent_data = data_dirpath();
-dirparent_data = '/project/CSIDE/ROXSI/LargeScale_Data_2022/';
-%
+% dirparent_data = '/project/CSIDE/ROXSI/LargeScale_Data_2022/';
 % dir_L1data_parent = fullfile(dirparent_data, 'Level1_Data', 'Spotters_Smart', 'gridded');
-dir_L1data_parent = pwd;
+%
+dir_L1data_parent = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/gridded/';
 
 
 %% Directory where output will be saved
 
 %
 % % dir_output_parent = data_dirpath();
-dir_output_parent = pwd;
+% % dir_output_parent = pwd;
 %
-dir_output_data_L2 = dir_output_parent;
+dir_output_data_L2 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level2_Data/Spotter_Smart_Level2/';
 
 
 %%

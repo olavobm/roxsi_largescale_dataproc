@@ -40,6 +40,11 @@ dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Si
 % --- DEFINE VARIABLES FOR DATA PROCESSING --
 % -------------------------------------------
 
+%% Add ADCPtools
+
+roxsi_add_libraries()
+
+
 %% Load ADCP deployment information
 
 % dir_coderepo = repo_dirpath();
@@ -566,54 +571,53 @@ for i1 = 1:Nsignatures
     end
 
 
-    %% Apply (small) correction due to atmospheric pressure variability.
-    % 
-    % As opposed to Aquadopps, Signatures don't have a customizable
-    % pressure offset (so pressure measurements don't include the
-    % full pressure at the sensor)
-
-    % Interpolate atmospheric pressure anomaly to timestamps
-    % of the signature
-    atmpresanomaly_aux = interp1(atmpresanomaly.dtime, ...
-                                 atmpresanomaly.atm_anomaly, sigL1.dtime);
-
-    %
-    sigL1.pressure = sigL1.pressure - atmpresanomaly_aux;
 
 
     %% Check clock/gaps
 
+
     %% Interpolate 5th beam to the same timestamps as the other 4
 
-% HOW IS THE W CALCULATION FROM 5TH BEAM?????
+    %
+    if sigL1.l5beam
 
-% %     %
-% %     if any(contains(list_5beams, list_Signature{i1}(1:3)))
-% %         tic
-% %         %
-% %         disp(['--- 5 beams will be used for velocity transformation. ' ...
-% %               'First will interpolate 5th beam to time stamps of ' ...
-% %               'other 4 beams ---'])
-% % 
-% %         %
-% %         sig1000.vel5 = NaN(size(sig1000.vel1));
-% %         sig1000.amp5 = sig1000.vel5;
-% % 
-% %         % Loop over bins of the 5th beam
-% %         for i2 = 1:size(sig1000.vel5, 2)
-% %             
-% %             %
-% %             sig1000.vel5(:, i2) = interp1(sig1000.timednum_beam5, ...
-% %                                           sig1000.vel5_raw(:, i2), ...
-% %                                           sig1000.timednum_fourbeams);
-% %             %
-% %             sig1000.amp5(:, i2) = interp1(sig1000.timednum_beam5, ...
-% %                                           sig1000.amp5_raw(:, i2), ...
-% %                                           sig1000.timednum_fourbeams);
-% %         end
-% %         disp('Done with 5th beam interpolation.') 
-% %         toc
-% %     end
+        tic
+        %
+        disp(['--- 5 beams will be used for velocity transformation. ' ...
+              'Interpolating 5th along-beam velocity (and backscatter ' ...
+              'and correlation) to time stamps of other 4 beams ---'])
+
+        %
+        vel5_aux = NaN(size(sigL1.vel1));
+        amp5_aux = vel5_aux;
+        cor5_aux = vel5_aux;
+
+        % Loop over bins of the 5th beam
+        for i2 = 1:size(sigL1.vel5, 2)
+            
+            %
+            vel5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+                                      sigL1.vel5(:, i2), ...
+                                      sigL1.timedatenum);
+            %
+            amp5_aux(:, i2) = interp1(sigL1.timednum_beam5, ...
+                                      sigL1.amp5(:, i2), ...
+                                      sigL1.timedatenum);
+            %
+            cor5_aux(:, i2) = interp1(sigL1.timednum_beam5, ...
+                                      sigL1.cor5(:, i2), ...
+                                      sigL1.timedatenum);
+        end
+
+        % Replace
+        sigL1.vel5 = vel5_aux;
+        sigL1.amp5 = amp5_aux;
+        sigL1.cor5 = cor5_aux;
+        
+        %
+        disp('Done with 5th beam interpolation.') 
+        toc
+    end
 
 
     %% Interpolate variables to gridded time vector (after
@@ -640,12 +644,12 @@ for i1 = 1:Nsignatures
     %
     Nlengthtimeseries = length(sigL1.dtime);
     list_time_vars = {'dtime', 'dtime5', 'timedatenum', 'timedatenum5'};
-
+keyboard
     %
     for i2 = 1:length(list_variables_aux)
 
         % Only interpolate fields that are NOT contained in list_time_vars
-        % and are vectors of the correct length
+        % and are arrays with expected number of points along time
         if ~any(contains(list_time_vars, list_variables_aux{i2})) && ...
            (length(sigL1.(list_variables_aux{i2})) == Nlengthtimeseries)
            
@@ -672,7 +676,23 @@ for i1 = 1:Nsignatures
     sigL1 = rmfield(sigL1, 'timedatenum');
 
     % Add sampling rate as a field
-    sigL1.samplingrateHz = df_sampling;
+    sigL1.samplingrateHz = df_sampling
+
+
+
+    %% Apply (small) correction due to atmospheric pressure variability.
+    % 
+    % As opposed to Aquadopps, Signatures don't have a customizable
+    % pressure offset (so pressure measurements don't include the
+    % full pressure at the sensor)
+
+    % Interpolate atmospheric pressure anomaly to timestamps
+    % of the signature
+    atmpresanomaly_aux = interp1(atmpresanomaly.dtime, ...
+                                 atmpresanomaly.atm_anomaly, sigL1.dtime);
+
+    %
+    sigL1.pressure = sigL1.pressure - atmpresanomaly_aux;
 
 
     %% Compute bottom depth from pressure

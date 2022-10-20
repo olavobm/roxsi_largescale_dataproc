@@ -73,7 +73,7 @@ list_Aquadopp = {'A03_5380', ...
 % %                  'F01_9995', 'F02_5838', 'F03_5384'};
 
 %
-list_Aquadopp = {'B02_12507', 'E03_13300'};
+% % list_Aquadopp = {'B02_12507', 'E03_13300'};
 
 %
 Naquadopps = length(list_Aquadopp);

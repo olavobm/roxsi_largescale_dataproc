@@ -11,14 +11,20 @@ close all
 
 run('create_data_emptydirtree.m')
 
+
+%% Aquadopps
+
+%
+run('Aquadopp_proc_lvl_1.m'), close all
+run('Aquadopp_proc_lvl_2.m'), close all
+
+
 %% Process  Smart Moorings
 
 %
-run('SpottersSmart_proc_lvl_1.m')
-%
-run('SpottersSmart_timegrid_pressure.m')
-%
-% % run('SpottersSmart_proc_lvl_2.m')
+run('SpottersSmart_proc_lvl_1.m'), close all
+run('SpottersSmart_timegrid_pressure.m'), close all
+run('SmartMooring_proc_lvl_2.m'), close all
 
 
 
@@ -26,12 +32,11 @@ run('SpottersSmart_timegrid_pressure.m')
 % required for L2 processing of smart mooring data)
 
 %
-run('Spotters_proc_lvl_1.m')
-run('bathymetry_around_Spotters.m')
-run('Spotters_proc_lvl_2.m')
+run('Spotters_proc_lvl_1.m'), close all
+run('bathymetry_around_Spotters.m'), close all
+run('Spotters_proc_lvl_2.m'), close all
 
 
-%% Aquadopps
 
 
 

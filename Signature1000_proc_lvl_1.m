@@ -493,7 +493,15 @@ for i1 = 1:Nsignatures
         for i3 = 1:length(list_rawdata)
             %
             if isfield(sigL1, list_rawdata{i3})
+                %
                 sigL1.(list_rawdata{i3}) = cat(1, sigL1.(list_rawdata{i3}){:});
+
+                % Turn integers into single precision variables
+                % so they can be interpolated (correlations are
+                % given as integers)
+                if isinteger(sigL1.(list_rawdata{i3}))    
+                    sigL1.(list_rawdata{i3}) = single(sigL1.(list_rawdata{i3}));
+                end
             end
         end
 
@@ -605,7 +613,7 @@ for i1 = 1:Nsignatures
                                       sigL1.timedatenum);
             %
             cor5_aux(:, i2) = interp1(sigL1.timednum_beam5, ...
-                                      sigL1.cor5(:, i2), ...
+                                      single(sigL1.cor5(:, i2)), ...
                                       sigL1.timedatenum);
         end
 

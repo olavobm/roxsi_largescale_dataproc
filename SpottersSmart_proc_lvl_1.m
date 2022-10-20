@@ -120,7 +120,7 @@ Nspotters = length(list_SmartMoorings);
 %
 log_file_name = ['log_SmartMooring_procL1_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
 %
-diary(fullfile(dir_output_data_L1, 'not_gridded', log_file_name))
+diary(fullfile(dir_output_data_L1, log_file_name))
 
 %
 totalRunTime = tic;
@@ -1143,7 +1143,7 @@ for i1 = 1:length(list_SmartMoorings)
     %
     disp('---- Saving smart mooring level 1 data ---- ')
     %
-    save(fullfile(dir_output_data_L1, 'not_gridded', ['roxsi_smartmooring_L1_' spotsmartL1.mooringID '_' spotsmartL1.SN '_notgridded.mat']), 'spotsmartL1');
+    save(fullfile(dir_output_data_L1, ['roxsi_smartmooring_L1_' spotsmartL1.mooringID '_' spotsmartL1.SN '_notgridded.mat']), 'spotsmartL1');
 
 
     % ------------------------------------------

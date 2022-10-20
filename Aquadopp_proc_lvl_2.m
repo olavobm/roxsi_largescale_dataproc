@@ -330,9 +330,9 @@ for i1 = 1:Naquadopps
             set(hfig_spec_pcolor, 'units', 'normalized')
             set(hfig_spec_pcolor, 'Position', [0.4887, 0.1049, 0.2828, 0.4833])
             %
-            haxs_1 = axes('Position', [0.15, 0.65, 0.65, 0.2]);
-            haxs_2 = axes('Position', [0.15, 0.40, 0.65, 0.2]);
-            haxs_3 = axes('Position', [0.15, 0.15, 0.65, 0.2]);
+            haxs_1 = axes('Position', [0.15, 0.65, 0.6, 0.2]);
+            haxs_2 = axes('Position', [0.15, 0.40, 0.6, 0.2]);
+            haxs_3 = axes('Position', [0.15, 0.15, 0.6, 0.2]);
             %
             haxs_all = [haxs_1, haxs_2, haxs_3];
             %
@@ -355,11 +355,11 @@ for i1 = 1:Naquadopps
             %
             hcb_1 = colorbar(haxs_1);
                 hcb_1.Position = [(sum(haxs_1.Position([1, 3]))+0.02), haxs_1.Position(2), 0.025, haxs_1.Position(4)];
-                hcb_1.Label.String = '[m$^2$ s$^{-2}$ Hz$^{-1}$]';
+                hcb_1.Label.String = '[$\log_{10}$ m$^2$ s$^{-2}$ Hz$^{-1}$]';
                 hcb_1.Label.Interpreter = 'Latex';
             hcb_2 = colorbar(haxs_2);
                 hcb_2.Position = [(sum(haxs_2.Position([1, 3]))+0.02), haxs_2.Position(2), 0.025, haxs_2.Position(4)];
-                hcb_2.Label.String = '[m$^2$ s$^{-2}$ Hz$^{-1}$]';
+                hcb_2.Label.String = '[$\log_{10}$ m$^2$ s$^{-2}$ Hz$^{-1}$]';
                 hcb_2.Label.Interpreter = 'Latex';
 
             %
@@ -390,8 +390,9 @@ for i1 = 1:Naquadopps
             end
 
             %
-            hleg = legend([hp_u, hp_v, hp_w], 'var($u$)', 'var($v$)', '$10 \times$ var($w$)');
-                hleg.Position = [0.85, 0.175, 0.1, 0.1];
+            hleg = legend([hp_u, hp_v, hp_w], 'var($u$)', 'var($v$)', '$10 \times$ var($w$)', 'Location', 'EastOutside');
+                hleg.Interpreter = 'Latex';
+                hleg.Position = [0.8, 0.175, 0.05, 0.05];
     end
 
     % ----------------------------------------------------

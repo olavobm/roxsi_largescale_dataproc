@@ -303,7 +303,7 @@ for i1 = 1:Nsignatures
     dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(1).name), 'Config');
 
     %
-    dataread_aux.Config
+    sigL1.Config = dataread_aux.Config;
 
 
     %% Get height above the bottom (zhab) of the ADCP bins
@@ -458,10 +458,10 @@ for i1 = 1:Nsignatures
             sigL1.amp3{i3} = dataread_aux.Data.Burst_AmpBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
             sigL1.amp4{i3} = dataread_aux.Data.Burst_AmpBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
             %
-            sigL1.corr1{i3} = dataread_aux.Data.Burst_CorBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.corr2{i3} = dataread_aux.Data.Burst_CorBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.corr3{i3} = dataread_aux.Data.Burst_CorBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.corr4{i3} = dataread_aux.Data.Burst_CorBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
+            sigL1.cor1{i3} = dataread_aux.Data.Burst_CorBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
+            sigL1.cor2{i3} = dataread_aux.Data.Burst_CorBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
+            sigL1.cor3{i3} = dataread_aux.Data.Burst_CorBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
+            sigL1.cor4{i3} = dataread_aux.Data.Burst_CorBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
 
             %
             if sigL1.l5beams
@@ -471,7 +471,7 @@ for i1 = 1:Nsignatures
                 %
                 sigL1.vel5{i3} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
                 sigL1.amp5{i3} = dataread_aux.Data.IBurst_AmpBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
-                sigL1.corr5{i3} = dataread_aux.Data.IBurst_CorBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
+                sigL1.cor5{i3} = dataread_aux.Data.IBurst_CorBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
     
                 %
                 sigL1.timedatenum5{i3} = dataread_aux.Data.IBurst_Time(lin_proclims_beam5time_aux);
@@ -531,55 +531,248 @@ for i1 = 1:Nsignatures
     % ---------- BASIC DATA PROCESSING ---------
     % ------------------------------------------
 
-    %%
-    
-% % % %         %% Do clock drift correction
-% % % % 
-% % % %     %
-% % % %     disp('----- Correcting for clock drift -----')
-% % % % 
-% % % %     % Now correct for clock drift
-% % % %     time_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
-% % % %                                             list_Signature{i1}(5:end), ...
-% % % %                                             sig1000.timedatenum);
-% % % % 
-% % % % 
-% % % %     %% Convert time to date time
-% % % % 
-% % % %     %
-% % % %     sig1000.dtime = datetime(time_aux, 'ConvertFrom', 'datenum', ...
-% % % %                                        'TimeZone', 'America/Los_Angeles');
-% % % % 
-% % % % 
-% % % %     %% Apply (small) correction due to atmospheric pressure variability.
-% % % %     % 
-% % % %     % As opposed to Aquadopps, Signatures don't have a customizable
-% % % %     % pressure offset (so pressure measurements don't include the
-% % % %     % full pressure at the sensor)
-% % % % 
-% % % %     % Interpolate atmospheric pressure anomaly to timestamps
-% % % %     % of the signature
-% % % %     atmpresanomaly_aux = interp1(atmpresanomaly.dtime, ...
-% % % %                                  atmpresanomaly.atm_anomaly, sig1000.dtime);
-% % % % 
-% % % %     %
-% % % %     sig1000.pressure = sig1000.pressure - atmpresanomaly_aux;
+    %% Clock drift correction
+
+    %
+    disp('----- Correcting for clock drift -----')
+
+    % Now correct for clock drift
+    time_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
+                                            list_Signature{i1}(5:end), ...
+                                            sigL1.timedatenum);
+
+    % Now correct for clock drift
+    if sigL1.l5beam
+        time5_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
+                                                 list_Signature{i1}(5:end), ...
+                                                 sigL1.timedatenum5);
+        keyboard
+    end
+
+
+    %% Convert time to date time
+
+    %
+    sigL1.dtime = datetime(time_aux, 'ConvertFrom', 'datenum', ...
+                                     'TimeZone', 'America/Los_Angeles');
+
+    %
+    if sigL1.l5beam
+        %
+        sigL1.dtime5 = datetime(time5_aux, 'ConvertFrom', 'datenum', ...
+                                           'TimeZone', 'America/Los_Angeles');
+        
+        keyboard
+    end
+
+
+    %% Apply (small) correction due to atmospheric pressure variability.
+    % 
+    % As opposed to Aquadopps, Signatures don't have a customizable
+    % pressure offset (so pressure measurements don't include the
+    % full pressure at the sensor)
+
+    % Interpolate atmospheric pressure anomaly to timestamps
+    % of the signature
+    atmpresanomaly_aux = interp1(atmpresanomaly.dtime, ...
+                                 atmpresanomaly.atm_anomaly, sigL1.dtime);
+
+    %
+    sigL1.pressure = sigL1.pressure - atmpresanomaly_aux;
+
+
+    %% Check clock/gaps
+
+    %% Interpolate 5th beam to the same timestamps as the other 4
+
+% HOW IS THE W CALCULATION FROM 5TH BEAM?????
+
+% %     %
+% %     if any(contains(list_5beams, list_Signature{i1}(1:3)))
+% %         tic
+% %         %
+% %         disp(['--- 5 beams will be used for velocity transformation. ' ...
+% %               'First will interpolate 5th beam to time stamps of ' ...
+% %               'other 4 beams ---'])
+% % 
+% %         %
+% %         sig1000.vel5 = NaN(size(sig1000.vel1));
+% %         sig1000.amp5 = sig1000.vel5;
+% % 
+% %         % Loop over bins of the 5th beam
+% %         for i2 = 1:size(sig1000.vel5, 2)
+% %             
+% %             %
+% %             sig1000.vel5(:, i2) = interp1(sig1000.timednum_beam5, ...
+% %                                           sig1000.vel5_raw(:, i2), ...
+% %                                           sig1000.timednum_fourbeams);
+% %             %
+% %             sig1000.amp5(:, i2) = interp1(sig1000.timednum_beam5, ...
+% %                                           sig1000.amp5_raw(:, i2), ...
+% %                                           sig1000.timednum_fourbeams);
+% %         end
+% %         disp('Done with 5th beam interpolation.') 
+% %         toc
+% %     end
 
 
     %% Interpolate variables to gridded time vector (after
     % making sure there are no major issues above)
+
+    tic
+    %
+    disp('--- Gridding variables to time grid ---')
+
+    % As time edges of the grid, round to the whole minute (done in a more
+    % complicated way so that it doesn't rely on Matlab versions newer than
+    % at least 2021b)
+    dtime_edge_1 = datetime(sigL1.dtime(1).Year, sigL1.dtime(1).Month, sigL1.dtime(1).Day, ...
+                            sigL1.dtime(1).Hour, (sigL1.dtime(1).Minute + 1), 00);
+    dtime_edge_2 = datetime(sigL1.dtime(end).Year, sigL1.dtime(end).Month, sigL1.dtime(end).Day, ...
+                            sigL1.dtime(end).Hour, sigL1.dtime(end).Minute, 00);
+    %
+    df_sampling = double(sigL1.Config.Burst_SamplingRate);    % in Hertz
+
+    %
+    dtime_grid = dtime_edge_1 : seconds(1/df_sampling) : dtime_edge_2;
+    dtime_grid.TimeZone = sigL1.dtime.TimeZone;
+
+    %
+    Nlengthtimeseries = length(sigL1.dtime);
+    list_time_vars = {'dtime', 'dtime5', 'timedatenum', 'timedatenum5'};
+
+    %
+    for i2 = 1:length(list_variables_aux)
+
+        % Only interpolate fields that are NOT contained in list_time_vars
+        % and are vectors of the correct length
+        if ~any(contains(list_time_vars, list_variables_aux{i2})) && ...
+           (length(sigL1.(list_variables_aux{i2})) == Nlengthtimeseries)
+           
+            %
+            sigL1.(list_variables_aux{i2}) = ...
+                            interp1(sigL1.dtime, ...              
+                                    sigL1.(list_variables_aux{i2}), ...
+                                    dtime_grid);
+
+            % Turn to column vector
+            sigL1.(list_variables_aux{i2}) = sigL1.(list_variables_aux{i2})(:);
+
+        end
+    end
+
+    % Replace measured time stamps by time grid
+    sigL1.dtime = dtime_grid(:);
+
+    %
+    disp('--- Done with time gridding ---')
+    toc
+
+    % Remove datenum time
+    sigL1 = rmfield(sigL1, 'timedatenum');
+
+    % Add sampling rate as a field
+    sigL1.samplingrateHz = df_sampling;
+
+
+    %% Compute bottom depth from pressure
+
 
     %%
     % ------------------------------------------
     % ---------- PROCESS VELOCITY DATA ---------
     % ------------------------------------------
 
+    %% Transpose matrices so that row dimension is along bins
+
+    %% Compute magnetic-ENU 3 components of velocity
+    % (using library ADCPtools)
+    %
+    % Compute ENU velocities in different ways depending
+    % whether 4 or 5 beams should be used (check the preamble
+    % of this script. The preamble also makes sure that
+    % all Signatures being processed are in the processing lists)
+    %
+    % Very long timeseries (e.g. a couple of weeks of 8 Hz
+    % Signature1000 data (need to be broken into smaller chunks
+    % otherwise janus5beam2earth will use all memory and crash Matlab).
+
+
+    %% Rotate horizontal velocity from magnetic to true north
+
+    %% QC velocity based on backscatter and/or correlation (????)
+
+    %%
+    % ------------------------------------------
+    % ---- COMPUTE LOW-FREQUENCY QUANTITIES ----
+    % ------------------------------------------
+
+    %%
+
 
     %%
     % -----------------------------------------------------------
     % -------- FINAL ADJUSTMENTS, SAVE DATA AND QC PLOTS --------
     % -----------------------------------------------------------
+    % ----------------------------------------------------
+    % Turn all vectors into column vectors so that Matlab
+    % can quickly displace the structure variable in the 
+    % command window (Matlab displays first elements of
+    % row vectors, and it takes longer)
+%     list_fields_aux = fieldnames(aquadoppL1);
+%     %
+%     for i2 = 1:length(list_fields_aux)
+%         %
+%         if isvector(aquadoppL1.(list_fields_aux{i2})) && ...
+%            ~isstruct(aquadoppL1.(list_fields_aux{i2})) && ...
+%            ~ischar(aquadoppL1.(list_fields_aux{i2}))
+%             %
+%             aquadoppL1.(list_fields_aux{i2}) = aquadoppL1.(list_fields_aux{i2})(:);
+%         end
+%     end
 
+    %% Add README
+
+    % %     %
+% %     time_dataproc = datetime('now', 'TimeZone', 'Local');
+% %     time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
+% %     % Add a general README
+% %     sig1000.README = ['Level 1 Signature1000 data from ROXSI 2022. The data is from Signature ' ...
+% %                          ' with serial number SN and deployed at mooring site mooringID. ' ...
+% %                          'Data processed by script ' mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
+% %                          'Horizontal velocity components are relative to ??????, where the magnetic ' ...
+% %                          'decliation was taken from www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml. Data ' ...
+% %                          'in the Level 1 structure has been trimmed for the deployment ' ...
+% %                          'period, as defined in the table deploymentInfo_ROXSI2022.mat. ' ...
+% %                          'Pressure is in dbar, where atmospheric pressure has been removed.'];
+
+
+    %% Save stuff
+
+
+    % ----------------------------------------------------
+    % Save level 1 data with all variables
+
+    % ----------------------------------------------------
+    % Save level 1 data with scalar variables
+
+    % ----------------------------------------------------
+    % Save level 1 data along-beam/backscatter/correlation quantities
+
+    % ----------------------------------------------------
+    % Save QC figures
+
+
+    %% Stuff before start processing the next Signature in the list
+
+        % ----------------------------------------------------
+    %
+    disp(['----- DONE with RAW to L1 Signature1000 data processing: ' list_Signature{i1} ' -----'])
+    toc(totalRunTime)
+    
+    %
+    close all
+    clear sigL1
 
 end
 

@@ -330,9 +330,9 @@ for i1 = 1:Naquadopps
             set(hfig_spec_pcolor, 'units', 'normalized')
             set(hfig_spec_pcolor, 'Position', [0.4887, 0.1049, 0.2828, 0.4833])
             %
-            haxs_1 = axes('Position', [0.15, 0.65, 0.7, 0.2]);
-            haxs_2 = axes('Position', [0.15, 0.40, 0.7, 0.2]);
-            haxs_3 = axes('Position', [0.15, 0.15, 0.7, 0.2]);
+            haxs_1 = axes('Position', [0.15, 0.65, 0.65, 0.2]);
+            haxs_2 = axes('Position', [0.15, 0.40, 0.65, 0.2]);
+            haxs_3 = axes('Position', [0.15, 0.15, 0.65, 0.2]);
             %
             haxs_all = [haxs_1, haxs_2, haxs_3];
             %
@@ -344,14 +344,23 @@ for i1 = 1:Naquadopps
                 pcolor(haxs_1, aquadoppL2.dtime, aquadoppL2.frequency, log10(aquadoppL2.Suu))
                 pcolor(haxs_2, aquadoppL2.dtime, aquadoppL2.frequency, log10(aquadoppL2.Sww))
                 %
-                plot(haxs_3, aquadoppL2.dtime, aquadoppL2.uvar, '-')
-                plot(haxs_3, aquadoppL2.dtime, aquadoppL2.vvar, '-')
-                %
-                plot(haxs_3, aquadoppL2.dtime, 10.*aquadoppL2.wvar, '-')
+                hp_u = plot(haxs_3, aquadoppL2.dtime, aquadoppL2.uvar, '-');
+                hp_v = plot(haxs_3, aquadoppL2.dtime, aquadoppL2.vvar, '-');
+                hp_w = plot(haxs_3, aquadoppL2.dtime, 10.*aquadoppL2.wvar, '-');
     
             %
             shading(haxs_1, 'flat')
             shading(haxs_2, 'flat')
+
+            %
+            hcb_1 = colorbar(haxs_1);
+                hcb_1.Position = [(sum(haxs_1.Position([1, 3]))+0.02), haxs_1.Position(2), 0.025, haxs_1.Position(4)];
+                hcb_1.Label.String = '[m$^2$ s$^{-2}$ Hz$^{-1}$]';
+                hcb_1.Label.Interpreter = 'Latex';
+            hcb_2 = colorbar(haxs_2);
+                hcb_2.Position = [(sum(haxs_2.Position([1, 3]))+0.02), haxs_2.Position(2), 0.025, haxs_2.Position(4)];
+                hcb_2.Label.String = '[m$^2$ s$^{-2}$ Hz$^{-1}$]';
+                hcb_2.Label.Interpreter = 'Latex';
 
             %
             set(haxs_all, 'FontSize', 12, 'Box', 'on', ...
@@ -366,7 +375,7 @@ for i1 = 1:Naquadopps
     
             %
             title(haxs_1, {['ROXSI 2022: Aquadopp ' list_Aquadopp{i1}(1:3) ' SN ' list_Aquadopp{i1}(5:end) '']; ...
-                           'Spectra of depth-averaged u and w. Sea-swell variance of u, v, w'}, ...
+                           'Spectra of depth-averaged u and w. Sea-swell variance of $u$, $v$, $10 \times w$'}, ...
                            'Interpreter', 'Latex', 'FontSize', 10)
     
             %
@@ -379,6 +388,10 @@ for i1 = 1:Naquadopps
                 plot(haxs_all(indhaxs), xlim_aux, aquadoppL2.freqband(2).*[1, 1], '--k')
                 xlim(haxs_all(indhaxs), xlim_aux)
             end
+
+            %
+            hleg = legend([hp_u, hp_v, hp_w], 'var($u$)', 'var($v$)', '$10 \times$ var($w$)');
+                hleg.Position = [0.85, 0.175, 0.1, 0.1];
     end
 
     % ----------------------------------------------------

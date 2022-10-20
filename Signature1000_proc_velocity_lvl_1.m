@@ -153,7 +153,7 @@ for i = 1:length(list_Signature)
 
 end
 
-    
+
 
 %%
 % -------------------------------------------------------------------------
@@ -947,7 +947,9 @@ for i1 = 1:Nsignatures
                                      -sig1000.vel5(:, ind_sub_aux));
     
     
-            % make sure that column dimension is time dimension for all variables
+            % make sure that column dimension is time dimension
+            % for all variables (that's why vectores (e.g. pitch)
+            % are transposed)
         end
 
     % 

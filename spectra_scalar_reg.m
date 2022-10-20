@@ -339,7 +339,8 @@ dof = NaN(1, ntspec);
 %%
 
 %
-avgx = mean(xdata_perinterval, 1, 'omitnan');
+avgx = NaN(1, ntspec);
+avgx(ind_all_intervals) = mean(xdata_perinterval, 1, 'omitnan');
 
 
 %% Finally start the calculation

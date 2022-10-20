@@ -547,7 +547,7 @@ for i1 = 1:Nsignatures
                                             sigL1.timedatenum);
 
     % Now correct for clock drift
-    if sigL1.l5beam
+    if sigL1.l5beams
         time5_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
                                                  list_Signature{i1}(5:end), ...
                                                  sigL1.timedatenum5);
@@ -562,7 +562,7 @@ for i1 = 1:Nsignatures
                                      'TimeZone', 'America/Los_Angeles');
 
     %
-    if sigL1.l5beam
+    if sigL1.l5beams
         %
         sigL1.dtime5 = datetime(time5_aux, 'ConvertFrom', 'datenum', ...
                                            'TimeZone', 'America/Los_Angeles');
@@ -579,7 +579,7 @@ for i1 = 1:Nsignatures
     %% Interpolate 5th beam to the same timestamps as the other 4
 
     %
-    if sigL1.l5beam
+    if sigL1.l5beams
 
         tic
         %
@@ -620,8 +620,10 @@ for i1 = 1:Nsignatures
     end
 
 
-    %% Interpolate variables to gridded time vector (after
+    %% Interpolate variables to gridded time (after
     % making sure there are no major issues above)
+    %
+    % At this point, time is always along the row dimension
 
     tic
     %
@@ -640,43 +642,49 @@ for i1 = 1:Nsignatures
     %
     dtime_grid = dtime_edge_1 : seconds(1/df_sampling) : dtime_edge_2;
     dtime_grid.TimeZone = sigL1.dtime.TimeZone;
+    dtime_grid = dtime_grid(:);
 
     %
     Nlengthtimeseries = length(sigL1.dtime);
-    list_time_vars = {'dtime', 'dtime5', 'timedatenum', 'timedatenum5'};
-keyboard
     %
-    for i2 = 1:length(list_variables_aux)
+    list_time_vars = {'dtime', 'dtime5', 'timedatenum', 'timedatenum5'};
+    list_all_fields = fieldnames(sigL1);
+
+    %
+    for i2 = 1:length(list_all_fields)
 
         % Only interpolate fields that are NOT contained in list_time_vars
         % and are arrays with expected number of points along time
-        if ~any(contains(list_time_vars, list_variables_aux{i2})) && ...
-           (length(sigL1.(list_variables_aux{i2})) == Nlengthtimeseries)
+        if ~any(contains(list_time_vars, list_all_fields{i2})) && ...
+           (size(sigL1.(list_all_fields{i2}), 1) == Nlengthtimeseries)
            
             %
-            sigL1.(list_variables_aux{i2}) = ...
+            sigL1.(list_all_fields{i2}) = ...
                             interp1(sigL1.dtime, ...              
-                                    sigL1.(list_variables_aux{i2}), ...
+                                    sigL1.(list_all_fields{i2}), ...
                                     dtime_grid);
+            % PS: matrices are interpolated column-wise
 
-            % Turn to column vector
-            sigL1.(list_variables_aux{i2}) = sigL1.(list_variables_aux{i2})(:);
+% %             % Turn to column vector
+% %             sigL1.(list_variables_aux{i2}) = sigL1.(list_variables_aux{i2})(:);
 
         end
     end
 
     % Replace measured time stamps by time grid
-    sigL1.dtime = dtime_grid(:);
+    sigL1.dtime = dtime_grid;
 
     %
     disp('--- Done with time gridding ---')
     toc
 
-    % Remove datenum time
-    sigL1 = rmfield(sigL1, 'timedatenum');
+% %     % Remove datenum time
+% %     sigL1 = rmfield(sigL1, 'timedatenum');
 
     % Add sampling rate as a field
-    sigL1.samplingrateHz = df_sampling
+    sigL1.samplingrateHz = df_sampling;
+
+    keyboard
 
 
 

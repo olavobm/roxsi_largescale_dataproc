@@ -96,8 +96,8 @@ for i1 = 1:Nspotsmart
     %% Load the data from the i1'th Smart Mooring
 
     %
-    filename_aux = ['smart_mooring_' list_smartmoorings{i1}(1:3) 'sp_' ...
-                    list_smartmoorings{i1}(end-3:end) '_L1_gridded.mat'];
+    filename_aux = ['roxsi_smartmooring_L1_' list_smartmoorings{i1}(1:3) 'sp_' ...
+                    list_smartmoorings{i1}(end-3:end) '_gridded.mat'];
     %
     spotsmartL1 = load(fullfile(dir_L1data_parent, filename_aux));
     spotsmartL1 = spotsmartL1.spotsmartL1;
@@ -335,7 +335,7 @@ for i1 = 1:Nspotsmart
         ylabel(haxs_2, '[m$^2$ Hz$^{-1}$]', 'Interpreter', 'Latex', 'FontSize', 14)
         %
         title(haxs_1, {'ROXSI 2022 pressure-based surface elevation'; ...
-                       ['spectra (and time-mean spectrum) from smart mooring ' char(L2out.mooringID) '. '] ...
+                       ['spectra (and time-mean spectrum) from smart mooring ' char(L2out.mooringID) '.']; ...
                        'Frequencies higher than sea-swell upper bound were trimmed'}, ...
                        'Interpreter', 'Latex', 'FontSize', 12)
         

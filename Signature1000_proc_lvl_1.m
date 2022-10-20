@@ -130,6 +130,22 @@ list_rawdata = {'timedatenum', 'pressure', 'temperature', ...
                 'cor1', 'cor2', 'cor3', 'cor4', 'cor5', ...
                 'timedatenum5'};
 
+
+%% List of properties for converting along-beam to ENU
+% velocity in Signature data
+
+%
+theta_beams = 25;
+
+%
+lGimbaled = true;
+% lGimbaled = false;
+
+BinmapType = 'none';
+% BinmapType = 'linear';
+% BinmapType = 'nearest';
+
+
 %%
 % -------------------------------------
 % --------- LOAD ATM PRESSURE ---------
@@ -383,7 +399,8 @@ for i1 = 1:Nsignatures
         sigL1.timedatenum = prealloc_aux;
         sigL1.samplingrateHz = NaN;    % only added at the end
         %
-% %         sigL1.dtime = prealloc_aux;    % variable not filled in the loop
+        sigL1.dtime = [];    % variable not filled in the loop. I just
+                             % want to have its position here
         sigL1.pressure = prealloc_aux;
         sigL1.temperature = prealloc_aux;
         %
@@ -692,9 +709,6 @@ for i1 = 1:Nsignatures
     % Add sampling rate as a field
     sigL1.samplingrateHz = df_sampling;
 
-    keyboard
-
-
 
     %% Apply (small) correction due to atmospheric pressure variability.
     % 
@@ -713,13 +727,84 @@ for i1 = 1:Nsignatures
 
     %% Compute bottom depth from pressure
 
+    % Simplest estimate: assume pressure is hydrostatic
+    rho0 = 1030;
+    g = 9.8;
+    sigL1.bottomdepthfrompres = 1e4*sigL1.pressure ./ (rho0*g);
+
 
     %%
     % ------------------------------------------
     % ---------- PROCESS VELOCITY DATA ---------
     % ------------------------------------------
 
-    %% Transpose matrices so that row dimension is along bins
+
+    %% First step is to trim out all bins that never give good data
+
+    % Find all bins that are below the maximum bottom depth
+    lin_verticalrange = ((sigL1.zhab + (sigL1.binsize)) < max(sigL1.bottomdepthfrompres));
+    %
+    % PS: it's more intuitive to use binsize/2, however I don't
+    % know what is the precise definition of a "full cell" in
+    % the Signature1000 data. From one part of the manual, it seemed
+    % that measurements 2*binsize might be taken into 1 cell, but the
+    % windowing applied by the preprocessing inside the instrument
+    % may remove the edges.
+
+    %
+    Nptstime = length(sigL1.dtime);
+    Nptsbins = length(sigL1.zhab);
+    %
+    list_all_fields = fieldnames(sigL1);
+    %
+    for i2 = 1:legth(sigL1)
+        %
+        if (size(sigL1.(list_all_fields{i2}), 1)==Nptstime) && ...
+           (size(sigL1.(list_all_fields{i2}), 2)==Nptsbins)
+            %
+            sigL1.(list_all_fields{i2}) = sigL1.(list_all_fields{i2})(:, lin_verticalrange); 
+        end
+
+        % Transpose matrices so that row dimension is along bins
+        sigL1.(list_all_fields{i2}) = sigL1.(list_all_fields{i2}).';
+    end
+
+    % And trim zhab after trimming the matrices above
+    sigL1.zhab = sigL1.zhab(lin_verticalrange);
+
+
+    %% NaN data at/above the instantaneous ocean surface
+
+    %
+    disp('--- Removing data close/above the ocean surface ---')
+
+    %
+%     zhab_halfstep = sigL1.zhab + (sigL1.binsize/2);   % same question as above
+    zhab_halfstep = sigL1.zhab + (sigL1.binsize);
+% %     Nbins = length(sigL1.zhab);   % not used
+    %
+    ind_abovesurface = 1:1:(size(sigL1.vel1, 1) * size(sigL1.vel1, 2));
+    ind_abovesurface = reshape(ind_abovesurface, size(sigL1.vel, 1), size(sigL1.vel2, 2));
+    %
+    for i2 = 1:length(sigL1.timedatenum)
+        %
+        ind_above_aux = find((zhab_halfstep < sigL1.bottomdepthfrompres(i2)), 1, 'last');
+        %
+        ind_abovesurface(1:ind_above_aux, i2) = NaN;
+    end
+    %
+    ind_abovesurface = ind_abovesurface(:);
+    ind_abovesurface = ind_abovesurface(~isnan(ind_abovesurface));
+    %
+    sigL1.vel1(ind_abovesurface) = NaN;
+    sigL1.vel2(ind_abovesurface) = NaN;
+    sigL1.vel3(ind_abovesurface) = NaN;
+    sigL1.vel4(ind_abovesurface) = NaN;
+    %
+    if sigL1.l5beams
+        sigL1.vel5(ind_abovesurface) = NaN;
+    end
+
 
     %% Compute magnetic-ENU 3 components of velocity
     % (using library ADCPtools)
@@ -729,13 +814,126 @@ for i1 = 1:Nsignatures
     % of this script. The preamble also makes sure that
     % all Signatures being processed are in the processing lists)
     %
+
+    % ------------------------
     % Very long timeseries (e.g. a couple of weeks of 8 Hz
     % Signature1000 data (need to be broken into smaller chunks
     % otherwise janus5beam2earth will use all memory and crash Matlab).
 
+    %
+    npts_rot_TH = 1000000;
+    %
+    if Npts_alldata<=npts_rot_TH
+        indbreak_rot = [1; Nptstime];
+    else
+        %
+        inds_edges_breakrot = 1 : npts_rot_TH : Nptstime;
+        if (inds_edges_breakrot(end)~=Nptstime)
+            inds_edges_breakrot = [inds_edges_breakrot, Nptstime];
+        end
+        %
+        indbreak_rot = [inds_edges_breakrot(1:end-1); ...
+                        (inds_edges_breakrot(2:end) - 1)];
+        % The last one shouldn't have 1 subtracted. Add again
+        indbreak_rot(2, end) = indbreak_rot(2, end) + 1;
+    end
 
+    % ------------------------
+    tic
+    %
+    disp('--- Converting along-beam velocities to magnetic ENU ---')
+    %
+    disp(['--- Coordinate transformation will be computed ' ...
+          'for ' num2str(size(indbreak_rot, 2)) ' separate chunks ' ...
+          'of the timeseries (to avoid crashing Matlab) ---'])
+
+    %
+    sigL1.u = NaN(size(sigL1.vel1));
+    sigL1.v = sigL1.u;
+    sigL1.w = sigL1.u;
+
+% % In the future I might want to add the 2 Janus w estimates
+% %     sigL1.Wbeam5 = NaN(size(sigL1.vel1));
+
+
+    % If the Signature is in the 5-beam list
+    if sigL1.l5beams
+
+        % Compute velocity using 5 beams
+        disp('Using 5 beams')
+
+        %
+        for i2 = 1:size(indbreak_rot, 2)
+
+            %
+            ind_sub_aux = indbreak_rot(1, i2) : indbreak_rot(2, i2);
+
+            % Use w from the 5th beam (it does incorporate ux
+            % and uy from the Janus measurements)
+            [sigL1.u(:, ind_sub_aux), ...
+             sigL1.v(:, ind_sub_aux), ...
+             ~, ...
+             sigL1.w(:, ind_sub_aux)] = ...    % this is the w from 5th beam
+                    janus5beam2earth((sigL1.heading(ind_sub_aux).' - 90), ...
+                                     sigL1.roll(ind_sub_aux).', -sigL1.pitch(ind_sub_aux).', ...
+                                     25, ...
+                                     -sigL1.vel1(:, ind_sub_aux), -sigL1.vel3(:, ind_sub_aux), ...
+                                     -sigL1.vel4(:, ind_sub_aux), -sigL1.vel2(:, ind_sub_aux), ...
+                                     -sigL1.vel5(:, ind_sub_aux), ...
+                                     sigL1.cellcenter, lGimbaled, BinmapType);
+    
+            % PS: The column dimension should be the time dimension
+            % for all variables (that's why vectores (e.g. pitch)
+            % are transposed)
+        end
+
+    % If the Signature is not in the 5-beam list
+    else
+        % Use 4 beams instead
+        disp('Using 4 beams')
+
+        %
+        for i2 = 1:size(indbreak_rot, 2)
+
+            %
+            ind_sub_aux = indbreak_rot(1, i2) : indbreak_rot(2, i2);
+            %
+            [sigL1.u(:, ind_sub_aux), ...
+             sigL1.v(:, ind_sub_aux), ...
+             sigL1.w(:, ind_sub_aux)] = ...
+                        janus2earth(sigL1.heading(ind_sub_aux).' - 90, ...
+                                    sigL1.roll(ind_sub_aux).', -sigL1.pitch(ind_sub_aux).', ...
+                                    25, ...
+                                    -sigL1.vel1(:, ind_sub_aux), -sigL1.vel3(:, ind_sub_aux), ...
+                                    -sigL1.vel4(:, ind_sub_aux), -sigL1.vel2(:, ind_sub_aux), ...
+                                    sigL1.cellcenter, lGimbaled, BinmapType);
+        end
+    end
+
+    %
+    disp('--- Done with coordinate transformation to magnetic ENU. It took: ---')
+    toc
+
+    
     %% Rotate horizontal velocity from magnetic to true north
 
+    %
+    tic
+    disp('--- Rotating from magnetic ENU to local XY coordinate system ---')
+    
+    %
+    disp(['----- Rotating horizontal velocity from magnetic ENU ' ...
+          'to local XY coordinate system. Magnetic declination is ' ...
+          num2str(sigL1.magdec, '%.2f') ' degrees -----'])
+
+    %
+    [sigL1.u, sigL1.v] = ROXSI_uv_ENtoXY(sigL1.u, sigL1.v, sigL1.site, true);
+
+    %
+    disp('--- Done with rotation to local XY. It took: ---')
+    toc
+
+    
     %% QC velocity based on backscatter and/or correlation (????)
 
     %%

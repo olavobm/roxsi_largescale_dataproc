@@ -320,6 +320,8 @@ for i1 = 1:Naquadopps
 
     aquadoppL2.README = ['Level 2 Aquadopp data from ROXSI 2022'];
 
+
+    %%
     % ----------------------------------------------------
     % Make QC plot of spectra
     if aquadoppL1.samplingtime == 1
@@ -355,27 +357,31 @@ for i1 = 1:Naquadopps
             %
             hcb_1 = colorbar(haxs_1);
                 hcb_1.Position = [(sum(haxs_1.Position([1, 3]))+0.02), haxs_1.Position(2), 0.025, haxs_1.Position(4)];
-                hcb_1.Label.String = '[$\log_{10}$ m$^2$ s$^{-2}$ Hz$^{-1}$]';
                 hcb_1.Label.Interpreter = 'Latex';
+                hcb_1.Label.String = '[$\log_{10}$ m$^2$ s$^{-2}$ Hz$^{-1}$]';
             hcb_2 = colorbar(haxs_2);
                 hcb_2.Position = [(sum(haxs_2.Position([1, 3]))+0.02), haxs_2.Position(2), 0.025, haxs_2.Position(4)];
-                hcb_2.Label.String = '[$\log_{10}$ m$^2$ s$^{-2}$ Hz$^{-1}$]';
                 hcb_2.Label.Interpreter = 'Latex';
+                hcb_2.Label.String = '[$\log_{10}$ m$^2$ s$^{-2}$ Hz$^{-1}$]';
+                
+            %
+            caxis(haxs_1, [-3, 1])
+            caxis(haxs_2, [-4, 0])
 
             %
             set(haxs_all, 'FontSize', 12, 'Box', 'on', ...
                           'XGrid', 'on', 'YGrid', 'on', ...
                           'XLim', aquadoppL2.dtime([1, end]))
-            set(haxs_all(1:2), 'YScale', 'log')
+            set(haxs_all(1:2), 'YScale', 'log', 'YLim', aquadoppL2.frequency([2, end]))
     
             %
             ylabel(haxs_1, 'Frequency [Hz]', 'Interpreter', 'Latex', 'FontSize', 10)
             ylabel(haxs_2, 'Frequency [Hz]', 'Interpreter', 'Latex', 'FontSize', 10)
-            ylabel(haxs_3, '[m s$^{-1}$]', 'Interpreter', 'Latex', 'FontSize', 10)
+            ylabel(haxs_3, '[m$^2$ s$^{-2}$]', 'Interpreter', 'Latex', 'FontSize', 10)
     
             %
             title(haxs_1, {['ROXSI 2022: Aquadopp ' list_Aquadopp{i1}(1:3) ' SN ' list_Aquadopp{i1}(5:end) '']; ...
-                           'Spectra of depth-averaged u and w. Sea-swell variance of $u$, $v$, $10 \times w$'}, ...
+                           'Spectra of depth-averaged u and w.'; 'Sea-swell variance of $u$, $v$, $10 \times w$'}, ...
                            'Interpreter', 'Latex', 'FontSize', 10)
     
             %
@@ -392,9 +398,11 @@ for i1 = 1:Naquadopps
             %
             hleg = legend([hp_u, hp_v, hp_w], 'var($u$)', 'var($v$)', '$10 \times$ var($w$)', 'Location', 'EastOutside');
                 hleg.Interpreter = 'Latex';
-                hleg.Position = [0.8, 0.175, 0.05, 0.05];
+                hleg.Position = [0.85, 0.215, 0.05, 0.05];
     end
 
+
+    %%
     % ----------------------------------------------------
     % Save L2 data structure
     %
@@ -420,7 +428,6 @@ for i1 = 1:Naquadopps
     %% Print progress message
 
     %
-    disp(' ')
     disp(['----- Done with L2 data processing for Aquadopp ' list_Aquadopp{i1} ' -----'])
 
     %

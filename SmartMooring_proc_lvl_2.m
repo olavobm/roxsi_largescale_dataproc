@@ -190,15 +190,20 @@ for i1 = 1:Nspotsmart
     tic
     for i2 = 1:length(timespec)
     
-        % Loop over frequencies
-        for i3 = 2:length(freqvec)
-    
-            %
-            disp_rel_solver = @(k) disp_rel(k, avgbottomdepth(i2), freqvec(i3));
-    
-            % In radians per meter
-            k_matrix(i3, i2) = fzero(disp_rel_solver, [(2*pi/(5000)), (2*pi/(1))]);
-    
+        % Only do calculation if there is a valid
+        % average bottom depth at time timespec(i2)
+        if ~isnan(avgbottomdepth(i2))
+
+            % Loop over frequencies
+            for i3 = 2:length(freqvec)
+        
+                %
+                disp_rel_solver = @(k) disp_rel(k, avgbottomdepth(i2), freqvec(i3));
+        
+                % In radians per meter
+                k_matrix(i3, i2) = fzero(disp_rel_solver, [(2*pi/(5000)), (2*pi/(1))]);
+        
+            end
         end
     end
     toc

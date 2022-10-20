@@ -397,7 +397,7 @@ for i1 = 1:Naquadopps
     if aquadoppL1.samplingtime == 1
         disp('----- Saving level 2 QC plots -----')
         %
-        str_filename = ['uvw_spectra_' char(spotsmartL2.mooringID) '_' char(spotsmartL2.SN)];
+        str_filename = ['uvw_spectra_' char(aquadoppL2.mooringID) '_' char(aquadoppL2.SN)];
         % Save figure as *.png
         exportgraphics(hfig_spec_pcolor, fullfile(dir_output_data_L2, [str_filename '.png']), 'Resolution', 300)
     end

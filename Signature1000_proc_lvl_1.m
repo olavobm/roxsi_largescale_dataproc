@@ -74,8 +74,8 @@ Nsignatures = length(list_Signature);
 % recovery
 
 %
-time_lims_proc = [datetime(2022, 06, 29, 00, 00, 00), ...
-                  datetime(2022, 07, 08, 00, 00, 00)];   % around 10 days
+time_lims_proc = [datetime(2022, 07, 01, 00, 00, 00), ...
+                  datetime(2022, 07, 03, 00, 00, 00)];
 time_lims_proc.TimeZone = 'America/Los_Angeles';
 
 %
@@ -123,7 +123,7 @@ list_rawdata = {'timedatenum', 'pressure', 'temperature', ...
                 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
                 'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
                 'cor1', 'cor2', 'cor3', 'cor4', 'cor5', ...
-                'timedatenum', 'timedatenum5'};
+                'timedatenum5'};
 
 %%
 % -------------------------------------
@@ -423,7 +423,6 @@ for i1 = 1:Nsignatures
 
             %
             dataread_aux = load(fullfile(dir_data_aux, ...
-                                         'converted', ...
                                          listfiles_perseg(i3)));
 
             %

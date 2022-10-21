@@ -658,7 +658,7 @@ for i1 = 1:Nsignatures
     % As time edges of the grid, round to the whole minute (done in a more
     % complicated way so that it doesn't rely on Matlab versions newer than
     % at least 2021b)
-    dtime_edge_1 = datetime(sigL1.dtime(1).Year, sigL1.dtime(1).Month,           ...
+    dtime_edge_1 = datetime(sigL1.dtime(1).Year, sigL1.dtime(1).Month, sigL1.dtime(1).Day, ...
                             sigL1.dtime(1).Hour, (sigL1.dtime(1).Minute + 1), 00);
     dtime_edge_2 = datetime(sigL1.dtime(end).Year, sigL1.dtime(end).Month, sigL1.dtime(end).Day, ...
                             sigL1.dtime(end).Hour, sigL1.dtime(end).Minute, 00);
@@ -942,6 +942,7 @@ for i1 = 1:Nsignatures
 
     %% QC velocity based on backscatter and/or correlation (????)
 
+
     %%
     % ------------------------------------------
     % ---- COMPUTE LOW-FREQUENCY QUANTITIES ----
@@ -964,6 +965,26 @@ for i1 = 1:Nsignatures
     %
     sigL1.averaged.dtime = timesmooth_lims_1 : seconds(sigL1.averaged.dt) : timesmooth_lims_2;
     sigL1.averaged.dtime.TimeZone = sigL1.dtime.TimeZone;
+
+    %
+    sigL1.averaged.pressure = time_smooth_reg(sigL1.dtime, sigL1.pressure, ...
+                                              sigL1.averaged.dt, ...
+                                              sigL1.averaged.dtime([1, end]));
+    sigL1.averaged.bottomdepthfrompres = (1e4 * sigL1.averaged.pressure) ./ (1030*9.8);
+    
+    % Find bins below the surface
+    ind_avg_abovesurface = 1:1:(length(sigL1.zhab) * length(sigL1.averaged.dtime));
+    ind_avg_abovesurface = reshape(ind_avg_abovesurface, length(sigL1.zhab), length(sigL1.averaged.dtime));
+    %
+    for i2 = 1:length(sigL1.averaged.dtime)
+        %
+        ind_withinocean_aux = find((sigL1.zhab < sigL1.averaged.bottomdepthfrompres(i2)), 1, 'last');
+        %
+        ind_avg_abovesurface(1:ind_withinocean_aux, i2) = NaN;
+    end
+    %
+    ind_avg_abovesurface = ind_avg_abovesurface(:);
+    ind_avg_abovesurface = ind_avg_abovesurface(~isnan(ind_avg_abovesurface));
 
     % Now average the beam data
     prealloc_aux = NaN(length(sigL1.zhab), length(sigL1.averaged.dtime));
@@ -990,8 +1011,12 @@ for i1 = 1:Nsignatures
                                              sigL1.averaged.dt, ...
                                              sigL1.averaged.dtime([1, end]));
         end
-    end
 
+        % Remove the above the surface
+        sigL1.averaged.(list_fields_aux{i2})(ind_avg_abovesurface) = NaN;
+        
+    end
+    
     %
     disp('--- Done with computing lower frequency quantities ---')
     toc

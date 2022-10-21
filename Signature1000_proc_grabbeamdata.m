@@ -585,17 +585,17 @@ for i1 = 1:Nsignatures
         for i2 = 1:size(sigL1.vel5, 2)
             
             %
-            vel5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+            vel5_aux(:, i2) = interp1(sigL1.dtime5, ...
                                       sigL1.vel5(:, i2), ...
-                                      sigL1.timedatenum);
+                                      sigL1.dtime);
             %
-            amp5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+            amp5_aux(:, i2) = interp1(sigL1.dtime5, ...
                                       sigL1.amp5(:, i2), ...
-                                      sigL1.timedatenum);
+                                      sigL1.dtime);
             %
-            cor5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+            cor5_aux(:, i2) = interp1(sigL1.dtime5, ...
                                       single(sigL1.cor5(:, i2)), ...
-                                      sigL1.timedatenum);
+                                      sigL1.dtime);
         end
 
         % Replace
@@ -608,7 +608,12 @@ for i1 = 1:Nsignatures
         toc
     end
 
-keyboard
+% %     %
+% %     sigL1 = rmfield(sigL1);
+    %
+    clear vel5_aux amp5_aux cor5_aux
+
+
     %% Interpolate variables to gridded time (after
     % making sure there are no major issues above)
     %
@@ -674,6 +679,8 @@ keyboard
     sigL1.samplingrateHz = df_sampling;
 
 
+    %%
+    keyboard
 end
 
 

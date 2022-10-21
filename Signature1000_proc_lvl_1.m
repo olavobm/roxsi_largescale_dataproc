@@ -65,9 +65,9 @@ load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROX
 % %                   'X05_100231'};
 % % 
 % % % Just a test
-% % list_Signature = {'A01_103043'};
+list_Signature = {'A01_103043', B13_103046};
 % % list_Signature = {'B10_103045'};
-list_Signature = {'B13_103046'};
+% % list_Signature = {'B13_103046'};
 
 %
 Nsignatures = length(list_Signature);
@@ -978,9 +978,9 @@ for i1 = 1:Nsignatures
     %
     for i2 = 1:length(sigL1.averaged.dtime)
         %
-        ind_withinocean_aux = find((sigL1.zhab < sigL1.averaged.bottomdepthfrompres(i2)), 1, 'last');
+        ind_withinocean_aux = find(((sigL1.zhab + sigL1.binsize) < sigL1.averaged.bottomdepthfrompres(i2)), 1, 'last');
         %
-        ind_avg_abovesurface(1:ind_withinocean_aux, i2) = NaN;
+        ind_avg_abovesurface(1:(ind_withinocean_aux-1), i2) = NaN;    % and remove another bin because of waves
     end
     %
     ind_avg_abovesurface = ind_avg_abovesurface(:);
@@ -1016,66 +1016,105 @@ for i1 = 1:Nsignatures
         sigL1.averaged.(list_fields_aux{i2})(ind_avg_abovesurface) = NaN;
         
     end
-    
+
     %
     disp('--- Done with computing lower frequency quantities ---')
     toc
 
 
-    %%
-keyboard
 
     %%
     % -----------------------------------------------------------
     % -------- FINAL ADJUSTMENTS, SAVE DATA AND QC PLOTS --------
     % -----------------------------------------------------------
     % ----------------------------------------------------
-    % Turn all vectors into column vectors so that Matlab
-    % can quickly displace the structure variable in the 
-    % command window (Matlab displays first elements of
-    % row vectors, and it takes longer)
-%     list_fields_aux = fieldnames(aquadoppL1);
-%     %
-%     for i2 = 1:length(list_fields_aux)
-%         %
-%         if isvector(aquadoppL1.(list_fields_aux{i2})) && ...
-%            ~isstruct(aquadoppL1.(list_fields_aux{i2})) && ...
-%            ~ischar(aquadoppL1.(list_fields_aux{i2}))
-%             %
-%             aquadoppL1.(list_fields_aux{i2}) = aquadoppL1.(list_fields_aux{i2})(:);
-%         end
-%     end
+
 
     %% Add README
 
-    % %     %
-% %     time_dataproc = datetime('now', 'TimeZone', 'Local');
-% %     time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
-% %     % Add a general README
-% %     sig1000.README = ['Level 1 Signature1000 data from ROXSI 2022. The data is from Signature ' ...
-% %                          ' with serial number SN and deployed at mooring site mooringID. ' ...
-% %                          'Data processed by script ' mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
-% %                          'Horizontal velocity components are relative to ??????, where the magnetic ' ...
-% %                          'decliation was taken from www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml. Data ' ...
-% %                          'in the Level 1 structure has been trimmed for the deployment ' ...
-% %                          'period, as defined in the table deploymentInfo_ROXSI2022.mat. ' ...
-% %                          'Pressure is in dbar, where atmospheric pressure has been removed.'];
+    %
+    time_dataproc = datetime('now', 'TimeZone', 'Local');
+    time_dataproc_char = datestr(time_dataproc, 'yyyy/mm/dd HH:MM:SS');
+    % Add a general README
+    sigL1.README = ['Level 1 Signature1000 data from ROXSI 2022. The data is from Signature ' ...
+                    'with serial number SN and deployed at mooring site mooringID. ' ...
+                    'Data processed by script ' mfilename() '.m on ' time_dataproc_char ' (TimeZone ' time_dataproc.TimeZone '). ' ...
+                    'Horizontal velocity components are relative to local XY coordinate system, and the magnetic ' ...
+                    'decliation was taken from www.ngdc.noaa.gov/geomag/calculators/magcalc.shtml. Data ' ...
+                    'in the Level 1 structure has been trimmed for the deployment ' ...
+                    'period, as defined in the table deploymentInfo_ROXSI2022.mat. ' ...
+                    'Pressure is in dbar, where atmospheric pressure has been removed.'];
+
+
+    %% Move along-beam, backscatter, and correlation to a separate structure
+
+    %
+    list_vars_move = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+                      'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
+                      'cor1', 'cor2', 'cor3', 'cor4', 'cor5'};
+    %
+    for i2 = 1:length(list_vars_move)
+        %
+        sigL1beamdata.SN = sigL1.SN;
+        sigL1beamdata.mooringID = sigL1.mooringID;
+        %
+        sigL1beamdata.dtime = sigL1.dtime;
+        sigL1beamdata.zhab = sigL1.zhab;
+        %
+        if isfield(sigL1, list_vars_move{i2})
+            %
+            sigL1beamdata.(list_vars_move{i2}) = sigL1.(list_vars_move{i2});
+            %
+            sigL1 = rmfield(sigL1, list_vars_move{i2});
+        end
+    end
 
 
     %% Save stuff
+
+    % ----------------------------------------------------
+    % Save QC figures
 
 
     % ----------------------------------------------------
     % Save level 1 data with all variables
 
-    % ----------------------------------------------------
-    % Save level 1 data with scalar variables
+    %
+    disp('----- Saving primary level 1 data structure -----')
+    str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN)];
+    %
+    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
 
     % ----------------------------------------------------
     % Save level 1 data along-beam/backscatter/correlation quantities
 
+    %
+    disp('----- Saving beam data in level 1 data file -----')
+    str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN) '_beamdata'];
+    %
+    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
+
+
     % ----------------------------------------------------
-    % Save QC figures
+    % Save level 1 data with scalar variables only
+    %
+    sigL1.cellcenter = sigL1.cellcenter(1);
+    sigL1.zhab = sigL1.zhab(1);
+    %
+    sigL1.u = sigL1.u(1, :);    sigL1.u = sigL1.u(:);
+    sigL1.v = sigL1.v(1, :);    sigL1.v = sigL1.v(:);
+    sigL1.w = sigL1.w(1, :);    sigL1.w = sigL1.w(:);
+    %
+    sigL1.averaged.u = sigL1.averaged.u(1, :);    sigL1.averaged.u = sigL1.averaged.u(:);
+    sigL1.averaged.v = sigL1.averaged.v(1, :);    sigL1.averaged.v = sigL1.averaged.v(:);
+    sigL1.averaged.w = sigL1.averaged.w(1, :);    sigL1.averaged.w = sigL1.averaged.w(:);
+
+    %
+    disp('----- Saving level 1 data with scalars only -----')
+    str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN) '_scalars'];
+    %
+    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
+
 
 
     %% Stuff before start processing the next Signature in the list

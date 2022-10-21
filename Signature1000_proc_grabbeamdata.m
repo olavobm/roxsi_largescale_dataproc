@@ -25,8 +25,8 @@ dir_data_raw = fullfile(dirparent_data, 'RAW', 'Signature1000');
 
 %% Output directory
 
-% % dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Signature_Level1/';
-dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/';
+dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Signature_Level1/';
+%dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/';
 
 
 %%
@@ -91,19 +91,19 @@ end
 %% List of all variables/field names in the data structure
 % as data is first stored in data structure
 
-% % %
-% % list_rawdata = {'timedatenum', 'pressure', 'temperature', ...
-% %                 'heading', 'pitch', 'roll', ...
-% %                 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
-% %                 'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
-% %                 'cor1', 'cor2', 'cor3', 'cor4', 'cor5', ...
-% %                 'timedatenum5'};
-
-% Remove variables to free up memory
+%
 list_rawdata = {'timedatenum', 'pressure', 'temperature', ...
                 'heading', 'pitch', 'roll', ...
                 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+                'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
+                'cor1', 'cor2', 'cor3', 'cor4', 'cor5', ...
                 'timedatenum5'};
+
+% % % Remove variables to free up memory
+% % list_rawdata = {'timedatenum', 'pressure', 'temperature', ...
+% %                 'heading', 'pitch', 'roll', ...
+% %                 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+% %                 'timedatenum5'};
 
 
 
@@ -165,37 +165,37 @@ for i1 = 1:Nsignatures
     %
     Nfiles = length(list_dir_aux);
 
+% % 
+% %     %% First add basic metadata to structure variable
+% % 
+% %     %
+% %     sigL1.SN = convertCharsToStrings(list_Signature{i1}(5:end));
+% %     sigL1.mooringID = convertCharsToStrings(list_Signature{i1}(1:3));
+% % 
+% %     % Latitude/longitude
+% %     info_mooringtable = ROXSI_mooringlocation(sigL1.mooringID, "ADCP");
+% %     %
+% %     sigL1.latitude = info_mooringtable.latitude;
+% %     sigL1.longitude = info_mooringtable.longitude;
+% % 
+% %     %
+% %     sigL1.site = info_mooringtable.roxsiarray;
+% % 
+% %     %
+% %     [sigL1.X, sigL1.Y] = ROXSI_lltoxy(sigL1.latitude, sigL1.longitude, sigL1.site);
+% % 
+% %     % In clockwise degrees from the true north
+% %     sigL1.magdec = 12.86;
 
-    %% First add basic metadata to structure variable
 
-    %
-    sigL1.SN = convertCharsToStrings(list_Signature{i1}(5:end));
-    sigL1.mooringID = convertCharsToStrings(list_Signature{i1}(1:3));
-
-    % Latitude/longitude
-    info_mooringtable = ROXSI_mooringlocation(sigL1.mooringID, "ADCP");
-    %
-    sigL1.latitude = info_mooringtable.latitude;
-    sigL1.longitude = info_mooringtable.longitude;
-
-    %
-    sigL1.site = info_mooringtable.roxsiarray;
-
-    %
-    [sigL1.X, sigL1.Y] = ROXSI_lltoxy(sigL1.latitude, sigL1.longitude, sigL1.site);
-
-    % In clockwise degrees from the true north
-    sigL1.magdec = 12.86;
-
-
-    %%
-
-    %
-    if any(contains(list_5beams, list_Signature{i1}(1:3)))
-        sigL1.l5beams = true;
-    else
-        sigL1.l5beams = false;
-    end
+% %     %%
+% % 
+% %     %
+% %     if any(contains(list_5beams, list_Signature{i1}(1:3)))
+% %         sigL1.l5beams = true;
+% %     else
+% %         sigL1.l5beams = false;
+% %     end
 
     
     %% Get trimming times for the deployment period of this Signature
@@ -225,7 +225,7 @@ for i1 = 1:Nsignatures
     %%
 
     %
-    sigL1scalars = load(fullfile(dir_output_L1, ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_scalars.mat']));
+    sigL1scalars = load(fullfile(dir_output_L1, ['roxsi_signature_L1_' list_Signature{i1}(1:3) '_' list_Signature{i1}(5:end) '_scalars.mat']));
     field_aux = fieldnames(sigL1scalars);
     sigL1scalars = sigL1scalars.(field_aux{1});
 
@@ -234,6 +234,9 @@ for i1 = 1:Nsignatures
     %
     sigL1metadata.SN = sigL1scalars.SN;
     sigL1metadata.mooringID = sigL1scalars.mooringID;
+
+    %
+    sigL1metadata.l5beams = sigL1scalars.l5beams;
 
     %
     sigL1metadata.transducerHAB = sigL1scalars.transducerHAB;
@@ -261,7 +264,7 @@ for i1 = 1:Nsignatures
     lin_verticalrange = ((sigL1metadata.zhab + (sigL1metadata.binsize)) < ...
                          max(sigL1scalars.bottomdepthfrompres));
 
-    keyboard
+    
     %%
     % ------------------------------------------
     % ------ LOAD CONFIGURATION INFO FROM ------
@@ -338,7 +341,6 @@ for i1 = 1:Nsignatures
         %
         sigL1.dtime = [];    % variable not filled in the loop. I just
                              % want to have its position here
-% %         sigL1.pressure = prealloc_aux;
 
         %
         sigL1.vel1 = prealloc_aux;
@@ -360,7 +362,7 @@ for i1 = 1:Nsignatures
         if sigL1.l5beams
             %
             sigL1.timedatenum5 = prealloc_aux;
-            sigL1.dtime5 = prealloc_aux;
+            sigL1.dtime5 = [];
             %
             sigL1.vel5 = prealloc_aux;
             sigL1.amp5 = prealloc_aux;
@@ -458,7 +460,6 @@ for i1 = 1:Nsignatures
 
     end
 
-    keyboard
 
     %%
     % ------------------------------------------
@@ -497,65 +498,65 @@ for i1 = 1:Nsignatures
     end
 
 
-
-
-    %% Check clock/gaps
-
-    % Check for something that should never happen at this point
-    if any(isnan(sig1000.timedatenum))
-        warning(['###### Signature ' list_Signature{i1} ' has ' ...
-                 'invalid (NaN) timestamps ######'])
-    end
-
-    % Now do a plot for cheching diff(time)
-    disp('--- QC plot checking diff time ---')
-
-    %
-    inds_time = 1:length(sig1000.dtime);
-    inds_difftime = (inds_time(1:end-1) + inds_time(2:end))./2;
-
-    %
-    fig_L1_QC_clock = figure;
-    set(fig_L1_QC_clock, 'units', 'normalized')
-    set(fig_L1_QC_clock, 'Position', [0.2, 0.2, 0.4, 0.6])
-        %
-        haxs_1 = axes(fig_L1_QC_clock, 'Position', [0.2, 0.575, 0.6 , 0.325]);
-        haxs_2 = axes(fig_L1_QC_clock, 'Position', [0.2, 0.150, 0.6, 0.325]);
-        %
-        haxs_all = [haxs_1, haxs_2];
-        hold(haxs_all, 'on')
-        %
-        plot(haxs_1, inds_time, sig1000.dtime, '-k')
-        plot(haxs_2, inds_difftime, seconds(diff(sig1000.dtime)), '-k')
-
-    %
-    set(haxs_all, 'FontSize', 12, 'Box', 'on', ...
-                  'XGrid', 'on', 'YGrid', 'on')
-    %
-    set(haxs_all, 'XLim', [0, (inds_time(end) + 1)])
-    %
-    ylim(haxs_1, sig1000.dtime([1, end]))
-
-    %
-    xlabel(haxs_2, 'Indices', 'Interpreter', 'Latex', 'FontSize', 16)
-    %
-    ylabel(haxs_1, 'Time', 'Interpreter', 'Latex', 'FontSize', 16)
-    ylabel(haxs_2, 'seconds', 'Interpreter', 'Latex', 'FontSize', 16)
-    %
-    title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
-                   char(sig1000.SN) ': time and diff(time) (in seconds)'], ...
-                  'Interpreter', 'Latex', 'FontSize', 16)
-    %
-    linkaxes(haxs_all, 'x')
-
-
-    % Plot horizontal lines for trimming edges
-    xlims_aux = xlim(haxs_all(1));
-    %
-    plot(haxs_all(1), xlims_aux, [time_1, time_1], '--r')
-    plot(haxs_all(1), xlims_aux, [time_2, time_2], '--r')
-    %
-    xlim(haxs_all(1), xlims_aux)
+% % % 
+% % % 
+% % %     %% Check clock/gaps
+% % % 
+% % %     % Check for something that should never happen at this point
+% % %     if any(isnan(sig1000.timedatenum))
+% % %         warning(['###### Signature ' list_Signature{i1} ' has ' ...
+% % %                  'invalid (NaN) timestamps ######'])
+% % %     end
+% % % 
+% % %     % Now do a plot for cheching diff(time)
+% % %     disp('--- QC plot checking diff time ---')
+% % % 
+% % %     %
+% % %     inds_time = 1:length(sig1000.dtime);
+% % %     inds_difftime = (inds_time(1:end-1) + inds_time(2:end))./2;
+% % % 
+% % %     %
+% % %     fig_L1_QC_clock = figure;
+% % %     set(fig_L1_QC_clock, 'units', 'normalized')
+% % %     set(fig_L1_QC_clock, 'Position', [0.2, 0.2, 0.4, 0.6])
+% % %         %
+% % %         haxs_1 = axes(fig_L1_QC_clock, 'Position', [0.2, 0.575, 0.6 , 0.325]);
+% % %         haxs_2 = axes(fig_L1_QC_clock, 'Position', [0.2, 0.150, 0.6, 0.325]);
+% % %         %
+% % %         haxs_all = [haxs_1, haxs_2];
+% % %         hold(haxs_all, 'on')
+% % %         %
+% % %         plot(haxs_1, inds_time, sig1000.dtime, '-k')
+% % %         plot(haxs_2, inds_difftime, seconds(diff(sig1000.dtime)), '-k')
+% % % 
+% % %     %
+% % %     set(haxs_all, 'FontSize', 12, 'Box', 'on', ...
+% % %                   'XGrid', 'on', 'YGrid', 'on')
+% % %     %
+% % %     set(haxs_all, 'XLim', [0, (inds_time(end) + 1)])
+% % %     %
+% % %     ylim(haxs_1, sig1000.dtime([1, end]))
+% % % 
+% % %     %
+% % %     xlabel(haxs_2, 'Indices', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     %
+% % %     ylabel(haxs_1, 'Time', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     ylabel(haxs_2, 'seconds', 'Interpreter', 'Latex', 'FontSize', 16)
+% % %     %
+% % %     title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
+% % %                    char(sig1000.SN) ': time and diff(time) (in seconds)'], ...
+% % %                   'Interpreter', 'Latex', 'FontSize', 16)
+% % %     %
+% % %     linkaxes(haxs_all, 'x')
+% % % 
+% % % 
+% % %     % Plot horizontal lines for trimming edges
+% % %     xlims_aux = xlim(haxs_all(1));
+% % %     %
+% % %     plot(haxs_all(1), xlims_aux, [time_1, time_1], '--r')
+% % %     plot(haxs_all(1), xlims_aux, [time_2, time_2], '--r')
+% % %     %
+% % %     xlim(haxs_all(1), xlims_aux)
     
     
     %% Interpolate 5th beam to the same timestamps as the other 4
@@ -571,8 +572,8 @@ for i1 = 1:Nsignatures
 
         %
         vel5_aux = NaN(size(sigL1.vel1));
-% %         amp5_aux = vel5_aux;
-% %         cor5_aux = vel5_aux;
+        amp5_aux = vel5_aux;
+        cor5_aux = vel5_aux;
 
         % Loop over bins of the 5th beam
         for i2 = 1:size(sigL1.vel5, 2)
@@ -581,27 +582,27 @@ for i1 = 1:Nsignatures
             vel5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
                                       sigL1.vel5(:, i2), ...
                                       sigL1.timedatenum);
-% %             %
-% %             amp5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
-% %                                       sigL1.amp5(:, i2), ...
-% %                                       sigL1.timedatenum);
-% %             %
-% %             cor5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
-% %                                       single(sigL1.cor5(:, i2)), ...
-% %                                       sigL1.timedatenum);
+            %
+            amp5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+                                      sigL1.amp5(:, i2), ...
+                                      sigL1.timedatenum);
+            %
+            cor5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+                                      single(sigL1.cor5(:, i2)), ...
+                                      sigL1.timedatenum);
         end
 
         % Replace
         sigL1.vel5 = vel5_aux;
-% %         sigL1.amp5 = amp5_aux;
-% %         sigL1.cor5 = cor5_aux;
+        sigL1.amp5 = amp5_aux;
+        sigL1.cor5 = cor5_aux;
         
         %
         disp('Done with 5th beam interpolation.') 
         toc
     end
 
-
+keyboard
     %% Interpolate variables to gridded time (after
     % making sure there are no major issues above)
     %

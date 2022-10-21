@@ -17,7 +17,7 @@
 clear
 close all
 
-
+return
 %%
 % --------------------------------------
 % -------- SET DIRECTORY PATHS ---------
@@ -520,7 +520,10 @@ for i1 = 1:Nsignatures
             end
             
             %
-            disp(['--- Done loading data from ' num2str(i3) ' out of ' num2str(Nfilesperseg) ' file(s) ---'])
+            disp(['--- Done loading data from ' num2str(i3) ' out of ' num2str(Nfilesperseg) ' files ---'])
+
+            % Clear to free up some memory
+            clear dataread_aux
         end
 
 
@@ -589,7 +592,63 @@ for i1 = 1:Nsignatures
 
     %% Check clock/gaps
 
+    % Check for something that should never happen at this point
+    if any(isnan(sig1000.timedatenum))
+        warning(['###### Signature ' list_Signature{i1} ' has ' ...
+                 'invalid (NaN) timestamps ######'])
+    end
 
+    % Now do a plot for cheching diff(time)
+    disp('--- QC plot checking diff time ---')
+
+    %
+    inds_time = 1:length(sig1000.dtime);
+    inds_difftime = (inds_time(1:end-1) + inds_time(2:end))./2;
+
+    %
+    fig_L1_QC_clock = figure;
+    set(fig_L1_QC_clock, 'units', 'normalized')
+    set(fig_L1_QC_clock, 'Position', [0.2, 0.2, 0.4, 0.6])
+        %
+        haxs_1 = axes(fig_L1_QC_clock, 'Position', [0.2, 0.575, 0.6 , 0.325]);
+        haxs_2 = axes(fig_L1_QC_clock, 'Position', [0.2, 0.150, 0.6, 0.325]);
+        %
+        haxs_all = [haxs_1, haxs_2];
+        hold(haxs_all, 'on')
+        %
+        plot(haxs_1, inds_time, sig1000.dtime, '-k')
+        plot(haxs_2, inds_difftime, seconds(diff(sig1000.dtime)), '-k')
+
+    %
+    set(haxs_all, 'FontSize', 12, 'Box', 'on', ...
+                  'XGrid', 'on', 'YGrid', 'on')
+    %
+    set(haxs_all, 'XLim', [0, (inds_time(end) + 1)])
+    %
+    ylim(haxs_1, sig1000.dtime([1, end]))
+
+    %
+    xlabel(haxs_2, 'Indices', 'Interpreter', 'Latex', 'FontSize', 16)
+    %
+    ylabel(haxs_1, 'Time', 'Interpreter', 'Latex', 'FontSize', 16)
+    ylabel(haxs_2, 'seconds', 'Interpreter', 'Latex', 'FontSize', 16)
+    %
+    title(haxs_1, ['ROXSI 2022: Signature  ' char(sig1000.mooringID) ' - SN ' ...
+                   char(sig1000.SN) ': time and diff(time) (in seconds)'], ...
+                  'Interpreter', 'Latex', 'FontSize', 16)
+    %
+    linkaxes(haxs_all, 'x')
+
+
+    % Plot horizontal lines for trimming edges
+    xlims_aux = xlim(haxs_all(1));
+    %
+    plot(haxs_all(1), xlims_aux, [time_1, time_1], '--r')
+    plot(haxs_all(1), xlims_aux, [time_2, time_2], '--r')
+    %
+    xlim(haxs_all(1), xlims_aux)
+    
+    
     %% Interpolate 5th beam to the same timestamps as the other 4
 
     %
@@ -860,6 +919,8 @@ for i1 = 1:Nsignatures
         for i2 = 1:size(indbreak_rot, 2)
 
             %
+            disp(['--- Transformation in chunk ' num2str(i2) ' out of ' num2str(size(indbreak_rot, 2)) ' ---'])
+            %
             ind_sub_aux = indbreak_rot(1, i2) : indbreak_rot(2, i2);
 
             % Use w from the 5th beam (it does incorporate ux
@@ -889,6 +950,8 @@ for i1 = 1:Nsignatures
         %
         for i2 = 1:size(indbreak_rot, 2)
 
+            %
+            disp(['--- Transformation in chunk ' num2str(i2) ' out of ' num2str(size(indbreak_rot, 2)) ' ---'])
             %
             ind_sub_aux = indbreak_rot(1, i2) : indbreak_rot(2, i2);
             %

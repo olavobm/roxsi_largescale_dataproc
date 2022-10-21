@@ -1122,7 +1122,7 @@ for i1 = 1:Nsignatures
     disp('----- Saving level 1 data with scalars only -----')
     str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_scalars'];
     %
-    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
+    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
 
 
 

@@ -757,16 +757,16 @@ for i1 = 1:Nsignatures
     %
     list_all_fields = fieldnames(sigL1);
     %
-    for i2 = 1:length(sigL1)
+    for i2 = 1:length(list_all_fields)
         %
         if (size(sigL1.(list_all_fields{i2}), 1)==Nptstime) && ...
            (size(sigL1.(list_all_fields{i2}), 2)==Nptsbins)
             %
             sigL1.(list_all_fields{i2}) = sigL1.(list_all_fields{i2})(:, lin_verticalrange); 
-        end
 
-        % Transpose matrices so that row dimension is along bins
-        sigL1.(list_all_fields{i2}) = sigL1.(list_all_fields{i2}).';
+            % Transpose matrices so that row dimension is along bins
+            sigL1.(list_all_fields{i2}) = sigL1.(list_all_fields{i2}).';
+        end
     end
 
     % And trim zhab after trimming the matrices above
@@ -787,11 +787,11 @@ for i1 = 1:Nsignatures
     ind_abovesurface = 1:1:(size(sigL1.vel1, 1) * size(sigL1.vel1, 2));
     ind_abovesurface = reshape(ind_abovesurface, size(sigL1.vel1, 1), size(sigL1.vel2, 2));
     %
-    for i2 = 1:length(sigL1.timedatenum)
+    for i2 = 1:length(sigL1.dtime)
         %
         ind_withinocean_aux = find((zhab_halfstep < sigL1.bottomdepthfrompres(i2)), 1, 'last');
         %
-        ind_abovesurface(i2, 1:ind_withinocean_aux) = NaN;
+        ind_abovesurface(1:ind_withinocean_aux, i2) = NaN;
     end
     %
     ind_abovesurface = ind_abovesurface(:);
@@ -828,7 +828,7 @@ for i1 = 1:Nsignatures
     %
     npts_rot_TH = 1000000;
     %
-    if Npts_alldata<=npts_rot_TH
+    if Nptstime<=npts_rot_TH
         indbreak_rot = [1; Nptstime];
     else
         %

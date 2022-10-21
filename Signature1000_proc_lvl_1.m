@@ -145,6 +145,9 @@ BinmapType = 'none';
 % BinmapType = 'linear';
 % BinmapType = 'nearest';
 
+%
+luse3beams = false;
+
 
 %%
 % -------------------------------------
@@ -885,7 +888,7 @@ for i1 = 1:Nsignatures
                                      -sigL1.vel1(:, ind_sub_aux), -sigL1.vel3(:, ind_sub_aux), ...
                                      -sigL1.vel4(:, ind_sub_aux), -sigL1.vel2(:, ind_sub_aux), ...
                                      -sigL1.vel5(:, ind_sub_aux), ...
-                                     sigL1.cellcenter, lGimbaled, BinmapType);
+                                     sigL1.cellcenter, lGimbaled, BinmapType, luse3beams);
     
             % PS: The column dimension should be the time dimension
             % for all variables (that's why vectores (e.g. pitch)
@@ -911,7 +914,7 @@ for i1 = 1:Nsignatures
                                     25, ...
                                     -sigL1.vel1(:, ind_sub_aux), -sigL1.vel3(:, ind_sub_aux), ...
                                     -sigL1.vel4(:, ind_sub_aux), -sigL1.vel2(:, ind_sub_aux), ...
-                                    sigL1.cellcenter, lGimbaled, BinmapType);
+                                    sigL1.cellcenter, lGimbaled, BinmapType, luse3beams);
         end
     end
 

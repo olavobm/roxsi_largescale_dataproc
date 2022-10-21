@@ -217,7 +217,7 @@ totalRunTime = tic;
 
 %
 disp(' '), disp(' ')
-disp('------------------------------ Processing scalar variables from Signature1000s ------------------------------')
+disp('------------------------------ Processing Signature1000 data from RAW to L1 ------------------------------')
 disp('List of Signature1000s being processed:')
 %
 for i = 1:Nsignatures
@@ -757,7 +757,7 @@ for i1 = 1:Nsignatures
     %
     list_all_fields = fieldnames(sigL1);
     %
-    for i2 = 1:legth(sigL1)
+    for i2 = 1:length(sigL1)
         %
         if (size(sigL1.(list_all_fields{i2}), 1)==Nptstime) && ...
            (size(sigL1.(list_all_fields{i2}), 2)==Nptsbins)
@@ -776,7 +776,8 @@ for i1 = 1:Nsignatures
     %% NaN data at/above the instantaneous ocean surface
 
     %
-    disp('--- Removing data close/above the ocean surface ---')
+    tic
+    disp('--- Removing data above the instantaneous ocean surface ---')
 
     %
 %     zhab_halfstep = sigL1.zhab + (sigL1.binsize/2);   % same question as above
@@ -784,13 +785,13 @@ for i1 = 1:Nsignatures
 % %     Nbins = length(sigL1.zhab);   % not used
     %
     ind_abovesurface = 1:1:(size(sigL1.vel1, 1) * size(sigL1.vel1, 2));
-    ind_abovesurface = reshape(ind_abovesurface, size(sigL1.vel, 1), size(sigL1.vel2, 2));
+    ind_abovesurface = reshape(ind_abovesurface, size(sigL1.vel1, 1), size(sigL1.vel2, 2));
     %
     for i2 = 1:length(sigL1.timedatenum)
         %
-        ind_above_aux = find((zhab_halfstep < sigL1.bottomdepthfrompres(i2)), 1, 'last');
+        ind_withinocean_aux = find((zhab_halfstep < sigL1.bottomdepthfrompres(i2)), 1, 'last');
         %
-        ind_abovesurface(1:ind_above_aux, i2) = NaN;
+        ind_abovesurface(i2, 1:ind_withinocean_aux) = NaN;
     end
     %
     ind_abovesurface = ind_abovesurface(:);
@@ -804,6 +805,10 @@ for i1 = 1:Nsignatures
     if sigL1.l5beams
         sigL1.vel5(ind_abovesurface) = NaN;
     end
+
+    %
+    disp('--- Done with trimming data ---')
+    toc
 
 
     %% Compute magnetic-ENU 3 components of velocity
@@ -933,7 +938,7 @@ for i1 = 1:Nsignatures
     disp('--- Done with rotation to local XY. It took: ---')
     toc
 
-    
+
     %% QC velocity based on backscatter and/or correlation (????)
 
     %%
@@ -942,7 +947,7 @@ for i1 = 1:Nsignatures
     % ------------------------------------------
 
     %%
-
+keyboard
 
     %%
     % -----------------------------------------------------------

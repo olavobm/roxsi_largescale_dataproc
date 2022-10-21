@@ -264,7 +264,11 @@ for i1 = 1:Nsignatures
     lin_verticalrange = ((sigL1metadata.zhab + (sigL1metadata.binsize)) < ...
                          max(sigL1scalars.bottomdepthfrompres));
 
-    
+
+    %%
+
+    clear sigL1scalars
+
     %%
     % ------------------------------------------
     % ------ LOAD CONFIGURATION INFO FROM ------
@@ -359,7 +363,7 @@ for i1 = 1:Nsignatures
         sigL1.cor4 = prealloc_aux;
 
         %
-        if sigL1.l5beams
+        if sigL1metadata.l5beams
             %
             sigL1.timedatenum5 = prealloc_aux;
             sigL1.dtime5 = [];
@@ -395,8 +399,8 @@ for i1 = 1:Nsignatures
             % -------------------------------
             % Then get velocity data
             
-            % Dummy/for code development
-            lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
+% % %             % Dummy/for code development
+% % %             lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
 
             % Get data from the 4 beams
             sigL1.vel1{i3} = dataread_aux.Data.Burst_VelBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
@@ -415,7 +419,7 @@ for i1 = 1:Nsignatures
             sigL1.cor4{i3} = dataread_aux.Data.Burst_CorBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
 
             %
-            if sigL1.l5beams
+            if sigL1metadata.l5beams
                 %
                 lin_proclims_beam5time_aux = (dataread_aux.Data.IBurst_Time >= datenum(time_lims_proc(i2, 1))) & ...
                                              (dataread_aux.Data.IBurst_Time <  datenum(time_lims_proc(i2, 2)));
@@ -477,7 +481,7 @@ for i1 = 1:Nsignatures
                                             sigL1.timedatenum);
 
     % Now correct for clock drift
-    if sigL1.l5beams
+    if sigL1metadata.l5beams
         time5_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
                                                  list_Signature{i1}(5:end), ...
                                                  sigL1.timedatenum5);
@@ -491,12 +495,14 @@ for i1 = 1:Nsignatures
                                      'TimeZone', 'America/Los_Angeles');
 
     %
-    if sigL1.l5beams
+    if sigL1metadata.l5beams
         %
         sigL1.dtime5 = datetime(time5_aux, 'ConvertFrom', 'datenum', ...
                                            'TimeZone', 'America/Los_Angeles');
     end
 
+    %
+    clear time_aux time5_aux
 
 % % % 
 % % % 
@@ -562,7 +568,7 @@ for i1 = 1:Nsignatures
     %% Interpolate 5th beam to the same timestamps as the other 4
 
     %
-    if sigL1.l5beams
+    if sigL1metadata.l5beams
 
         tic
         %
@@ -571,7 +577,7 @@ for i1 = 1:Nsignatures
               'and correlation) to time stamps of other 4 beams ---'])
 
         %
-        vel5_aux = NaN(size(sigL1.vel1));
+        vel5_aux = single(NaN(size(sigL1.vel1)));
         amp5_aux = vel5_aux;
         cor5_aux = vel5_aux;
 

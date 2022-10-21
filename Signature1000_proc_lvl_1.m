@@ -65,7 +65,7 @@ load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROX
 % %                   'X05_100231'};
 % % 
 % % % Just a test
-list_Signature = {'A01_103043', B13_103046};
+list_Signature = {'A01_103043', 'B13_103046'};
 % % list_Signature = {'B10_103045'};
 % % list_Signature = {'B13_103046'};
 
@@ -316,6 +316,15 @@ for i1 = 1:Nsignatures
     end
 
 
+    %
+    if lpredeflimits
+        disp('--- Time bounds for processing data are defined on top of the script. Processing data within these bounds ---')
+    else
+        disp('--- Predefined time bounds for processing data not found. Processing data for full deployment ---')
+    end
+
+
+
     %%
     % ------------------------------------------
     % ------ LOAD CONFIGURATION INFO FROM ------
@@ -504,7 +513,7 @@ for i1 = 1:Nsignatures
             end
             
             %
-            disp(['--- Done loading data from file ' num2str(i3) ' out of ' num2str(Nfilesperseg) ' ---'])
+            disp(['--- Done loading data from ' num2str(i3) ' out of ' num2str(Nfilesperseg) ' file(s) ---'])
         end
 
 
@@ -1081,7 +1090,7 @@ for i1 = 1:Nsignatures
 
     %
     disp('----- Saving primary level 1 data structure -----')
-    str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN)];
+    str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN)];
     %
     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
 
@@ -1090,7 +1099,7 @@ for i1 = 1:Nsignatures
 
     %
     disp('----- Saving beam data in level 1 data file -----')
-    str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN) '_beamdata'];
+    str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_beamdata'];
     %
     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
 
@@ -1111,7 +1120,7 @@ for i1 = 1:Nsignatures
 
     %
     disp('----- Saving level 1 data with scalars only -----')
-    str_filename = ['roxsi_signature_L1_' char(sig1000.mooringID) '_' char(sig1000.SN) '_scalars'];
+    str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_scalars'];
     %
     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
 

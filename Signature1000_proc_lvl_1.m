@@ -32,7 +32,8 @@ dir_data_raw = fullfile(dirparent_data, 'RAW', 'Signature1000');
 
 %% Output directory
 
-dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Signature_Level1/';
+% % dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Signature_Level1/';
+dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/';
 
 
 %%
@@ -65,7 +66,7 @@ load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROX
 % %                   'X05_100231'};
 % % 
 % % % Just a test
-list_Signature = {'A01_103043', 'B13_103046'};
+list_Signature = {'A01_103043'};
 % % list_Signature = {'B10_103045'};
 % % list_Signature = {'B13_103046'};
 
@@ -79,13 +80,13 @@ Nsignatures = length(list_Signature);
 % will be processed between deployment and 
 % recovery
 
-%
-time_lims_proc = [datetime(2022, 07, 01, 00, 00, 00), ...
-                  datetime(2022, 07, 03, 00, 00, 00)];
-time_lims_proc.TimeZone = 'America/Los_Angeles';
-
-%
-Ndatasegments = size(time_lims_proc, 1);
+% % %
+% % time_lims_proc = [datetime(2022, 07, 01, 00, 00, 00), ...
+% %                   datetime(2022, 07, 03, 00, 00, 00)];
+% % time_lims_proc.TimeZone = 'America/Los_Angeles';
+% % 
+% % %
+% % Ndatasegments = size(time_lims_proc, 1);
 
 %
 if exist('time_lims_proc', 'var')
@@ -123,12 +124,18 @@ end
 %% List of all variables/field names in the data structure
 % as data is first stored in data structure
 
-%
+% % %
+% % list_rawdata = {'timedatenum', 'pressure', 'temperature', ...
+% %                 'heading', 'pitch', 'roll', ...
+% %                 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+% %                 'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
+% %                 'cor1', 'cor2', 'cor3', 'cor4', 'cor5', ...
+% %                 'timedatenum5'};
+
+% Remove variables to free up memory
 list_rawdata = {'timedatenum', 'pressure', 'temperature', ...
                 'heading', 'pitch', 'roll', ...
                 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
-                'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
-                'cor1', 'cor2', 'cor3', 'cor4', 'cor5', ...
                 'timedatenum5'};
 
 
@@ -426,16 +433,16 @@ for i1 = 1:Nsignatures
         sigL1.vel2 = prealloc_aux;
         sigL1.vel3 = prealloc_aux;
         sigL1.vel4 = prealloc_aux;
-        %
-        sigL1.amp1 = prealloc_aux;
-        sigL1.amp2 = prealloc_aux;
-        sigL1.amp3 = prealloc_aux;
-        sigL1.amp4 = prealloc_aux;
-        %
-        sigL1.cor1 = prealloc_aux;
-        sigL1.cor2 = prealloc_aux;
-        sigL1.cor3 = prealloc_aux;
-        sigL1.cor4 = prealloc_aux;
+% %         %
+% %         sigL1.amp1 = prealloc_aux;
+% %         sigL1.amp2 = prealloc_aux;
+% %         sigL1.amp3 = prealloc_aux;
+% %         sigL1.amp4 = prealloc_aux;
+% %         %
+% %         sigL1.cor1 = prealloc_aux;
+% %         sigL1.cor2 = prealloc_aux;
+% %         sigL1.cor3 = prealloc_aux;
+% %         sigL1.cor4 = prealloc_aux;
 
         %
         if sigL1.l5beams
@@ -444,8 +451,8 @@ for i1 = 1:Nsignatures
             sigL1.dtime5 = prealloc_aux;
             %
             sigL1.vel5 = prealloc_aux;
-            sigL1.amp5 = prealloc_aux;
-            sigL1.cor5 = prealloc_aux;
+% %             sigL1.amp5 = prealloc_aux;
+% %             sigL1.cor5 = prealloc_aux;
         end
         
 
@@ -488,15 +495,15 @@ for i1 = 1:Nsignatures
             sigL1.vel3{i3} = dataread_aux.Data.Burst_VelBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
             sigL1.vel4{i3} = dataread_aux.Data.Burst_VelBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
             %
-            sigL1.amp1{i3} = dataread_aux.Data.Burst_AmpBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.amp2{i3} = dataread_aux.Data.Burst_AmpBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.amp3{i3} = dataread_aux.Data.Burst_AmpBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.amp4{i3} = dataread_aux.Data.Burst_AmpBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
-            %
-            sigL1.cor1{i3} = dataread_aux.Data.Burst_CorBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.cor2{i3} = dataread_aux.Data.Burst_CorBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.cor3{i3} = dataread_aux.Data.Burst_CorBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.cor4{i3} = dataread_aux.Data.Burst_CorBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             sigL1.amp1{i3} = dataread_aux.Data.Burst_AmpBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             sigL1.amp2{i3} = dataread_aux.Data.Burst_AmpBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             sigL1.amp3{i3} = dataread_aux.Data.Burst_AmpBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             sigL1.amp4{i3} = dataread_aux.Data.Burst_AmpBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             %
+% %             sigL1.cor1{i3} = dataread_aux.Data.Burst_CorBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             sigL1.cor2{i3} = dataread_aux.Data.Burst_CorBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             sigL1.cor3{i3} = dataread_aux.Data.Burst_CorBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             sigL1.cor4{i3} = dataread_aux.Data.Burst_CorBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
 
             %
             if sigL1.l5beams
@@ -505,8 +512,8 @@ for i1 = 1:Nsignatures
                                              (dataread_aux.Data.IBurst_Time <  datenum(time_lims_proc(i2, 2)));
                 %
                 sigL1.vel5{i3} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
-                sigL1.amp5{i3} = dataread_aux.Data.IBurst_AmpBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
-                sigL1.cor5{i3} = dataread_aux.Data.IBurst_CorBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
+% %                 sigL1.amp5{i3} = dataread_aux.Data.IBurst_AmpBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
+% %                 sigL1.cor5{i3} = dataread_aux.Data.IBurst_CorBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
     
                 %
                 sigL1.timedatenum5{i3} = dataread_aux.Data.IBurst_Time(lin_proclims_beam5time_aux);
@@ -534,34 +541,6 @@ for i1 = 1:Nsignatures
                 end
             end
         end
-
-% % % % %   TO BE DELETED!!!
-% %         % ------------------------------------------------
-% %         % Concatenate cell array into a long column vector
-% %         
-% %         sigL1.pressure = cat(1, sigL1.pressure{:});
-% %         sigL1.temperature = cat(1, sigL1.temperature{:});
-% %         %
-% %         sigL1.heading = cat(1, sigL1.heading{:});
-% %         sigL1.pitch = cat(1, sigL1.pitch{:});
-% %         sigL1.roll = cat(1, sigL1.roll{:});
-% %         % ------------------------------------------------
-% % 
-% %         % Concatenate cell arrays into matrices (loop over variables)
-% %         for i3 = 1:length(list_beam_vars)
-% %             sigL1.(list_beam_vars{i3}) = cat(1, sigL1.(list_beam_vars{i3}){:});
-% %         end
-% %         sigL1.timednum_fourbeams = cat(1, sigL1.timednum_fourbeams{:});
-% % 
-% %         % Concatenate 5th beam data
-% %         if any(contains(list_5beams, list_Signature{i1}(1:3)))
-% %             %
-% %             sigL1.timednum_beam5 = cat(1, sigL1.timednum_beam5{:});
-% %             %
-% %             sigL1.vel5_raw = cat(1, sigL1.vel5_raw{:});
-% %             sigL1.amp5_raw = cat(1, sigL1.amp5_raw{:});
-% %             sigL1.corr5_raw = cat(1, sigL1.corr5_raw{:});
-% %         end
 
         %
         disp('--- Done with loading all of the data for the current time segment in: ---')
@@ -624,8 +603,8 @@ for i1 = 1:Nsignatures
 
         %
         vel5_aux = NaN(size(sigL1.vel1));
-        amp5_aux = vel5_aux;
-        cor5_aux = vel5_aux;
+% %         amp5_aux = vel5_aux;
+% %         cor5_aux = vel5_aux;
 
         % Loop over bins of the 5th beam
         for i2 = 1:size(sigL1.vel5, 2)
@@ -634,20 +613,20 @@ for i1 = 1:Nsignatures
             vel5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
                                       sigL1.vel5(:, i2), ...
                                       sigL1.timedatenum);
-            %
-            amp5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
-                                      sigL1.amp5(:, i2), ...
-                                      sigL1.timedatenum);
-            %
-            cor5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
-                                      single(sigL1.cor5(:, i2)), ...
-                                      sigL1.timedatenum);
+% %             %
+% %             amp5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+% %                                       sigL1.amp5(:, i2), ...
+% %                                       sigL1.timedatenum);
+% %             %
+% %             cor5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+% %                                       single(sigL1.cor5(:, i2)), ...
+% %                                       sigL1.timedatenum);
         end
 
         % Replace
         sigL1.vel5 = vel5_aux;
-        sigL1.amp5 = amp5_aux;
-        sigL1.cor5 = cor5_aux;
+% %         sigL1.amp5 = amp5_aux;
+% %         sigL1.cor5 = cor5_aux;
         
         %
         disp('Done with 5th beam interpolation.') 
@@ -1002,10 +981,10 @@ for i1 = 1:Nsignatures
     sigL1.averaged.v = prealloc_aux;
     sigL1.averaged.w = prealloc_aux;
     %
-    sigL1.averaged.amp1 = prealloc_aux;
-    sigL1.averaged.amp2 = prealloc_aux;
-    sigL1.averaged.amp3 = prealloc_aux;
-    sigL1.averaged.amp4 = prealloc_aux;
+% %     sigL1.averaged.amp1 = prealloc_aux;
+% %     sigL1.averaged.amp2 = prealloc_aux;
+% %     sigL1.averaged.amp3 = prealloc_aux;
+% %     sigL1.averaged.amp4 = prealloc_aux;
 
     %
     list_fields_aux = {'u', 'v', 'w', 'amp1', 'amp2', 'amp3', 'amp4'};

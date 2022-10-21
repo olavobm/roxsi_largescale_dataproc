@@ -66,7 +66,8 @@ load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROX
 % % 
 % % % Just a test
 % % list_Signature = {'A01_103043'};
-list_Signature = {'B10_103045'};
+% % list_Signature = {'B10_103045'};
+list_Signature = {'B13_103046'};
 
 %
 Nsignatures = length(list_Signature);
@@ -579,7 +580,6 @@ for i1 = 1:Nsignatures
         time5_aux = ROXSI_rescaletime_instrument(deploymentInfo_ROXSI2022, ...
                                                  list_Signature{i1}(5:end), ...
                                                  sigL1.timedatenum5);
-        keyboard
     end
 
 
@@ -594,8 +594,6 @@ for i1 = 1:Nsignatures
         %
         sigL1.dtime5 = datetime(time5_aux, 'ConvertFrom', 'datenum', ...
                                            'TimeZone', 'America/Los_Angeles');
-        
-        keyboard
     end
 
 
@@ -948,6 +946,54 @@ for i1 = 1:Nsignatures
     % ------------------------------------------
     % ---- COMPUTE LOW-FREQUENCY QUANTITIES ----
     % ------------------------------------------
+
+    %
+    tic
+    disp('--- Computing lower frequency fields ---')
+
+    %
+    sigL1.averaged.dt = 10*60;    % in seconds
+    %
+    npts_avg = sigL1.averaged.dt / (1/sigL1.samplingrateHz);
+
+    %
+    timesmooth_lims_1
+    timesmooth_lims_2
+    %
+    sigL1.averaged.dtime = timesmooth_lims_1 : seconds(sigL1.averaged.dt) : timesmooth_lims_2;
+    sigL1.averaged.dtime.TimeZone = sigL1.dtime.TimeZone;
+
+    % Now average the beam data
+    prealloc_aux = NaN(length(sigL1.zhab), length(sigL1.averaged.dtime));
+    %
+    sigL1.averaged.u = prealloc_aux;
+    sigL1.averaged.v = prealloc_aux;
+    sigL1.averaged.w = prealloc_aux;
+    %
+    sigL1.averaged.amp1 = prealloc_aux;
+    sigL1.averaged.amp2 = prealloc_aux;
+    sigL1.averaged.amp3 = prealloc_aux;
+    sigL1.averaged.amp4 = prealloc_aux;
+
+    %
+    list_fields_aux = {'u', 'v', 'w', 'amp1', 'amp2', 'amp3', 'amp4'};
+
+    %
+    for i2 = 1:length(list_fields_aux)
+        for i3 = 1:length(sigL1.zhab)
+            %
+            sigL1.averaged.(list_fields_aux{i2})(i3, :) = ...
+                             time_smooth_reg(sigL1.dtime, ...
+                                             sigL1.(list_fields_aux{i2})(i3, :), ...
+                                             sigL1.averaged.dt, ...
+                                             sigL1.averaged.dtime([1, end]));
+        end
+    end
+
+    %
+    disp('--- Done with computing lower frequency quantities ---')
+    toc
+
 
     %%
 keyboard

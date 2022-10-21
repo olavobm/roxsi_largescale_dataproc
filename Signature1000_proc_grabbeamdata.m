@@ -214,7 +214,7 @@ for i1 = 1:Nsignatures
     %
     time_lims_proc = [time_1, time_2];
     Ndatasegments = size(time_lims_proc, 1);
-    
+
 
     %%
     % ------------------------------------------
@@ -233,9 +233,25 @@ for i1 = 1:Nsignatures
 
     %
     sigL1metadata.SN = sigL1scalars.SN;
+    sigL1metadata.mooringID = sigL1scalars.mooringID;
+
+    %
+    sigL1metadata.transducerHAB = sigL1scalars.transducerHAB;
     sigL1metadata.binsize = sigL1scalars.binsize;
-    sigL1metadata.zhab = sigL1scalars.zhab;
+
     
+    % Height of the first cell center relative to transducer
+    % (based on the Principles of Operation manual by Nortek, page 12)
+    cellcenter_first_bin = sigL1scalars.Config.Burst_BlankingDistance + ...
+                           sigL1scalars.Config.Burst_CellSize;
+
+    %
+    sigL1metadata.cellcenter = cellcenter_first_bin + ...
+                               (0:1:(double(sigL1scalars.Config.Burst_NCells) - 1)) .* sigL1metadata.binsize;
+
+    %
+    sigL1metadata.zhab = sigL1metadata.transducerHAB + sigL1metadata.cellcenter;
+
 
     %% Find the last bin that is not outside of the ocean
     % at all times (this must match Signature1000_proc_lvl_1.m)

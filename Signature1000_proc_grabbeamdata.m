@@ -229,6 +229,7 @@ for i1 = 1:Nsignatures
     field_aux = fieldnames(sigL1scalars);
     sigL1scalars = sigL1scalars.(field_aux{1});
 
+
     %% Copy some variables
 
     %
@@ -236,6 +237,10 @@ for i1 = 1:Nsignatures
     sigL1metadata.mooringID = sigL1scalars.mooringID;
 
     %
+    sigL1metadata.Config = sigL1scalars.Config;
+
+    %
+    sigL1metadata.samplingrateHz = sigL1scalars.samplingrateHz;
     sigL1metadata.l5beams = sigL1scalars.l5beams;
 
     %

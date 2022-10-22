@@ -272,6 +272,9 @@ for i1 = 1:Nsignatures
 
     %%
 
+    %
+    pressure_data = sigL1scalars.pressure;
+    %
     clear sigL1scalars
 
     %%
@@ -315,7 +318,6 @@ for i1 = 1:Nsignatures
     % ------------- LOAD THE DATA --------------
     % ------------------------------------------
 
-
     %%
 
     %
@@ -350,6 +352,8 @@ for i1 = 1:Nsignatures
         %
         sigL1.dtime = [];    % variable not filled in the loop. I just
                              % want to have its position here
+
+        
 
         %
         sigL1.vel1 = prealloc_aux;
@@ -687,7 +691,13 @@ for i1 = 1:Nsignatures
     % -------- FINAL ADJUSTMENTS, SAVE DATA AND QC PLOTS --------
     % -----------------------------------------------------------
 
+    %%
 
+    %
+    sigL1.pressure = pressure_data;
+    clear pressure_data
+    
+    
     %% Save stuff
 
     % ----------------------------------------------------

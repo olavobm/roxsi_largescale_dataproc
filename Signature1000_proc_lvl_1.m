@@ -648,7 +648,16 @@ for i1 = 1:Nsignatures
     %
     xlim(haxs_all(1), xlims_aux)
     
+
+    %% Remove variables that won't be used anymore
+
+    sigL1 = rmfield(sigL1, 'timedatenum');
+    if sigL1.l5beams
+        sigL1 = rmfield(sigL1, 'timedatenum5');
+    end
+    clear time_aux time5_aux
     
+
     %% Interpolate 5th beam to the same timestamps as the other 4
 
     %
@@ -669,17 +678,17 @@ for i1 = 1:Nsignatures
         for i2 = 1:size(sigL1.vel5, 2)
             
             %
-            vel5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+            vel5_aux(:, i2) = interp1(sigL1.dtime5, ...
                                       sigL1.vel5(:, i2), ...
-                                      sigL1.timedatenum);
+                                      sigL1.dtime);
 % %             %
-% %             amp5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+% %             amp5_aux(:, i2) = interp1(sigL1.dtime5, ...
 % %                                       sigL1.amp5(:, i2), ...
-% %                                       sigL1.timedatenum);
+% %                                       sigL1.dtime);
 % %             %
-% %             cor5_aux(:, i2) = interp1(sigL1.timedatenum5, ...
+% %             cor5_aux(:, i2) = interp1(sigL1.dtime5, ...
 % %                                       single(sigL1.cor5(:, i2)), ...
-% %                                       sigL1.timedatenum);
+% %                                       sigL1.dtime);
         end
 
         % Replace
@@ -750,9 +759,6 @@ for i1 = 1:Nsignatures
     %
     disp('--- Done with time gridding ---')
     toc
-
-% %     % Remove datenum time
-% %     sigL1 = rmfield(sigL1, 'timedatenum');
 
     % Add sampling rate as a field
     sigL1.samplingrateHz = df_sampling;

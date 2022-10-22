@@ -506,8 +506,6 @@ for i1 = 1:Nsignatures
                                            'TimeZone', 'America/Los_Angeles');
     end
 
-    %
-    clear time_aux time5_aux
 
 % % % 
 % % % 
@@ -569,7 +567,15 @@ for i1 = 1:Nsignatures
 % % %     %
 % % %     xlim(haxs_all(1), xlims_aux)
     
+    %% Remove time variables that won't be used anymore
+
+    sigL1 = rmfield(sigL1, 'timedatenum');
+    if sigL1.l5beams
+        sigL1 = rmfield(sigL1, 'timedatenum5');
+    end
+    clear time_aux time5_aux
     
+
     %% Interpolate 5th beam to the same timestamps as the other 4
 
     %
@@ -636,7 +642,7 @@ for i1 = 1:Nsignatures
     dtime_edge_2 = datetime(sigL1.dtime(end).Year, sigL1.dtime(end).Month, sigL1.dtime(end).Day, ...
                             sigL1.dtime(end).Hour, sigL1.dtime(end).Minute, 00);
     %
-    df_sampling = double(sigL1.Config.Burst_SamplingRate);    % in Hertz
+    df_sampling = sigL1metadata.samplingrateHz;    % in Hertz
 
     %
     dtime_grid = dtime_edge_1 : seconds(1/df_sampling) : dtime_edge_2;

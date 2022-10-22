@@ -577,6 +577,9 @@ for i1 = 1:Nsignatures
     %% Convert time to date time
 
     %
+    disp('--- Converting timestamps from datenum to datetime ---')
+
+    %
     sigL1.dtime = datetime(time_aux, 'ConvertFrom', 'datenum', ...
                                      'TimeZone', 'America/Los_Angeles');
 
@@ -649,7 +652,7 @@ for i1 = 1:Nsignatures
     xlim(haxs_all(1), xlims_aux)
     
 
-    %% Remove variables that won't be used anymore
+    %% Remove time variables that won't be used anymore
 
     sigL1 = rmfield(sigL1, 'timedatenum');
     if sigL1.l5beams

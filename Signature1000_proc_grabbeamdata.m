@@ -570,7 +570,7 @@ for i1 = 1:Nsignatures
     %% Remove time variables that won't be used anymore
 
     sigL1 = rmfield(sigL1, 'timedatenum');
-    if sigL1.l5beams
+    if sigL1metadata.l5beams
         sigL1 = rmfield(sigL1, 'timedatenum5');
     end
     clear time_aux time5_aux
@@ -619,8 +619,8 @@ for i1 = 1:Nsignatures
         toc
     end
 
-% %     %
-% %     sigL1 = rmfield(sigL1);
+    %
+    sigL1 = rmfield(sigL1, 'dtime5');
     %
     clear vel5_aux amp5_aux cor5_aux
 
@@ -670,8 +670,6 @@ for i1 = 1:Nsignatures
                                     dtime_grid);
             % PS: matrices are interpolated column-wise
 
-% %             % Turn to column vector
-% %             sigL1.(list_variables_aux{i2}) = sigL1.(list_variables_aux{i2})(:);
 
         end
     end
@@ -683,15 +681,41 @@ for i1 = 1:Nsignatures
     disp('--- Done with time gridding ---')
     toc
 
-% %     % Remove datenum time
-% %     sigL1 = rmfield(sigL1, 'timedatenum');
-
-    % Add sampling rate as a field
-    sigL1.samplingrateHz = df_sampling;
-
 
     %%
+    % -----------------------------------------------------------
+    % -------- FINAL ADJUSTMENTS, SAVE DATA AND QC PLOTS --------
+    % -----------------------------------------------------------
+
+
+    %% Save stuff
+
+    % ----------------------------------------------------
+    % Save QC figures
+
+    % ----------------------------------------------------
+    % Save level 1 data along-beam/backscatter/correlation quantities
+
+    %
+    disp('----- Saving beam data in level 1 data file -----')
+    str_filename = ['roxsi_signature_L1_' char(sigL1metadata.mooringID) '_' char(sigL1metadata.SN) '_beamdata_bla'];
+    %
+    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1metadata', '-v7.3')
+    save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', '-append')
+
+
+
+    %% Stuff before start processing the next Signature in the list
+
+    % ----------------------------------------------------
+    %
+    disp(['----- DONE with saving beam data in L1 directory Signature1000 data processing: ' list_Signature{i1} ' -----'])
+    toc(totalRunTime)
     keyboard
+    %
+    close all
+    clear sigL1
+
 end
 
 

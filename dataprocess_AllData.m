@@ -37,7 +37,8 @@ run('bathymetry_around_Spotters.m'), close all
 run('Spotters_proc_lvl_2.m'), close all
 
 
-
-
-
 %% Signature1000
+
+%
+run('Signature1000_proc_lvl_1.m'), close all
+run('Signature1000_proc_grabbeamdata.m'), close all

@@ -673,7 +673,7 @@ for i1 = 1:Nsignatures
               'and correlation) to time stamps of other 4 beams ---'])
 
         %
-        vel5_aux = NaN(size(sigL1.vel1));
+        vel5_aux = single(NaN(size(sigL1.vel1)));
 % %         amp5_aux = vel5_aux;
 % %         cor5_aux = vel5_aux;
 
@@ -704,6 +704,9 @@ for i1 = 1:Nsignatures
         toc
     end
 
+    %
+    sigL1 = rmfield(sigL1, 'dtime5');
+    
 
     %% Interpolate variables to gridded time (after
     % making sure there are no major issues above)

@@ -17,7 +17,6 @@
 clear
 close all
 
-return
 %%
 % --------------------------------------
 % -------- SET DIRECTORY PATHS ---------
@@ -32,8 +31,8 @@ dir_data_raw = fullfile(dirparent_data, 'RAW', 'Signature1000');
 
 %% Output directory
 
-% % dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Signature_Level1/';
-dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/';
+dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Signature_Level1/';
+% dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/';
 
 
 %%
@@ -66,9 +65,18 @@ load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROX
 % %                   'X05_100231'};
 % % 
 % % % Just a test
-list_Signature = {'A01_103043'};
+% % list_Signature = {'A01_103043'};
 % % list_Signature = {'B10_103045'};
 % % list_Signature = {'B13_103046'};
+
+% All Signatures
+list_Signature = {'A01_103043', ...
+                  'B10_103045', ...
+                  'B13_103046', ...
+                  'B15_103056', ...
+                  'B17_101923', ...
+                  'C01_102128', ...
+                  'X11_101941'};
 
 %
 Nsignatures = length(list_Signature);
@@ -706,7 +714,7 @@ for i1 = 1:Nsignatures
 
     %
     sigL1 = rmfield(sigL1, 'dtime5');
-    
+
 
     %% Interpolate variables to gridded time (after
     % making sure there are no major issues above)
@@ -1111,26 +1119,26 @@ for i1 = 1:Nsignatures
 
     %% Move along-beam, backscatter, and correlation to a separate structure
 
-    %
-    list_vars_move = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
-                      'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
-                      'cor1', 'cor2', 'cor3', 'cor4', 'cor5'};
-    %
-    for i2 = 1:length(list_vars_move)
-        %
-        sigL1beamdata.SN = sigL1.SN;
-        sigL1beamdata.mooringID = sigL1.mooringID;
-        %
-        sigL1beamdata.dtime = sigL1.dtime;
-        sigL1beamdata.zhab = sigL1.zhab;
-        %
-        if isfield(sigL1, list_vars_move{i2})
-            %
-            sigL1beamdata.(list_vars_move{i2}) = sigL1.(list_vars_move{i2});
-            %
-            sigL1 = rmfield(sigL1, list_vars_move{i2});
-        end
-    end
+% %     %
+% %     list_vars_move = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+% %                       'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
+% %                       'cor1', 'cor2', 'cor3', 'cor4', 'cor5'};
+% %     %
+% %     for i2 = 1:length(list_vars_move)
+% %         %
+% %         sigL1beamdata.SN = sigL1.SN;
+% %         sigL1beamdata.mooringID = sigL1.mooringID;
+% %         %
+% %         sigL1beamdata.dtime = sigL1.dtime;
+% %         sigL1beamdata.zhab = sigL1.zhab;
+% %         %
+% %         if isfield(sigL1, list_vars_move{i2})
+% %             %
+% %             sigL1beamdata.(list_vars_move{i2}) = sigL1.(list_vars_move{i2});
+% %             %
+% %             sigL1 = rmfield(sigL1, list_vars_move{i2});
+% %         end
+% %     end
 
 
     %% Save stuff
@@ -1151,11 +1159,11 @@ for i1 = 1:Nsignatures
     % ----------------------------------------------------
     % Save level 1 data along-beam/backscatter/correlation quantities
 
-    %
-    disp('----- Saving beam data in level 1 data file -----')
-    str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_beamdata'];
-    %
-    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
+% %     %
+% %     disp('----- Saving beam data in level 1 data file -----')
+% %     str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_beamdata'];
+% %     %
+% %     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
 
 
     % ----------------------------------------------------

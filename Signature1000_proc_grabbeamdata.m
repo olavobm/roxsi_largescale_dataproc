@@ -55,9 +55,18 @@ load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROX
 % %                   'X05_100231'};
 % % 
 % % % Just a test
-list_Signature = {'A01_103043'};
+% % list_Signature = {'A01_103043'};
 % % list_Signature = {'B10_103045'};
 % % list_Signature = {'B13_103046'};
+
+%
+list_Signature = {'A01_103043', ...
+                  'B10_103045', ...
+                  'B13_103046', ...
+                  'B15_103056', ...
+                  'B17_101923', ...
+                  'C01_102128', ...
+                  'X11_101941'};
 
 %
 Nsignatures = length(list_Signature);
@@ -696,8 +705,8 @@ for i1 = 1:Nsignatures
     %
     sigL1.pressure = pressure_data;
     clear pressure_data
-    
-    
+
+
     %% Save stuff
 
     % ----------------------------------------------------

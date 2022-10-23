@@ -361,9 +361,6 @@ for i1 = 1:Nsignatures
         %
         sigL1.dtime = [];    % variable not filled in the loop. I just
                              % want to have its position here
-
-        
-
         %
         sigL1.vel1 = prealloc_aux;
         sigL1.vel2 = prealloc_aux;
@@ -717,10 +714,27 @@ for i1 = 1:Nsignatures
 
     %
     disp('----- Saving beam data in level 1 data file -----')
-    str_filename = ['roxsi_signature_L1_' char(sigL1metadata.mooringID) '_' char(sigL1metadata.SN) '_beamdata_bla'];
     %
-    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1metadata', '-v7.3')
-    save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', '-append')
+    str_name_1 = ['roxsi_signature_L1_' char(sigL1metadata.mooringID) '_' char(sigL1metadata.SN) '_alongbeamvel'];
+    str_name_2 = ['roxsi_signature_L1_' char(sigL1metadata.mooringID) '_' char(sigL1metadata.SN) '_backscatter'];
+    str_name_3 = ['roxsi_signature_L1_' char(sigL1metadata.mooringID) '_' char(sigL1metadata.SN) '_correlation'];
+    %
+    save(fullfile(dir_output_L1, [str_name_1 '.mat']), 'sigL1metadata', '-v7.3')
+    save(fullfile(dir_output_L1, [str_name_2 '.mat']), 'sigL1metadata', '-v7.3')
+    save(fullfile(dir_output_L1, [str_name_3 '.mat']), 'sigL1metadata', '-v7.3')
+
+    %
+    if sigL1metadata.l5beams
+        save(fullfile(dir_output_L1, [str_name_1 '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', '-append')
+        save(fullfile(dir_output_L1, [str_name_2 '.mat']), '-struct', 'sigL1', 'amp1', 'amp2', 'amp3', 'amp4', 'amp5', '-append')
+        save(fullfile(dir_output_L1, [str_name_3 '.mat']), '-struct', 'sigL1', 'cor1', 'cor3', 'cor3', 'cor4', 'cor5', '-append')
+    else
+        save(fullfile(dir_output_L1, [str_name_1 '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', '-append')
+        save(fullfile(dir_output_L1, [str_name_2 '.mat']), '-struct', 'sigL1', 'amp1', 'amp2', 'amp3', 'amp4', '-append')
+        save(fullfile(dir_output_L1, [str_name_3 '.mat']), '-struct', 'sigL1', 'cor1', 'cor3', 'cor3', 'cor4', '-append')
+    end
+    
+    
 
 
 
@@ -730,7 +744,7 @@ for i1 = 1:Nsignatures
     %
     disp(['----- DONE with saving beam data in L1 directory Signature1000 data processing: ' list_Signature{i1} ' -----'])
     toc(totalRunTime)
-    keyboard
+    
     %
     close all
     clear sigL1

@@ -915,7 +915,9 @@ for i1 = 1:Nsignatures
     % otherwise janus5beam2earth will use all memory and crash Matlab).
 
     %
+    Nptstime = length(sigL1.dtime);
     npts_rot_TH = 1000000;
+
     %
     if Nptstime<=npts_rot_TH
         indbreak_rot = [1; Nptstime];
@@ -1078,7 +1080,13 @@ for i1 = 1:Nsignatures
                                        sigL1.averaged.dt, ...
                                        sigL1.averaged.dtime([1, end]));
 
-
+    % Turn all vectors into column vectors
+    sigL1.averaged.dtime = sigL1.averaged.dtime(:);
+    sigL1.averaged.pressure = sigL1.averaged.pressure(:);
+    sigL1.averaged.bottomdepthfrompres = sigL1.averaged.bottomdepthfrompres(:);
+    sigL1.averaged.u = sigL1.averaged.u(:);
+    sigL1.averaged.v = sigL1.averaged.v(:);
+    sigL1.averaged.w = sigL1.averaged.w(:);
 
 % % % 
 % % %     % Find bins below the surface

@@ -225,7 +225,7 @@ atmpresanomaly.atm_anomaly = atmpresanomaly.atm_anomaly(lgood);
 % command window and timer for running the whole script
 
 %
-log_file_name = ['log_Signature_procL1_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
+log_file_name = ['log_Signature_procL1_scalars_at_' datestr(datetime('now', 'TimeZone', 'Local'), 'yyyymmdd_HHMMSS') '.txt'];
 %
 diary(fullfile(dir_output_L1, log_file_name))
 
@@ -237,7 +237,7 @@ totalRunTime = tic;
 
 %
 disp(' '), disp(' ')
-disp('------------------------------ Processing Signature1000 data from RAW to L1 ------------------------------')
+disp('------------------------------ Processing Signature1000 scalar data from RAW to L1 ------------------------------')
 disp('List of Signature1000s being processed:')
 %
 for i = 1:Nsignatures
@@ -442,16 +442,6 @@ for i1 = 1:Nsignatures
         sigL1.vel2 = prealloc_aux;
         sigL1.vel3 = prealloc_aux;
         sigL1.vel4 = prealloc_aux;
-% %         %
-% %         sigL1.amp1 = prealloc_aux;
-% %         sigL1.amp2 = prealloc_aux;
-% %         sigL1.amp3 = prealloc_aux;
-% %         sigL1.amp4 = prealloc_aux;
-% %         %
-% %         sigL1.cor1 = prealloc_aux;
-% %         sigL1.cor2 = prealloc_aux;
-% %         sigL1.cor3 = prealloc_aux;
-% %         sigL1.cor4 = prealloc_aux;
 
         %
         if sigL1.l5beams
@@ -460,8 +450,6 @@ for i1 = 1:Nsignatures
             sigL1.dtime5 = prealloc_aux;
             %
             sigL1.vel5 = prealloc_aux;
-% %             sigL1.amp5 = prealloc_aux;
-% %             sigL1.cor5 = prealloc_aux;
         end
         
 
@@ -495,14 +483,14 @@ for i1 = 1:Nsignatures
             % -------------------------------
             % Then get velocity data
             
-            % Dummy/for code development
-            lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
+% %             % Dummy/for code development
+% %             lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
 
-            % Get data from the 4 beams
-            sigL1.vel1{i3} = dataread_aux.Data.Burst_VelBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.vel2{i3} = dataread_aux.Data.Burst_VelBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.vel3{i3} = dataread_aux.Data.Burst_VelBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.vel4{i3} = dataread_aux.Data.Burst_VelBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
+            % Get just data from first bin
+            sigL1.vel1{i3} = dataread_aux.Data.Burst_VelBeam1(lin_proclims_beam4time_aux, 1);
+            sigL1.vel2{i3} = dataread_aux.Data.Burst_VelBeam2(lin_proclims_beam4time_aux, 1);
+            sigL1.vel3{i3} = dataread_aux.Data.Burst_VelBeam3(lin_proclims_beam4time_aux, 1);
+            sigL1.vel4{i3} = dataread_aux.Data.Burst_VelBeam4(lin_proclims_beam4time_aux, 1);
             %
 % %             sigL1.amp1{i3} = dataread_aux.Data.Burst_AmpBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
 % %             sigL1.amp2{i3} = dataread_aux.Data.Burst_AmpBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
@@ -520,7 +508,7 @@ for i1 = 1:Nsignatures
                 lin_proclims_beam5time_aux = (dataread_aux.Data.IBurst_Time >= datenum(time_lims_proc(i2, 1))) & ...
                                              (dataread_aux.Data.IBurst_Time <  datenum(time_lims_proc(i2, 2)));
                 %
-                sigL1.vel5{i3} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
+                sigL1.vel5{i3} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, 1);
 % %                 sigL1.amp5{i3} = dataread_aux.Data.IBurst_AmpBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
 % %                 sigL1.cor5{i3} = dataread_aux.Data.IBurst_CorBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
     
@@ -661,8 +649,40 @@ for i1 = 1:Nsignatures
     xlim(haxs_all(1), xlims_aux)
     
 
+    %% Apply clock correction for Signatures that had weird issue
+
+    %
+    if strcmp(list_Signature{i1}, 'X05_100231')
+        %
+        [lok_4beams, Nclockinvs, timelims_clockinvs] = correct_Sig1000_clock(sigL1.dtime);
+
+        %
+        [lok_5thbeam, Nclockinvs, timelims_clockinvs] = correct_Sig1000_clock(sigL1.dtime5);
+
+        %
+        sigL1.dtime = sigL1.dtime(lok_4beams);
+        %
+        sigL1.pressure = sigL1.pressure(lok_4beams, :);
+        sigL1.temperature = sigL1.temperature(lok_4beams, :);
+        sigL1.heading = sigL1.heading(lok_4beams, :);
+        sigL1.pitch = sigL1.pitch(lok_4beams, :);
+        sigL1.roll = sigL1.roll(lok_4beams, :);
+        %
+        sigL1.vel1 = sigL1.vel1(lok_4beams, :);
+        sigL1.vel2 = sigL1.vel3(lok_4beams, :);
+        sigL1.vel3 = sigL1.vel4(lok_4beams, :);
+        sigL1.vel4 = sigL1.vel4(lok_4beams, :);
+
+        %
+        sigL1.dtime5 = sigL1.dtime5(lok_5thbeam);
+        sigL1.vel5 = sigL1.vel5(lok_5thbeam, :);
+
+    end
+
+
     %% Remove time variables that won't be used anymore
 
+    %
     sigL1 = rmfield(sigL1, 'timedatenum');
     if sigL1.l5beams
         sigL1 = rmfield(sigL1, 'timedatenum5');
@@ -686,7 +706,7 @@ for i1 = 1:Nsignatures
 % %         amp5_aux = vel5_aux;
 % %         cor5_aux = vel5_aux;
 
-        % Loop over bins of the 5th beam
+        % Loop over bins of the 5th beam -- this is only 1
         for i2 = 1:size(sigL1.vel5, 2)
             
             %
@@ -820,23 +840,23 @@ for i1 = 1:Nsignatures
     % windowing applied by the preprocessing inside the instrument
     % may remove the edges.
 
-    %
-    Nptstime = length(sigL1.dtime);
-    Nptsbins = length(sigL1.zhab);
-    %
-    list_all_fields = fieldnames(sigL1);
-    %
-    for i2 = 1:length(list_all_fields)
-        %
-        if (size(sigL1.(list_all_fields{i2}), 1)==Nptstime) && ...
-           (size(sigL1.(list_all_fields{i2}), 2)==Nptsbins)
-            %
-            sigL1.(list_all_fields{i2}) = sigL1.(list_all_fields{i2})(:, lin_verticalrange); 
-
-            % Transpose matrices so that row dimension is along bins
-            sigL1.(list_all_fields{i2}) = sigL1.(list_all_fields{i2}).';
-        end
-    end
+% %     %
+% %     Nptstime = length(sigL1.dtime);
+% %     Nptsbins = length(sigL1.zhab);
+% %     %
+% %     list_all_fields = fieldnames(sigL1);
+% %     %
+% %     for i2 = 1:length(list_all_fields)
+% %         %
+% %         if (size(sigL1.(list_all_fields{i2}), 1)==Nptstime) && ...
+% %            (size(sigL1.(list_all_fields{i2}), 2)==Nptsbins)
+% %             %
+% %             sigL1.(list_all_fields{i2}) = sigL1.(list_all_fields{i2})(:, lin_verticalrange); 
+% % 
+% %             % Transpose matrices so that row dimension is along bins
+% %             sigL1.(list_all_fields{i2}) = sigL1.(list_all_fields{i2}).';
+% %         end
+% %     end
 
     % And trim zhab after trimming the matrices above
     sigL1.zhab = sigL1.zhab(lin_verticalrange);
@@ -845,39 +865,39 @@ for i1 = 1:Nsignatures
     %% NaN data at/above the instantaneous ocean surface
 
     %
-    tic
-    disp('--- Removing data above the instantaneous ocean surface ---')
-
-    %
-%     zhab_halfstep = sigL1.zhab + (sigL1.binsize/2);   % same question as above
-    zhab_halfstep = sigL1.zhab + (sigL1.binsize);
-% %     Nbins = length(sigL1.zhab);   % not used
-    %
-    ind_abovesurface = 1:1:(size(sigL1.vel1, 1) * size(sigL1.vel1, 2));
-    ind_abovesurface = reshape(ind_abovesurface, size(sigL1.vel1, 1), size(sigL1.vel2, 2));
-    %
-    for i2 = 1:length(sigL1.dtime)
-        %
-        ind_withinocean_aux = find((zhab_halfstep < sigL1.bottomdepthfrompres(i2)), 1, 'last');
-        %
-        ind_abovesurface(1:ind_withinocean_aux, i2) = NaN;
-    end
-    %
-    ind_abovesurface = ind_abovesurface(:);
-    ind_abovesurface = ind_abovesurface(~isnan(ind_abovesurface));
-    %
-    sigL1.vel1(ind_abovesurface) = NaN;
-    sigL1.vel2(ind_abovesurface) = NaN;
-    sigL1.vel3(ind_abovesurface) = NaN;
-    sigL1.vel4(ind_abovesurface) = NaN;
-    %
-    if sigL1.l5beams
-        sigL1.vel5(ind_abovesurface) = NaN;
-    end
-
-    %
-    disp('--- Done with trimming data ---')
-    toc
+% % %     tic
+% % %     disp('--- Removing data above the instantaneous ocean surface ---')
+% % % 
+% % %     %
+% % % %     zhab_halfstep = sigL1.zhab + (sigL1.binsize/2);   % same question as above
+% % %     zhab_halfstep = sigL1.zhab + (sigL1.binsize);
+% % % % %     Nbins = length(sigL1.zhab);   % not used
+% % %     %
+% % %     ind_abovesurface = 1:1:(size(sigL1.vel1, 1) * size(sigL1.vel1, 2));
+% % %     ind_abovesurface = reshape(ind_abovesurface, size(sigL1.vel1, 1), size(sigL1.vel2, 2));
+% % %     %
+% % %     for i2 = 1:length(sigL1.dtime)
+% % %         %
+% % %         ind_withinocean_aux = find((zhab_halfstep < sigL1.bottomdepthfrompres(i2)), 1, 'last');
+% % %         %
+% % %         ind_abovesurface(1:ind_withinocean_aux, i2) = NaN;
+% % %     end
+% % %     %
+% % %     ind_abovesurface = ind_abovesurface(:);
+% % %     ind_abovesurface = ind_abovesurface(~isnan(ind_abovesurface));
+% % %     %
+% % %     sigL1.vel1(ind_abovesurface) = NaN;
+% % %     sigL1.vel2(ind_abovesurface) = NaN;
+% % %     sigL1.vel3(ind_abovesurface) = NaN;
+% % %     sigL1.vel4(ind_abovesurface) = NaN;
+% % %     %
+% % %     if sigL1.l5beams
+% % %         sigL1.vel5(ind_abovesurface) = NaN;
+% % %     end
+% % % 
+% % %     %
+% % %     disp('--- Done with trimming data ---')
+% % %     toc
 
 
     %% Compute magnetic-ENU 3 components of velocity
@@ -921,7 +941,7 @@ for i1 = 1:Nsignatures
           'for ' num2str(size(indbreak_rot, 2)) ' separate chunks ' ...
           'of the timeseries (to avoid crashing Matlab) ---'])
 
-    %
+    % These are column vectors
     sigL1.u = NaN(size(sigL1.vel1));
     sigL1.v = sigL1.u;
     sigL1.w = sigL1.u;
@@ -946,16 +966,16 @@ for i1 = 1:Nsignatures
 
             % Use w from the 5th beam (it does incorporate ux
             % and uy from the Janus measurements)
-            [sigL1.u(:, ind_sub_aux), ...
-             sigL1.v(:, ind_sub_aux), ...
+            [sigL1.u(ind_sub_aux), ...
+             sigL1.v(ind_sub_aux), ...
              ~, ...
-             sigL1.w(:, ind_sub_aux)] = ...    % this is the w from 5th beam
+             sigL1.w(ind_sub_aux)] = ...    % this is the w from 5th beam
                     janus5beam2earth((sigL1.heading(ind_sub_aux).' - 90), ...
                                      sigL1.roll(ind_sub_aux).', -sigL1.pitch(ind_sub_aux).', ...
                                      25, ...
-                                     -sigL1.vel1(:, ind_sub_aux), -sigL1.vel3(:, ind_sub_aux), ...
-                                     -sigL1.vel4(:, ind_sub_aux), -sigL1.vel2(:, ind_sub_aux), ...
-                                     -sigL1.vel5(:, ind_sub_aux), ...
+                                     -sigL1.vel1(ind_sub_aux).', -sigL1.vel3(ind_sub_aux).', ...
+                                     -sigL1.vel4(ind_sub_aux).', -sigL1.vel2(ind_sub_aux).', ...
+                                     -sigL1.vel5(ind_sub_aux).', ...
                                      sigL1.cellcenter, lGimbaled, BinmapType, true, luse3beams);
     
             % PS: The column dimension should be the time dimension
@@ -976,14 +996,14 @@ for i1 = 1:Nsignatures
             %
             ind_sub_aux = indbreak_rot(1, i2) : indbreak_rot(2, i2);
             %
-            [sigL1.u(:, ind_sub_aux), ...
-             sigL1.v(:, ind_sub_aux), ...
-             sigL1.w(:, ind_sub_aux)] = ...
+            [sigL1.u(ind_sub_aux), ...
+             sigL1.v(ind_sub_aux), ...
+             sigL1.w(ind_sub_aux)] = ...
                         janus2earth(sigL1.heading(ind_sub_aux).' - 90, ...
                                     sigL1.roll(ind_sub_aux).', -sigL1.pitch(ind_sub_aux).', ...
                                     25, ...
-                                    -sigL1.vel1(:, ind_sub_aux), -sigL1.vel3(:, ind_sub_aux), ...
-                                    -sigL1.vel4(:, ind_sub_aux), -sigL1.vel2(:, ind_sub_aux), ...
+                                    -sigL1.vel1(ind_sub_aux).', -sigL1.vel3(ind_sub_aux).', ...
+                                    -sigL1.vel4(ind_sub_aux).', -sigL1.vel2(ind_sub_aux).', ...
                                     sigL1.cellcenter, lGimbaled, BinmapType, luse3beams);
         end
     end
@@ -1044,51 +1064,68 @@ for i1 = 1:Nsignatures
                                               sigL1.averaged.dtime([1, end]));
     sigL1.averaged.bottomdepthfrompres = (1e4 * sigL1.averaged.pressure) ./ (1030*9.8);
     
-    % Find bins below the surface
-    ind_avg_abovesurface = 1:1:(length(sigL1.zhab) * length(sigL1.averaged.dtime));
-    ind_avg_abovesurface = reshape(ind_avg_abovesurface, length(sigL1.zhab), length(sigL1.averaged.dtime));
-    %
-    for i2 = 1:length(sigL1.averaged.dtime)
-        %
-        ind_withinocean_aux = find(((sigL1.zhab + sigL1.binsize) < sigL1.averaged.bottomdepthfrompres(i2)), 1, 'last');
-        %
-        ind_avg_abovesurface(1:(ind_withinocean_aux-1), i2) = NaN;    % and remove another bin because of waves
-    end
-    %
-    ind_avg_abovesurface = ind_avg_abovesurface(:);
-    ind_avg_abovesurface = ind_avg_abovesurface(~isnan(ind_avg_abovesurface));
-
-    % Now average the beam data
-    prealloc_aux = NaN(length(sigL1.zhab), length(sigL1.averaged.dtime));
-    %
-    sigL1.averaged.u = prealloc_aux;
-    sigL1.averaged.v = prealloc_aux;
-    sigL1.averaged.w = prealloc_aux;
-    %
-% %     sigL1.averaged.amp1 = prealloc_aux;
-% %     sigL1.averaged.amp2 = prealloc_aux;
-% %     sigL1.averaged.amp3 = prealloc_aux;
-% %     sigL1.averaged.amp4 = prealloc_aux;
 
     %
-% %     list_fields_aux = {'u', 'v', 'w', 'amp1', 'amp2', 'amp3', 'amp4'};
-    list_fields_aux = {'u', 'v', 'w'};
-
+    sigL1.averaged.u = time_smooth_reg(sigL1.dtime, sigL1.u, ...
+                                       sigL1.averaged.dt, ...
+                                       sigL1.averaged.dtime([1, end]));
     %
-    for i2 = 1:length(list_fields_aux)
-        for i3 = 1:length(sigL1.zhab)
-            %
-            sigL1.averaged.(list_fields_aux{i2})(i3, :) = ...
-                             time_smooth_reg(sigL1.dtime, ...
-                                             sigL1.(list_fields_aux{i2})(i3, :), ...
-                                             sigL1.averaged.dt, ...
-                                             sigL1.averaged.dtime([1, end]));
-        end
+    sigL1.averaged.v = time_smooth_reg(sigL1.dtime, sigL1.v, ...
+                                       sigL1.averaged.dt, ...
+                                       sigL1.averaged.dtime([1, end]));
+    %
+    sigL1.averaged.w = time_smooth_reg(sigL1.dtime, sigL1.w, ...
+                                       sigL1.averaged.dt, ...
+                                       sigL1.averaged.dtime([1, end]));
 
-        % Remove the above the surface
-        sigL1.averaged.(list_fields_aux{i2})(ind_avg_abovesurface) = NaN;
-        
-    end
+
+
+% % % 
+% % %     % Find bins below the surface
+% % %     ind_avg_abovesurface = 1:1:(length(sigL1.zhab) * length(sigL1.averaged.dtime));
+% % %     ind_avg_abovesurface = reshape(ind_avg_abovesurface, length(sigL1.zhab), length(sigL1.averaged.dtime));
+% % %     %
+% % %     for i2 = 1:length(sigL1.averaged.dtime)
+% % %         %
+% % %         ind_withinocean_aux = find(((sigL1.zhab + sigL1.binsize) < sigL1.averaged.bottomdepthfrompres(i2)), 1, 'last');
+% % %         %
+% % %         ind_avg_abovesurface(1:(ind_withinocean_aux-1), i2) = NaN;    % and remove another bin because of waves
+% % %     end
+% % %     %
+% % %     ind_avg_abovesurface = ind_avg_abovesurface(:);
+% % %     ind_avg_abovesurface = ind_avg_abovesurface(~isnan(ind_avg_abovesurface));
+% % % 
+% % %     % Now average the beam data
+% % %     prealloc_aux = NaN(length(sigL1.zhab), length(sigL1.averaged.dtime));
+% % %     %
+% % %     sigL1.averaged.u = prealloc_aux;
+% % %     sigL1.averaged.v = prealloc_aux;
+% % %     sigL1.averaged.w = prealloc_aux;
+% % %     %
+% % % % %     sigL1.averaged.amp1 = prealloc_aux;
+% % % % %     sigL1.averaged.amp2 = prealloc_aux;
+% % % % %     sigL1.averaged.amp3 = prealloc_aux;
+% % % % %     sigL1.averaged.amp4 = prealloc_aux;
+% % % 
+% % %     %
+% % % % %     list_fields_aux = {'u', 'v', 'w', 'amp1', 'amp2', 'amp3', 'amp4'};
+% % %     list_fields_aux = {'u', 'v', 'w'};
+% % % 
+% % %     %
+% % %     for i2 = 1:length(list_fields_aux)
+% % %         for i3 = 1:length(sigL1.zhab)
+% % %             %
+% % %             sigL1.averaged.(list_fields_aux{i2})(i3, :) = ...
+% % %                              time_smooth_reg(sigL1.dtime, ...
+% % %                                              sigL1.(list_fields_aux{i2})(i3, :), ...
+% % %                                              sigL1.averaged.dt, ...
+% % %                                              sigL1.averaged.dtime([1, end]));
+% % %         end
+% % % 
+% % %         % Remove the above the surface
+% % %         sigL1.averaged.(list_fields_aux{i2})(ind_avg_abovesurface) = NaN;
+% % %         
+% % %     end
 
     %
     disp('--- Done with computing lower frequency quantities ---')
@@ -1122,16 +1159,25 @@ for i1 = 1:Nsignatures
     %% Move along-beam, backscatter, and correlation to a separate structure
 
     %
-    sigL1beamdata.SN = sigL1.SN;
-    sigL1beamdata.mooringID = sigL1.mooringID;
+    if sigL1.l5beams
+        list_vars_remove = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5'};
+    else
+        list_vars_remove = {'vel1', 'vel2', 'vel3', 'vel4'};
+    end
     %
-    sigL1beamdata.dtime = sigL1.dtime;
-    sigL1beamdata.zhab = sigL1.zhab;
+    sigL1 = rmfield(sigL1, list_vars_remove);
 
-    %
-    list_vars_move = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
-                      'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
-                      'cor1', 'cor2', 'cor3', 'cor4', 'cor5'};
+% %     %
+% %     sigL1beamdata.SN = sigL1.SN;
+% %     sigL1beamdata.mooringID = sigL1.mooringID;
+% %     %
+% %     sigL1beamdata.dtime = sigL1.dtime;
+% %     sigL1beamdata.zhab = sigL1.zhab;
+% % 
+% %     %
+% %     list_vars_move = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+% %                       'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
+% %                       'cor1', 'cor2', 'cor3', 'cor4', 'cor5'};
 
 % %     %
 % %     for i2 = 1:length(list_vars_move)
@@ -1159,47 +1205,47 @@ for i1 = 1:Nsignatures
     % ----------------------------------------------------
     % Save level 1 data along-beam/backscatter/correlation quantities
 
-    %
-    disp('----- Saving beam data in level 1 data file -----')
-    str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_alongbeamvel'];
-    %
-    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
-    %
-    if sigL1.l5beams
-        save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', '-append')
-    else
-        save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', '-append')
-    end
+% %     %
+% %     disp('----- Saving beam data in level 1 data file -----')
+% %     str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_alongbeamvel'];
+% %     %
+% %     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
+% %     %
+% %     if sigL1.l5beams
+% %         save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', '-append')
+% %     else
+% %         save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', '-append')
+% %     end
 
     % ----------------------------------------------------
     % Save level 1 data with all variables
-    %
-    for i2 = 1:length(list_vars_move)
-        if isfield(sigL1, list_vars_move{i2})
-            sigL1 = rmfield(sigL1, list_vars_move{i2});
-        end
-    end
-    %
-    disp('----- Saving primary level 1 data structure -----')
-    str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN)];
-    %
-    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
+% %     %
+% %     for i2 = 1:length(list_vars_move)
+% %         if isfield(sigL1, list_vars_move{i2})
+% %             sigL1 = rmfield(sigL1, list_vars_move{i2});
+% %         end
+% %     end
+% %     %
+% %     disp('----- Saving primary level 1 data structure -----')
+% %     str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN)];
+% %     %
+% %     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
 
 
     % ----------------------------------------------------
     % Save level 1 data with scalar variables only
     %
-    sigL1.cellcenter = sigL1.cellcenter(1);
-    sigL1.zhab = sigL1.zhab(1);
+% %     sigL1.cellcenter = sigL1.cellcenter(1);
+% %     sigL1.zhab = sigL1.zhab(1);
     %
-    sigL1.u = sigL1.u(1, :);    sigL1.u = sigL1.u(:);
-    sigL1.v = sigL1.v(1, :);    sigL1.v = sigL1.v(:);
-    sigL1.w = sigL1.w(1, :);    sigL1.w = sigL1.w(:);
-    %
-    sigL1.averaged.u = sigL1.averaged.u(1, :);    sigL1.averaged.u = sigL1.averaged.u(:);
-    sigL1.averaged.v = sigL1.averaged.v(1, :);    sigL1.averaged.v = sigL1.averaged.v(:);
-    sigL1.averaged.w = sigL1.averaged.w(1, :);    sigL1.averaged.w = sigL1.averaged.w(:);
-
+% %     sigL1.u = sigL1.u(1, :);    sigL1.u = sigL1.u(:);
+% %     sigL1.v = sigL1.v(1, :);    sigL1.v = sigL1.v(:);
+% %     sigL1.w = sigL1.w(1, :);    sigL1.w = sigL1.w(:);
+% %     %
+% %     sigL1.averaged.u = sigL1.averaged.u(1, :);    sigL1.averaged.u = sigL1.averaged.u(:);
+% %     sigL1.averaged.v = sigL1.averaged.v(1, :);    sigL1.averaged.v = sigL1.averaged.v(:);
+% %     sigL1.averaged.w = sigL1.averaged.w(1, :);    sigL1.averaged.w = sigL1.averaged.w(:);
+    keyboard
     %
     disp('----- Saving level 1 data with scalars only -----')
     str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_scalars'];
@@ -1225,7 +1271,7 @@ end
 %%
 
 %
-disp('###################### Done with processing from RAW to L1 for all Signature1000 ######################')
+disp('###################### Done with processing scalars from RAW to L1 for all Signature1000 ######################')
 
 %
 disp(' '), disp(' ')

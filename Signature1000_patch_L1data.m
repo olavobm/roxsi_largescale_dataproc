@@ -174,7 +174,8 @@ for i1 = 1:length(list_Signature)
     
         %
         save(fullfile(diroutput, ...
-                      [data_file_names{i2, 1}, list_Signature{i1}, data_file_names{i2, 2}]), '-struct')
+                      [data_file_names{i2, 1}, list_Signature{i1}, data_file_names{i2, 2}]), ...
+                      '-struct', 'data_seg_all')
         
         
         %%

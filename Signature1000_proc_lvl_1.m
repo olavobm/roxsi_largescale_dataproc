@@ -1132,13 +1132,6 @@ for i1 = 1:Nsignatures
     list_vars_move = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
                       'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
                       'cor1', 'cor2', 'cor3', 'cor4', 'cor5'};
-    %
-    for i2 = 1:length(list_vars_move)
-        if isfield(sigL1, list_vars_move{i2})
-            sigL1 = rmfield(sigL1, list_vars_move{i2});
-        end
-    end
-
 
 % %     %
 % %     for i2 = 1:length(list_vars_move)
@@ -1163,16 +1156,6 @@ for i1 = 1:Nsignatures
     % ----------------------------------------------------
     % Save QC figures
 
-
-    % ----------------------------------------------------
-    % Save level 1 data with all variables
-
-    %
-    disp('----- Saving primary level 1 data structure -----')
-    str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN)];
-    %
-    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
-
     % ----------------------------------------------------
     % Save level 1 data along-beam/backscatter/correlation quantities
 
@@ -1187,6 +1170,21 @@ for i1 = 1:Nsignatures
     else
         save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', '-append')
     end
+
+    % ----------------------------------------------------
+    % Save level 1 data with all variables
+    %
+    for i2 = 1:length(list_vars_move)
+        if isfield(sigL1, list_vars_move{i2})
+            sigL1 = rmfield(sigL1, list_vars_move{i2});
+        end
+    end
+    %
+    disp('----- Saving primary level 1 data structure -----')
+    str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN)];
+    %
+    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
+
 
     % ----------------------------------------------------
     % Save level 1 data with scalar variables only

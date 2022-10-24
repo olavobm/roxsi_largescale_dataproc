@@ -251,7 +251,7 @@ for i = 1:Nsignatures
 end
 
 
-%% Loop over Signatures in the list and process dat
+%% Loop over Signatures in the list and process data
 
 % Loop over Signature1000's in the list
 for i1 = 1:Nsignatures
@@ -666,6 +666,37 @@ for i1 = 1:Nsignatures
     %
     xlim(haxs_all(1), xlims_aux)
     
+
+    %% Apply clock correction for Signatures that had weird issue
+
+    %
+    if strcmp(list_Signature{i1}, 'X05_100231')
+        %
+        [lok_4beams, Nclockinvs, timelims_clockinvs] = correct_Sig1000_clock(sigL1.dtime);
+
+        %
+        [lok_5thbeam, Nclockinvs, timelims_clockinvs] = correct_Sig1000_clock(sigL1.dtime5);
+
+        %
+        sigL1.dtime = sigL1.dtime(lok_4beams);
+        %
+        sigL1.pressure = sigL1.pressure(lok_4beams, :);
+        sigL1.temperature = sigL1.temperature(lok_4beams, :);
+        sigL1.heading = sigL1.heading(lok_4beams, :);
+        sigL1.pitch = sigL1.pitch(lok_4beams, :);
+        sigL1.roll = sigL1.roll(lok_4beams, :);
+        %
+        sigL1.vel1 = sigL1.vel1(lok_4beams, :);
+        sigL1.vel2 = sigL1.vel3(lok_4beams, :);
+        sigL1.vel3 = sigL1.vel4(lok_4beams, :);
+        sigL1.vel4 = sigL1.vel4(lok_4beams, :);
+
+        %
+        sigL1.dtime5 = sigL1.dtime5(lok_5thbeam);
+        sigL1.vel5 = sigL1.vel5(lok_5thbeam, :);
+
+    end
+
 
     %% Remove time variables that won't be used anymore
 

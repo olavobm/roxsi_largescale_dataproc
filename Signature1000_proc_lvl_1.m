@@ -70,14 +70,14 @@ load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROX
 % % list_Signature = {'B13_103046'};
 
 % All Signatures
-% list_Signature = {'A01_103043', ...
-%                   'B10_103045', ...
-%                   'B13_103046', ...
-%                   'B15_103056', ...
-%                   'B17_101923', ...
-%                   'C01_102128', ...
-%                   'X11_101941'};
-list_Signature = {'A01_103043'};
+list_Signature = {'A01_103043', ...
+                  'B10_103045', ...
+                  'B13_103046', ...
+                  'B15_103056', ...
+                  'B17_101923', ...
+                  'C01_102128', ...
+                  'X11_101941'};
+% % list_Signature = {'A01_103043'};
 
 %
 Nsignatures = length(list_Signature);
@@ -90,8 +90,8 @@ Nsignatures = length(list_Signature);
 % recovery
 
 %
-time_lims_proc = [datetime(2022, 07, 01, 00, 00, 00), ...
-                  datetime(2022, 07, 03, 00, 00, 00)];
+time_lims_proc = [datetime(2022, 06, 14, 00, 00, 00), ...
+                  datetime(2022, 07, 06, 00, 00, 00)];
 time_lims_proc.TimeZone = 'America/Los_Angeles';
 
 %
@@ -1071,7 +1071,8 @@ for i1 = 1:Nsignatures
 % %     sigL1.averaged.amp4 = prealloc_aux;
 
     %
-    list_fields_aux = {'u', 'v', 'w', 'amp1', 'amp2', 'amp3', 'amp4'};
+% %     list_fields_aux = {'u', 'v', 'w', 'amp1', 'amp2', 'amp3', 'amp4'};
+    list_fields_aux = {'u', 'v', 'w'};
 
     %
     for i2 = 1:length(list_fields_aux)
@@ -1127,10 +1128,18 @@ for i1 = 1:Nsignatures
     sigL1beamdata.dtime = sigL1.dtime;
     sigL1beamdata.zhab = sigL1.zhab;
 
-% %     %
-% %     list_vars_move = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
-% %                       'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
-% %                       'cor1', 'cor2', 'cor3', 'cor4', 'cor5'};
+    %
+    list_vars_move = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+                      'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
+                      'cor1', 'cor2', 'cor3', 'cor4', 'cor5'};
+    %
+    for i2 = 1:length(list_vars_move)
+        if isfield(sigL1, list_vars_move{i2})
+            sigL1 = rmfield(sigL1, list_vars_move{i2});
+        end
+    end
+
+
 % %     %
 % %     for i2 = 1:length(list_vars_move)
 % %         %
@@ -1173,7 +1182,7 @@ for i1 = 1:Nsignatures
     %
     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
     %
-    if sigL1metadata.l5beams
+    if sigL1.l5beams
         save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', '-append')
     else
         save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', '-append')

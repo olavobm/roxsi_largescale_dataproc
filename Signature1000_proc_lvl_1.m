@@ -711,10 +711,10 @@ for i1 = 1:Nsignatures
         %
         disp('Done with 5th beam interpolation.') 
         toc
-    end
 
-    %
-    sigL1 = rmfield(sigL1, 'dtime5');
+        %
+        sigL1 = rmfield(sigL1, 'dtime5');
+    end
 
 
     %% Interpolate variables to gridded time (after

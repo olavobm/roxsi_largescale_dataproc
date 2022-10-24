@@ -9,13 +9,14 @@ close all
 
 %
 dir_parent_data = ['/home/omarques/Documents/obm_ROXSI' ...
-                   '/obm_DataLocal/Level1_Data/split_data/'];
+                   '/obm_DataLocal/Level1_Data/Signature_Level1/split_data/'];
 
 %
 list_Signature = {'X11_101941'};
 
 %
 diroutput = dir_parent_data;
+
 
 %% Start diary
 

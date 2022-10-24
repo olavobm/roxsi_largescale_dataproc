@@ -209,21 +209,22 @@ for i1 = 1:Nsignatures
     
     %% Get trimming times for the deployment period of this Signature
 
-    %
-    ind_row_match = find(strcmp(deploymentInfo_ROXSI2022.SN, list_Signature{i1}(5:end)));
-    
-    %
-    time_1 = deploymentInfo_ROXSI2022.time_begin_trim(ind_row_match);
-    time_2 = deploymentInfo_ROXSI2022.time_end_trim(ind_row_match);
+% %     %
+% %     ind_row_match = find(strcmp(deploymentInfo_ROXSI2022.SN, list_Signature{i1}(5:end)));
+% %     
+% %     %
+% %     time_1 = deploymentInfo_ROXSI2022.time_begin_trim(ind_row_match);
+% %     time_2 = deploymentInfo_ROXSI2022.time_end_trim(ind_row_match);
+% % 
+% %     %
+% %     time_1 = datetime(datenum(time_1, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
+% %     time_2 = datetime(datenum(time_2, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
+% % 
+% %     %
+% %     time_lims_proc = [time_1, time_2];
+% %     Ndatasegments = size(time_lims_proc, 1);
 
-    %
-    time_1 = datetime(datenum(time_1, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
-    time_2 = datetime(datenum(time_2, 'yyyy/mm/dd HH:MM:SS'), 'ConvertFrom', 'datenum', 'TimeZone', 'America/Los_Angeles');
-
-    %
-    time_lims_proc = [time_1, time_2];
-    Ndatasegments = size(time_lims_proc, 1);
-
+% INSTEAD, DO THIS BASED ON THE SCALARS VARIABLE FILE LOADED BELOW
 
     %%
     % ------------------------------------------
@@ -277,6 +278,22 @@ for i1 = 1:Nsignatures
     % Find all bins that are below the maximum bottom depth
     lin_verticalrange = ((sigL1metadata.zhab + (sigL1metadata.binsize)) < ...
                          max(sigL1scalars.bottomdepthfrompres));
+
+
+    %% Get the time limits to grab the beam data
+
+    %
+    time_scalars_1 = sigL1scalars.dtime(1);
+    time_scalars_2 = sigL1scalars.dtime(end);
+
+    % Get a bit more to make sure I don't trim off data
+    % at the edges where the are data in the scalars file
+    time_1 = time_scalars_1 - minutes(5);
+    time_2 = time_scalars_2 + minutes(5);
+
+    time_lims_proc = [time_1, time_2];
+%     Ndatasegments = size(time_lims_proc, 1);
+    Ndatasegments = 1;
 
 
     %%
@@ -503,7 +520,7 @@ for i1 = 1:Nsignatures
     end
 
 
-    %% Convert time to date time
+    %% Convert time to datetime
 
     %
     sigL1.dtime = datetime(time_aux, 'ConvertFrom', 'datenum', ...
@@ -647,10 +664,12 @@ for i1 = 1:Nsignatures
     % As time edges of the grid, round to the whole minute (done in a more
     % complicated way so that it doesn't rely on Matlab versions newer than
     % at least 2021b)
-    dtime_edge_1 = datetime(sigL1.dtime(1).Year, sigL1.dtime(1).Month, sigL1.dtime(1).Day, ...
-                            sigL1.dtime(1).Hour, (sigL1.dtime(1).Minute + 1), 00);
-    dtime_edge_2 = datetime(sigL1.dtime(end).Year, sigL1.dtime(end).Month, sigL1.dtime(end).Day, ...
-                            sigL1.dtime(end).Hour, sigL1.dtime(end).Minute, 00);
+% %     dtime_edge_1 = datetime(sigL1.dtime(1).Year, sigL1.dtime(1).Month, sigL1.dtime(1).Day, ...
+% %                             sigL1.dtime(1).Hour, (sigL1.dtime(1).Minute + 1), 00);
+% %     dtime_edge_2 = datetime(sigL1.dtime(end).Year, sigL1.dtime(end).Month, sigL1.dtime(end).Day, ...
+% %                             sigL1.dtime(end).Hour, sigL1.dtime(end).Minute, 00);
+    dtime_edge_1 = time_scalars_1;
+    dtime_edge_2 = time_scalars_2;
     %
     df_sampling = sigL1metadata.samplingrateHz;    % in Hertz
 

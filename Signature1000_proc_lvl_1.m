@@ -1114,6 +1114,13 @@ for i1 = 1:Nsignatures
                                               sigL1.averaged.dtime([1, end]));
     sigL1.averaged.bottomdepthfrompres = (1e4 * sigL1.averaged.pressure) ./ (1030*9.8);
     
+
+    %
+    sigL1.averaged.dtime = sigL1.averaged.dtime(:);
+    sigL1.averaged.pressure = sigL1.averaged.pressure(:);
+    sigL1.averaged.bottomdepthfrompres = sigL1.averaged.bottomdepthfrompres(:);
+
+
     % Find bins below the surface
     ind_avg_abovesurface = 1:1:(length(sigL1.zhab) * length(sigL1.averaged.dtime));
     ind_avg_abovesurface = reshape(ind_avg_abovesurface, length(sigL1.zhab), length(sigL1.averaged.dtime));

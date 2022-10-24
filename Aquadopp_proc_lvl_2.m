@@ -99,6 +99,8 @@ windowfft = 6*60;
     
 % Sea-swell frequency band
 freq_lims = [0.045, 0.3];
+freqbands.SS = [0.045, 0.3];
+freqbands.IG = [0.005, 0.03];
 
 
 %%
@@ -177,6 +179,7 @@ for i1 = 1:Naquadopps
     % First compute depth-averaged velocity from the data
     %
     aquadoppL2.dtimedata = aquadoppL1.dtime;
+    aquadoppL2.pressure = mean(aquadoppL1.pressure, 1, 'omitnan');
     aquadoppL2.udepthavg = mean(aquadoppL1.u, 1, 'omitnan');
     aquadoppL2.vdepthavg = mean(aquadoppL1.v, 1, 'omitnan');
     aquadoppL2.wdepthavg = mean(aquadoppL1.w, 1, 'omitnan');
@@ -261,6 +264,14 @@ for i1 = 1:Naquadopps
 
         toc
 
+        %
+        disp('--- Computing spectra from pressure ---')
+        tic
+        %
+        [Spp, ~, ~, ~, avgpres] = ...
+                    spectra_scalar_reg(aquadoppL2.dtimedata, aquadoppL2.pressure, ...
+                                       windowfft, windowavg, timestatslims);
+        toc
 
         % Add variables to L2 output data structure
         aquadoppL2.frequency = freqvec;
@@ -268,51 +279,115 @@ for i1 = 1:Naquadopps
         aquadoppL2.Suu = Suu;
         aquadoppL2.Svv = Svv;
         aquadoppL2.Sww = Sww;
+        %
+        aquadoppL2.Spp = Spp;
 
     end
 
 
+    
+    %% Compute elevation spectra from pressure
+    if aquadoppL1.samplingtime == 1
 
-% %     % ----------------------------------------------------
-% %     % Compute spectra for u, v, and w if sampling is 1 Hz
-% %     if aquadoppL1.samplingtime == 1
-% % 
-% %         %
-% %         disp(['--- Sampling rate of Aquadopp ' list_Aquadopp{i1} ' is ' num2str(aquadoppL1.samplingtime) ' second(s). Computing velocity spectra ---'])
-% % 
-% %         tic
-% %         % Loop over ADCP bins
-% %         for i2 = 1:length(aquadoppL1.zhab)
-% % % %             %
-% % % %             [Spp, timespec, freqvec, dof, avgpres] = ...
-% % % %                         spectra_scalar_reg(spotsmartL1.dtime, spotsmartL1.pressure, ...
-% % % %                                            windowfft, windowavg, timespeclims);
-% %         end
-% %         toc
-% %     end
-% % 
-    % ----------------------------------------------------
-    % Compute variance in the sea-swell bands if sampling is 1 Hz
+        %
+        g = 9.8;
+        rho0 = 1030;
+        
+        % Computes bottom depth from average pressure (which is
+        % hydrostatic over 1 hour)
+        avgbottomdepth = 1e4*avgpres ./ (rho0*g);
+        
+        % Convert frequencies to wavenumbers using
+        % linear wave theory
+        %
+        % Function handle to compute wavenumbers
+        % (PS: frequency in Hz and k in radians per meter)
+        disp_rel = @(k, H, freq) g*k*tanh(k*H) - (2*pi*freq)^2;
+        
+        
+        %Compute wavenumbers (in radians per meter) from linear wave theory
+        k_matrix = NaN(length(freqvec), length(aquadoppL2.dtime));
+        
+        % Loop over time
+        tic
+        for i2 = 1:length(aquadoppL2.dtime)
+        
+            % Only do calculation if there is a valid
+            % average bottom depth at time timespec(i2)
+            if ~isnan(avgbottomdepth(i2))
+    
+                % Loop over frequencies
+                for i3 = 2:length(freqvec)
+            
+                    %
+                    disp_rel_solver = @(k) disp_rel(k, avgbottomdepth(i2), freqvec(i3));
+            
+                    % In radians per meter
+                    k_matrix(i3, i2) = fzero(disp_rel_solver, [(2*pi/(5000)), (2*pi/(1))]);
+            
+                end
+            end
+        end
+        toc
+        
+        % Compute transfer function
+        h_matrix = repmat(avgbottomdepth, length(freqvec), 1);
+        correction = cosh(k_matrix .* h_matrix) ./ ...
+                     cosh(k_matrix * aquadoppL1.transducerHAB);
+        aquadoppL2.See = aquadoppL2.Spp .* correction.^2;
+
+
+    end
+
+
+    %% Compute variance in the sea-swell bands if sampling is 1 Hz
     if aquadoppL1.samplingtime == 1
         %
         disp('--- Integrating spectra to compute variance for each velocity component in the sea-swell band ---')
 
         %
-        aquadoppL2.freqband = freq_lims;
+        list_freqbands = fieldnames(freqbands);
+        %
+        for i2 = 1:length(list_freqbands)
+            %
+            freqlims_aux = freqbands.(list_freqbands{i2});
+            %
+            aquadoppL2.(['freqband' list_freqbands{i2}]) = freqlims_aux;
 
-        %
-        linfreqband_seaswell = (aquadoppL2.frequency >= aquadoppL2.freqband(1)) & ...
-                               (aquadoppL2.frequency  < aquadoppL2.freqband(2));
-
-        %
-        aquadoppL2.uvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
-                                aquadoppL2.Suu(linfreqband_seaswell, :), 1);
-        %
-        aquadoppL2.vvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
-                                aquadoppL2.Svv(linfreqband_seaswell, :), 1);
-        %
-        aquadoppL2.wvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
-                                aquadoppL2.Sww(linfreqband_seaswell, :), 1);
+            %
+            linband_aux = (aquadoppL2.frequency >= freqlims_aux(1)) & ...
+                          (aquadoppL2.frequency  < freqlims_aux(2));
+            %
+            aquadoppL2.(['uvar' list_freqbands{i2}]) = ...
+                              trapz(aquadoppL2.frequency(linband_aux), ...
+                                    aquadoppL2.Suu(linband_aux, :), 1);
+            aquadoppL2.(['vvar' list_freqbands{i2}]) = ...
+                              trapz(aquadoppL2.frequency(linband_aux), ...
+                                    aquadoppL2.Svv(linband_aux, :), 1);
+            aquadoppL2.(['wvar' list_freqbands{i2}]) = ...
+                              trapz(aquadoppL2.frequency(linband_aux), ...
+                                    aquadoppL2.Sww(linband_aux, :), 1);
+            %
+            aquadoppL2.(['Hsig' list_freqbands{i2}]) = ...
+                              trapz(aquadoppL2.frequency(linband_aux), ...
+                                    aquadoppL2.See(linband_aux, :), 1);
+            aquadoppL2.(['Hsig' list_freqbands{i2}]) = ...
+                          4*sqrt(aquadoppL2.(['Hsig' list_freqbands{i2}]));
+        end
+        
+% %         %
+% %         linfreqband_seaswell = (aquadoppL2.frequency >= aquadoppL2.freqband(1)) & ...
+% %                                (aquadoppL2.frequency  < aquadoppL2.freqband(2));
+% % 
+% %         %
+% %         aquadoppL2.uvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
+% %                                 aquadoppL2.Suu(linfreqband_seaswell, :), 1);
+% %         %
+% %         aquadoppL2.vvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
+% %                                 aquadoppL2.Svv(linfreqband_seaswell, :), 1);
+% %         %
+% %         aquadoppL2.wvar = trapz(aquadoppL2.frequency(linfreqband_seaswell), ...
+% %                                 aquadoppL2.Sww(linfreqband_seaswell, :), 1);
 
     end
 

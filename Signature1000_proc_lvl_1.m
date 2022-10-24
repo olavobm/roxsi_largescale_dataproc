@@ -70,13 +70,14 @@ load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROX
 % % list_Signature = {'B13_103046'};
 
 % All Signatures
-list_Signature = {'A01_103043', ...
-                  'B10_103045', ...
-                  'B13_103046', ...
-                  'B15_103056', ...
-                  'B17_101923', ...
-                  'C01_102128', ...
-                  'X11_101941'};
+% list_Signature = {'A01_103043', ...
+%                   'B10_103045', ...
+%                   'B13_103046', ...
+%                   'B15_103056', ...
+%                   'B17_101923', ...
+%                   'C01_102128', ...
+%                   'X11_101941'};
+list_Signature = {'A01_103043'};
 
 %
 Nsignatures = length(list_Signature);
@@ -88,13 +89,13 @@ Nsignatures = length(list_Signature);
 % will be processed between deployment and 
 % recovery
 
-% % %
-% % time_lims_proc = [datetime(2022, 07, 01, 00, 00, 00), ...
-% %                   datetime(2022, 07, 03, 00, 00, 00)];
-% % time_lims_proc.TimeZone = 'America/Los_Angeles';
-% % 
-% % %
-% % Ndatasegments = size(time_lims_proc, 1);
+%
+time_lims_proc = [datetime(2022, 07, 01, 00, 00, 00), ...
+                  datetime(2022, 07, 03, 00, 00, 00)];
+time_lims_proc.TimeZone = 'America/Los_Angeles';
+
+%
+Ndatasegments = size(time_lims_proc, 1);
 
 %
 if exist('time_lims_proc', 'var')
@@ -1119,6 +1120,13 @@ for i1 = 1:Nsignatures
 
     %% Move along-beam, backscatter, and correlation to a separate structure
 
+    %
+    sigL1beamdata.SN = sigL1.SN;
+    sigL1beamdata.mooringID = sigL1.mooringID;
+    %
+    sigL1beamdata.dtime = sigL1.dtime;
+    sigL1beamdata.zhab = sigL1.zhab;
+
 % %     %
 % %     list_vars_move = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
 % %                       'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
@@ -1159,12 +1167,17 @@ for i1 = 1:Nsignatures
     % ----------------------------------------------------
     % Save level 1 data along-beam/backscatter/correlation quantities
 
-% %     %
-% %     disp('----- Saving beam data in level 1 data file -----')
-% %     str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_beamdata'];
-% %     %
-% %     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
-
+    %
+    disp('----- Saving beam data in level 1 data file -----')
+    str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_alongbeamvel'];
+    %
+    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
+    %
+    if sigL1metadata.l5beams
+        save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', '-append')
+    else
+        save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', '-append')
+    end
 
     % ----------------------------------------------------
     % Save level 1 data with scalar variables only

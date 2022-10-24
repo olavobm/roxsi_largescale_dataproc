@@ -395,6 +395,39 @@ for i1 = 1:Nsignatures
 % %     sig1000.zhab = sig1000.zhab(lin_verticalrange);
 
 
+    %%
+    % ------------------------------------------
+    % --- OPTIONAL PART: GET SCALAR DATA FILE --
+    % --------- TO GET TRIMMING PERIOD ---------
+    % ------------------------------------------
+    %
+    % If processing different segments separately
+    % that will later be patched, then you should
+    % first process the whole dataset of scalars,
+    % and get the vertical trimming. Then this
+    % will be applied to all segments, and the
+    % matrices can be concatenated together.
+    %
+    % The other option is to comment out this part,
+    % and then uncomment the definition of 
+    % lin_verticalrange that appears in the next
+    % code block. This bypass the requirement of
+    % first processing the scalar data, but patching
+    % data segments might fail.
+
+    %
+    L1scalar = load(fullfile(dir_output_L1, ...
+                   ['roxsi_signature_L1_' char(sigL1.mooringID) '_' ...
+                                          char(sigL1.SN) '_scalars.mat']));
+    L1scalar = L1scalar.sigL1;
+
+    %
+    nzbinstrim = length(L1scalar.zhab);
+
+    %
+    lin_verticalrange = false(1, length(sigL1.zhab));
+    lin_verticalrange(1:nzbinstrim) = true;
+
 
     %%
     % ------------------------------------------
@@ -501,8 +534,8 @@ for i1 = 1:Nsignatures
             % -------------------------------
             % Then get velocity data
             
-            % Dummy/for code development
-            lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
+            % Get all bins if scalar data is not loaded above (uncomment this)
+% %             lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
 
             % Get data from the 4 beams
             sigL1.vel1{i3} = dataread_aux.Data.Burst_VelBeam1(lin_proclims_beam4time_aux, lin_verticalrange);

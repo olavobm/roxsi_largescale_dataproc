@@ -32,7 +32,7 @@ dir_data_raw = fullfile(dirparent_data, 'RAW', 'Signature1000');
 %% Output directory
 
 %
-dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Signature_Level1/';
+dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Signature_Level1/data_segments/';
 % dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/';
 
 % If multiple time segments are given
@@ -103,9 +103,9 @@ Nsignatures = length(list_Signature);
 % % time_lims_proc.TimeZone = 'America/Los_Angeles';
 
 %
-time_lims_proc = [datetime(2022, 07, 05, 00, 00, 00), datetime(2022, 07, 06, 00, 00, 00); ...
-                  datetime(2022, 07, 06, 00, 00, 00), datetime(2022, 07, 07, 00, 00, 00); ...
-                  datetime(2022, 07, 07, 00, 00, 00), datetime(2022, 07, 08, 00, 00, 00)];
+time_lims_proc = [datetime(2022, 07, 04, 23, 50, 00), datetime(2022, 07, 07, 00, 10, 00); ...
+                  datetime(2022, 07, 06, 23, 50, 00), datetime(2022, 07, 09, 00, 10, 00); ...
+                  datetime(2022, 07, 08, 23, 50, 00), datetime(2022, 07, 11, 00, 10, 00)];
 
 %
 time_lims_proc.TimeZone = 'America/Los_Angeles';

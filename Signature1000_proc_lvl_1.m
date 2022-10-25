@@ -154,7 +154,8 @@ for i = 1:Ndatasegments
         str_date_2 = 'recovery';
     end
 
-    %
+    % Save a text file with the time period
+    % of the processed data in each subfolder
     str_command = ['echo "data processed between ' str_date_1 ' and ' str_date_2 '" >> ' fullfile(dir_output_L1, newdir_aux, 'segment_period.txt')];
     system(str_command);
 
@@ -390,7 +391,15 @@ for i1 = 1:Nsignatures
 
     %
     if lpredeflimits
-        disp('--- Time bounds for processing data are defined on top of the script. Processing data within these bounds ---')
+        disp('--- Time bounds for processing data are defined on top of the script. Processing data within the time periods: ---')
+        %
+        for indtimeperiod = 1:Ndatasegments
+            %
+            str_date_1 = char(string(time_lims_proc(indtimeperiod, 1), fmt_date));
+            str_date_2 = char(string(time_lims_proc(indtimeperiod, 2), fmt_date));
+            %
+            disp(['--- from ' str_date_1 ' to ' str_date_2 ' ---'])
+        end
     else
         disp('--- Predefined time bounds for processing data not found. Processing data for full deployment ---')
     end
@@ -513,6 +522,16 @@ for i1 = 1:Nsignatures
 % %         %
 % %         disp(['--- Raw data that will processed is split into ' num2str(Nfilesperseg) ' data files. Loading data from ---'])
 % %         listfiles_perseg
+
+
+        %% Print progress message on the screen
+
+        %
+        str_date_1 = char(string(time_lims_proc(i2, 1), fmt_date));
+        str_date_2 = char(string(time_lims_proc(i2, 2), fmt_date));
+        %
+        disp(['--- Processing data from ' str_date_1 ' to ' str_date_2 '. Period ' num2str(i2) ' out of ' num2str(Ndatasegments) ' ---'])
+        
 
         %% Pre-allocate space for variables that will be read
 
@@ -1347,6 +1366,7 @@ for i1 = 1:Nsignatures
         % data segment of the same Signature
 
         % ----------------------------------------------------
+        disp(' ')
         disp(['--- done with processing Signature1000 ' ...
               list_Signature{i1} ' data segment ' num2str(i2) ...
               ' out of ' num2str(Ndatasegments) ' ---'])

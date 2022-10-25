@@ -32,7 +32,7 @@ list_segments = dir(fullfile(dirsplitdata, 'segment_*'));
 for i1 = 1:length(list_Signature)
 
     % Loop over types of files
-    for i2 = 1:size(data_file_names, 1)
+    for i2 = 1%1:size(data_file_names, 1)
 
         % First load data in the first segment, and other segments
         % will be patched to it
@@ -51,7 +51,6 @@ for i1 = 1:length(list_Signature)
 
         end
 
-        keyboard
         % Loop over segment/folders (starting at the second segment)
         for i3 = 2:length(list_segments)
 

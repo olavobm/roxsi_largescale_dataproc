@@ -1204,11 +1204,11 @@ for i1 = 1:Nsignatures
     %% Move along-beam, backscatter, and correlation to a separate structure
 
     %
-    sigL1beamdata.SN = sigL1.SN;
-    sigL1beamdata.mooringID = sigL1.mooringID;
+    sigL1metadata.SN = sigL1.SN;
+    sigL1metadata.mooringID = sigL1.mooringID;
     %
-    sigL1beamdata.dtime = sigL1.dtime;
-    sigL1beamdata.zhab = sigL1.zhab;
+    sigL1metadata.dtime = sigL1.dtime;
+    sigL1metadata.zhab = sigL1.zhab;
 
     %
     list_vars_move = {'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
@@ -1245,7 +1245,7 @@ for i1 = 1:Nsignatures
     disp('----- Saving beam data in level 1 data file -----')
     str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_alongbeamvel'];
     %
-    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1beamdata', '-v7.3')
+    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1metadata', '-v7.3')
     %
     if sigL1.l5beams
         save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', '-append')

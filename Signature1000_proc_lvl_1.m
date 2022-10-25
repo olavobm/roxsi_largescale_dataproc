@@ -401,19 +401,16 @@ for i1 = 1:Nsignatures
     % --------- TO GET TRIMMING PERIOD ---------
     % ------------------------------------------
     %
-    % If processing different segments separately
-    % that will later be patched, then you should
-    % first process the whole dataset of scalars,
-    % and get the vertical trimming. Then this
-    % will be applied to all segments, and the
-    % matrices can be concatenated together.
+    % If processing different segments separately that will later
+    % be patched, then you should first process the whole dataset
+    % of scalars, and get the vertical trimming. Then this will
+    % be applied to all segments, and the matrices can be
+    % concatenated together.
     %
-    % The other option is to comment out this part,
-    % and then uncomment the definition of 
-    % lin_verticalrange that appears in the next
-    % code block. This bypass the requirement of
-    % first processing the scalar data, but patching
-    % data segments might fail.
+    % The other option is to comment out this part, and then uncomment
+    % the definition of  lin_verticalrange that appears in the next
+    % code block. This bypasses the requirement of first processing
+    % the scalar data, but patching data segments might fail.
 
     %
     L1scalar = load(fullfile(dir_output_L1, ...
@@ -1292,7 +1289,7 @@ for i1 = 1:Nsignatures
 
     %% Stuff before start processing the next Signature in the list
 
-        % ----------------------------------------------------
+    % ----------------------------------------------------
     %
     disp(['----- DONE with RAW to L1 Signature1000 data processing: ' list_Signature{i1} ' -----'])
     toc(totalRunTime)

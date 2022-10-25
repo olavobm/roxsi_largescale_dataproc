@@ -1253,7 +1253,7 @@ for i1 = 1:Nsignatures
 % %     sigL1.averaged.u = sigL1.averaged.u(1, :);    sigL1.averaged.u = sigL1.averaged.u(:);
 % %     sigL1.averaged.v = sigL1.averaged.v(1, :);    sigL1.averaged.v = sigL1.averaged.v(:);
 % %     sigL1.averaged.w = sigL1.averaged.w(1, :);    sigL1.averaged.w = sigL1.averaged.w(:);
-    keyboard
+    
     %
     disp('----- Saving level 1 data with scalars only -----')
     str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_scalars'];

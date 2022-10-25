@@ -332,35 +332,35 @@ for i1 = 1:Nsignatures
     %% First add basic metadata to structure variable
 
     %
-    sigL1.SN = convertCharsToStrings(list_Signature{i1}(5:end));
-    sigL1.mooringID = convertCharsToStrings(list_Signature{i1}(1:3));
+    sigL1metadata.SN = convertCharsToStrings(list_Signature{i1}(5:end));
+    sigL1metadata.mooringID = convertCharsToStrings(list_Signature{i1}(1:3));
 
     % Latitude/longitude
-    info_mooringtable = ROXSI_mooringlocation(sigL1.mooringID, "ADCP");
+    info_mooringtable = ROXSI_mooringlocation(sigL1metadata.mooringID, "ADCP");
     %
-    sigL1.latitude = info_mooringtable.latitude;
-    sigL1.longitude = info_mooringtable.longitude;
+    sigL1metadata.latitude = info_mooringtable.latitude;
+    sigL1metadata.longitude = info_mooringtable.longitude;
 
     %
-    sigL1.site = info_mooringtable.roxsiarray;
+    sigL1metadata.site = info_mooringtable.roxsiarray;
 
     %
-    [sigL1.X, sigL1.Y] = ROXSI_lltoxy(sigL1.latitude, sigL1.longitude, sigL1.site);
+    [sigL1metadata.X, sigL1metadata.Y] = ROXSI_lltoxy(sigL1metadata.latitude, sigL1metadata.longitude, sigL1metadata.site);
 
     %
-    sigL1.coordsystem = 'localXY';
+    sigL1metadata.coordsystem = 'localXY';
 
     % In clockwise degrees from the true north
-    sigL1.magdec = 12.86;
+    sigL1metadata.magdec = 12.86;
 
 
     %%
 
     %
     if any(contains(list_5beams, list_Signature{i1}(1:3)))
-        sigL1.l5beams = true;
+        sigL1metadata.l5beams = true;
     else
-        sigL1.l5beams = false;
+        sigL1metadata.l5beams = false;
     end
 
     
@@ -409,16 +409,16 @@ for i1 = 1:Nsignatures
     dataread_aux = load(fullfile(dir_data_aux, list_dir_aux(1).name), 'Config');
 
     %
-    sigL1.Config = dataread_aux.Config;
+    sigL1metadata.Config = dataread_aux.Config;
 
 
     %% Get height above the bottom (zhab) of the ADCP bins
 
     % In meters (based on the Solidworks drawing)
-    sigL1.transducerHAB = (31.88)/100;
+    sigL1metadata.transducerHAB = (31.88)/100;
 
     % In meters
-    sigL1.binsize = dataread_aux.Config.Burst_CellSize;
+    sigL1metadata.binsize = dataread_aux.Config.Burst_CellSize;
     
     % Height of the first cell center relative to transducer
     % (based on the Principles of Operation manual by Nortek, page 12)
@@ -426,11 +426,11 @@ for i1 = 1:Nsignatures
                            dataread_aux.Config.Burst_CellSize;
 
     %
-    sigL1.cellcenter = cellcenter_first_bin + ...
-                        (0:1:(double(dataread_aux.Config.Burst_NCells) - 1)) .* sigL1.binsize;
+    sigL1metadata.cellcenter = cellcenter_first_bin + ...
+                        (0:1:(double(dataread_aux.Config.Burst_NCells) - 1)) .* sigL1metadata.binsize;
 
     %
-    sigL1.zhab = sigL1.transducerHAB + sigL1.cellcenter;
+    sigL1metadata.zhab = sigL1metadata.transducerHAB + sigL1metadata.cellcenter;
 
 
 % %     % Find all bins that are entirely below the maximum bottom depth
@@ -464,30 +464,39 @@ for i1 = 1:Nsignatures
 
     %
     L1scalar = load(fullfile(dir_output_L1, ...
-                   ['roxsi_signature_L1_' char(sigL1.mooringID) '_' ...
-                                          char(sigL1.SN) '_scalars.mat']));
+                   ['roxsi_signature_L1_' char(sigL1metadata.mooringID) '_' ...
+                                          char(sigL1metadata.SN) '_scalars.mat']));
     L1scalar = L1scalar.sigL1;
 
     %
     nzbinstrim = length(L1scalar.zhab);
 
     %
-    lin_verticalrange = false(1, length(sigL1.zhab));
+    lin_verticalrange = false(1, length(sigL1metadata.zhab));
     lin_verticalrange(1:nzbinstrim) = true;
 
 
     %%
     % ------------------------------------------
-    % ------------- LOAD THE DATA --------------
+    % ------------- ................ --------------
     % ------------------------------------------
 
-
-    %%
-
-    %
+    % Loop over processing time segments
     for i2 = 1:Ndatasegments
 
         %%
+        % ------------------------------------------
+        % ------------- LOAD THE DATA --------------
+        % ------------------------------------------
+
+        %% First iniatlize the data structure with the metadata
+        % (sigL1 is cleared at the end of this loop)
+
+        sigL1 = sigL1metadata;
+
+        %% Check there is data within the processing time
+        % limits, and get the files that have data for
+        % this period
 
         % If the time segment is a time that is fully outside the
         % deployment trimming edges, than skip this time segment

@@ -141,7 +141,7 @@ for i1 = 1:Nsignatures
         %
         data_aux = load(fullfile(list_dirsegments(i2).folder, ...
                                  list_dirsegments(i2).name, ...
-                                 ['roxsi_signature_L1_' list_Signature{i2} '.mat']));
+                                 ['roxsi_signature_L1_' list_Signature{i1} '.mat']));
 
         %
         if i2==1
@@ -197,9 +197,9 @@ keyboard
             sigL2.vdepthavg = [sigL2.vdepthavg; mean(sigL1.v(:, ind_start_aux:end), 1, 'omitnan').'];
             sigL2.wdepthavg = [sigL2.wdepthavg; mean(sigL1.w(:, ind_start_aux:end), 1, 'omitnan').'];
             %
-            sigL2.ubin1 = [sigL2.ubin1; sigL1.u(1, :).'];
-            sigL2.vbin1 = [sigL2.vbin1; sigL1.v(1, :).'];
-            sigL2.wbin1 = [sigL2.wbin1; sigL1.w(1, :).'];
+            sigL2.ubin1 = [sigL2.ubin1; sigL1.u(1, ind_start_aux:end).'];
+            sigL2.vbin1 = [sigL2.vbin1; sigL1.v(1, ind_start_aux:end).'];
+            sigL2.wbin1 = [sigL2.wbin1; sigL1.w(1, ind_start_aux:end).'];
         end
 
         % Remove sigL1 variable

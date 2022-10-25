@@ -103,11 +103,12 @@ Nsignatures = length(list_Signature);
 % % time_lims_proc.TimeZone = 'America/Los_Angeles';
 
 %
-time_lims_proc = [datetime(2022, 07, 05, 00, 00, 00), ...
-                  datetime(2022, 07, 06, 00, 00, 00)];
-time_lims_proc.TimeZone = 'America/Los_Angeles';
+time_lims_proc = [datetime(2022, 07, 05, 00, 00, 00), datetime(2022, 07, 06, 00, 00, 00); ...
+                  datetime(2022, 07, 06, 00, 00, 00), datetime(2022, 07, 07, 00, 00, 00); ...
+                  datetime(2022, 07, 07, 00, 00, 00), datetime(2022, 07, 08, 00, 00, 00)];
 
 %
+time_lims_proc.TimeZone = 'America/Los_Angeles';
 Ndatasegments = size(time_lims_proc, 1);
 
 %
@@ -115,8 +116,50 @@ if exist('time_lims_proc', 'var')
     lpredeflimits = true;
 else
     lpredeflimits = false;
+    Ndatasegments = 1;
 end
     
+
+%% If multiple data segments, then create
+% the correspondent output folders
+
+%
+fmt_date = "yyyy/MM/dd HH:mm:ss";    % one would expect to use lower case
+                                     % h, but then it gives 12 hours at
+                                     % midnight, 
+
+
+%
+numdigits = numel(num2str(Ndatasegments));
+str_format = ['%.' num2str(numdigits) 'd'];
+%
+list_dirsegments = cell(1, Ndatasegments);
+%
+for i = 1:Ndatasegments
+
+    %
+    newdir_aux = [dir_segment num2str(i, str_format)];
+    list_dirsegments{i} = newdir_aux;
+    %
+    mkdir(dir_output_L1, newdir_aux);
+    mkdir(dir_output_L1, fullfile(newdir_aux, 'figs_QC'));
+    
+    %
+    if lpredeflimits
+        str_date_1 = char(string(time_lims_proc(i, 1), fmt_date));
+        str_date_2 = char(string(time_lims_proc(i, 2), fmt_date));
+    else
+        % In this case, we alwasy have Ndatasegments==1
+        str_date_1 = 'deployment';
+        str_date_2 = 'recovery';
+    end
+
+    %
+    str_command = ['echo "data processed between ' str_date_1 ' and ' str_date_2 '" >> ' fullfile(dir_output_L1, newdir_aux, 'segment_period.txt')];
+    system(str_command);
+
+end
+
 
 %% The list of ADCPs processed with either 4 or 5 beams
 
@@ -1247,12 +1290,12 @@ for i1 = 1:Nsignatures
         disp('----- Saving beam data in level 1 data file -----')
         str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_alongbeamvel'];
         %
-        save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1metadata', '-v7.3')
+        save(fullfile(dir_output_L1, list_dirsegments{i2}, [str_filename '.mat']), 'sigL1metadata', '-v7.3')
         %
         if sigL1.l5beams
-            save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', '-append')
+            save(fullfile(dir_output_L1, list_dirsegments{i2}, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', '-append')
         else
-            save(fullfile(dir_output_L1, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', '-append')
+            save(fullfile(dir_output_L1, list_dirsegments{i2}, [str_filename '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', '-append')
         end
     
         % ----------------------------------------------------
@@ -1267,7 +1310,7 @@ for i1 = 1:Nsignatures
         disp('----- Saving primary level 1 data structure -----')
         str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN)];
         %
-        save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
+        save(fullfile(dir_output_L1, list_dirsegments{i2}, [str_filename '.mat']), 'sigL1', '-v7.3')
     
     
     % %     % ----------------------------------------------------
@@ -1288,7 +1331,7 @@ for i1 = 1:Nsignatures
     % %     disp('----- Saving level 1 data with scalars only -----')
     % %     str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_scalars'];
     % %     %
-    % %     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
+    % %     save(fullfile(dir_output_L1, list_dirsegments{i2}, [str_filename '.mat']), 'sigL1', '-v7.3')
 
 
         %% Stuff before start processing the next

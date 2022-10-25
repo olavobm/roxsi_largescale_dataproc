@@ -100,13 +100,20 @@ end
 %% List of all variables/field names in the data structure
 % as data is first stored in data structure
 
+% % %
+% % list_rawdata = {'timedatenum', 'pressure', 'temperature', ...
+% %                 'heading', 'pitch', 'roll', ...
+% %                 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+% %                 'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
+% %                 'cor1', 'cor2', 'cor3', 'cor4', 'cor5', ...
+% %                 'timedatenum5'};
+
 %
-list_rawdata = {'timedatenum', 'pressure', 'temperature', ...
-                'heading', 'pitch', 'roll', ...
-                'vel1', 'vel2', 'vel3', 'vel4', 'vel5', ...
+list_rawdata = {'timedatenum', ...
                 'amp1', 'amp2', 'amp3', 'amp4', 'amp5', ...
                 'cor1', 'cor2', 'cor3', 'cor4', 'cor5', ...
                 'timedatenum5'};
+
 
 % % % Remove variables to free up memory
 % % list_rawdata = {'timedatenum', 'pressure', 'temperature', ...
@@ -434,11 +441,11 @@ for i1 = 1:Nsignatures
 % % %             % Dummy/for code development
 % % %             lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
 
-            % Get data from the 4 beams
-            sigL1.vel1{i3} = dataread_aux.Data.Burst_VelBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.vel2{i3} = dataread_aux.Data.Burst_VelBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.vel3{i3} = dataread_aux.Data.Burst_VelBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
-            sigL1.vel4{i3} = dataread_aux.Data.Burst_VelBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             % Get data from the 4 beams
+% %             sigL1.vel1{i3} = dataread_aux.Data.Burst_VelBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             sigL1.vel2{i3} = dataread_aux.Data.Burst_VelBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             sigL1.vel3{i3} = dataread_aux.Data.Burst_VelBeam3(lin_proclims_beam4time_aux, lin_verticalrange);
+% %             sigL1.vel4{i3} = dataread_aux.Data.Burst_VelBeam4(lin_proclims_beam4time_aux, lin_verticalrange);
             %
             sigL1.amp1{i3} = dataread_aux.Data.Burst_AmpBeam1(lin_proclims_beam4time_aux, lin_verticalrange);
             sigL1.amp2{i3} = dataread_aux.Data.Burst_AmpBeam2(lin_proclims_beam4time_aux, lin_verticalrange);
@@ -456,7 +463,7 @@ for i1 = 1:Nsignatures
                 lin_proclims_beam5time_aux = (dataread_aux.Data.IBurst_Time >= datenum(time_lims_proc(i2, 1))) & ...
                                              (dataread_aux.Data.IBurst_Time <  datenum(time_lims_proc(i2, 2)));
                 %
-                sigL1.vel5{i3} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
+% %                 sigL1.vel5{i3} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
                 sigL1.amp5{i3} = dataread_aux.Data.IBurst_AmpBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
                 sigL1.cor5{i3} = dataread_aux.Data.IBurst_CorBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
     
@@ -496,6 +503,9 @@ for i1 = 1:Nsignatures
 
     end
 
+    %%
+
+    sigL1.zhab = sigL1.zhab(lin_verticalrange);
 
     %%
     % ------------------------------------------
@@ -594,6 +604,36 @@ for i1 = 1:Nsignatures
 % % %     %
 % % %     xlim(haxs_all(1), xlims_aux)
     
+    %% Apply clock correction for Signatures that had weird issue
+
+    %
+    if strcmp(list_Signature{i1}, 'X05_100231')
+        %
+        [lok_4beams, Nclockinvs, timelims_clockinvs] = correct_Sig1000_clock(sigL1.dtime);
+
+        %
+        [lok_5thbeam, Nclockinvs, timelims_clockinvs] = correct_Sig1000_clock(sigL1.dtime5);
+
+        %
+        sigL1.dtime = sigL1.dtime(lok_4beams);
+        %
+        sigL1.amp1 = sigL1.amp1(lok_4beams, :);
+        sigL1.amp2 = sigL1.amp2(lok_4beams, :);
+        sigL1.amp3 = sigL1.amp3(lok_4beams, :);
+        sigL1.amp4 = sigL1.amp4(lok_4beams, :);
+        %
+        sigL1.cor1 = sigL1.cor1(lok_4beams, :);
+        sigL1.cor2 = sigL1.cor2(lok_4beams, :);
+        sigL1.cor3 = sigL1.cor3(lok_4beams, :);
+        sigL1.cor4 = sigL1.cor4(lok_4beams, :);
+
+        %
+        sigL1.dtime5 = sigL1.dtime5(lok_5thbeam);
+        sigL1.amp5 = sigL1.amp5(lok_5thbeam, :);
+        sigL1.cor5 = sigL1.cor5(lok_5thbeam, :);
+
+    end
+
     %% Remove time variables that won't be used anymore
 
     sigL1 = rmfield(sigL1, 'timedatenum');
@@ -622,10 +662,10 @@ for i1 = 1:Nsignatures
         % Loop over bins of the 5th beam
         for i2 = 1:size(sigL1.vel5, 2)
             
-            %
-            vel5_aux(:, i2) = interp1(sigL1.dtime5, ...
-                                      sigL1.vel5(:, i2), ...
-                                      sigL1.dtime);
+% %             %
+% %             vel5_aux(:, i2) = interp1(sigL1.dtime5, ...
+% %                                       sigL1.vel5(:, i2), ...
+% %                                       sigL1.dtime);
             %
             amp5_aux(:, i2) = interp1(sigL1.dtime5, ...
                                       sigL1.amp5(:, i2), ...
@@ -637,7 +677,7 @@ for i1 = 1:Nsignatures
         end
 
         % Replace
-        sigL1.vel5 = vel5_aux;
+% %         sigL1.vel5 = vel5_aux;
         sigL1.amp5 = amp5_aux;
         sigL1.cor5 = cor5_aux;
         
@@ -730,25 +770,29 @@ for i1 = 1:Nsignatures
 
     % ----------------------------------------------------
     % Save level 1 data along-beam/backscatter/correlation quantities
+    %
+    % Don't save along-beam velocity because the main processing
+    % script already gets that and it also trims the data above
+    % the surface.
 
     %
     disp('----- Saving beam data in level 1 data file -----')
     %
-    str_name_1 = ['roxsi_signature_L1_' char(sigL1metadata.mooringID) '_' char(sigL1metadata.SN) '_alongbeamvel'];
+% %     str_name_1 = ['roxsi_signature_L1_' char(sigL1metadata.mooringID) '_' char(sigL1metadata.SN) '_alongbeamvel'];
     str_name_2 = ['roxsi_signature_L1_' char(sigL1metadata.mooringID) '_' char(sigL1metadata.SN) '_backscatter'];
     str_name_3 = ['roxsi_signature_L1_' char(sigL1metadata.mooringID) '_' char(sigL1metadata.SN) '_correlation'];
     %
-    save(fullfile(dir_output_L1, [str_name_1 '.mat']), 'sigL1metadata', '-v7.3')
+% %     save(fullfile(dir_output_L1, [str_name_1 '.mat']), 'sigL1metadata', '-v7.3')
     save(fullfile(dir_output_L1, [str_name_2 '.mat']), 'sigL1metadata', '-v7.3')
     save(fullfile(dir_output_L1, [str_name_3 '.mat']), 'sigL1metadata', '-v7.3')
 
     %
     if sigL1metadata.l5beams
-        save(fullfile(dir_output_L1, [str_name_1 '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', '-append')
+% %         save(fullfile(dir_output_L1, [str_name_1 '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', 'vel5', '-append')
         save(fullfile(dir_output_L1, [str_name_2 '.mat']), '-struct', 'sigL1', 'amp1', 'amp2', 'amp3', 'amp4', 'amp5', '-append')
         save(fullfile(dir_output_L1, [str_name_3 '.mat']), '-struct', 'sigL1', 'cor1', 'cor3', 'cor3', 'cor4', 'cor5', '-append')
     else
-        save(fullfile(dir_output_L1, [str_name_1 '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', '-append')
+% %         save(fullfile(dir_output_L1, [str_name_1 '.mat']), '-struct', 'sigL1', 'pressure', 'vel1', 'vel2', 'vel3', 'vel4', '-append')
         save(fullfile(dir_output_L1, [str_name_2 '.mat']), '-struct', 'sigL1', 'amp1', 'amp2', 'amp3', 'amp4', '-append')
         save(fullfile(dir_output_L1, [str_name_3 '.mat']), '-struct', 'sigL1', 'cor1', 'cor3', 'cor3', 'cor4', '-append')
     end

@@ -534,7 +534,7 @@ for i1 = 1:Nsignatures
             % -------------------------------
             % Then get velocity data
             
-            % Get all bins if scalar data is not loaded above (uncomment this)
+% %             % Get all bins if scalar data is not loaded above (uncomment this)
 % %             lin_verticalrange = true(1, size(dataread_aux.Data.Burst_VelBeam1, 2));
 
             % Get data from the 4 beams
@@ -574,7 +574,6 @@ for i1 = 1:Nsignatures
             clear dataread_aux
         end
 
-
         %% Concatenate data in cell arrays into matrices
 
         %
@@ -598,6 +597,12 @@ for i1 = 1:Nsignatures
         toc
 
     end
+
+    %%
+
+    %
+    sigL1.zhab = sigL1.zhab(lin_verticalrange);
+
 
     %%
     % ------------------------------------------
@@ -880,15 +885,15 @@ for i1 = 1:Nsignatures
 
     %% First step is to trim out all bins that never give good data
 
-    % Find all bins that are below the maximum bottom depth
-    lin_verticalrange = ((sigL1.zhab + (sigL1.binsize)) < max(sigL1.bottomdepthfrompres));
-    %
-    % PS: it's more intuitive to use binsize/2, however I don't
-    % know what is the precise definition of a "full cell" in
-    % the Signature1000 data. From one part of the manual, it seemed
-    % that measurements 2*binsize might be taken into 1 cell, but the
-    % windowing applied by the preprocessing inside the instrument
-    % may remove the edges.
+% %     % Find all bins that are below the maximum bottom depth
+% %     lin_verticalrange = ((sigL1.zhab + (sigL1.binsize)) < max(sigL1.bottomdepthfrompres));
+% %     %
+% %     % PS: it's more intuitive to use binsize/2, however I don't
+% %     % know what is the precise definition of a "full cell" in
+% %     % the Signature1000 data. From one part of the manual, it seemed
+% %     % that measurements 2*binsize might be taken into 1 cell, but the
+% %     % windowing applied by the preprocessing inside the instrument
+% %     % may remove the edges.
 
     %
     Nptstime = length(sigL1.dtime);
@@ -908,8 +913,8 @@ for i1 = 1:Nsignatures
         end
     end
 
-    % And trim zhab after trimming the matrices above
-    sigL1.zhab = sigL1.zhab(lin_verticalrange);
+% %     % And trim zhab after trimming the matrices above
+% %     sigL1.zhab = sigL1.zhab(lin_verticalrange);
 
 
     %% NaN data at/above the instantaneous ocean surface
@@ -1263,25 +1268,25 @@ for i1 = 1:Nsignatures
     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
 
 
-    % ----------------------------------------------------
-    % Save level 1 data with scalar variables only
-    %
-    sigL1.cellcenter = sigL1.cellcenter(1);
-    sigL1.zhab = sigL1.zhab(1);
-    %
-    sigL1.u = sigL1.u(1, :);    sigL1.u = sigL1.u(:);
-    sigL1.v = sigL1.v(1, :);    sigL1.v = sigL1.v(:);
-    sigL1.w = sigL1.w(1, :);    sigL1.w = sigL1.w(:);
-    %
-    sigL1.averaged.u = sigL1.averaged.u(1, :);    sigL1.averaged.u = sigL1.averaged.u(:);
-    sigL1.averaged.v = sigL1.averaged.v(1, :);    sigL1.averaged.v = sigL1.averaged.v(:);
-    sigL1.averaged.w = sigL1.averaged.w(1, :);    sigL1.averaged.w = sigL1.averaged.w(:);
-
-    %
-    disp('----- Saving level 1 data with scalars only -----')
-    str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_scalars'];
-    %
-    save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
+% %     % ----------------------------------------------------
+% %     % Save level 1 data with scalar variables only
+% %     %
+% %     sigL1.cellcenter = sigL1.cellcenter(1);
+% %     sigL1.zhab = sigL1.zhab(1);
+% %     %
+% %     sigL1.u = sigL1.u(1, :);    sigL1.u = sigL1.u(:);
+% %     sigL1.v = sigL1.v(1, :);    sigL1.v = sigL1.v(:);
+% %     sigL1.w = sigL1.w(1, :);    sigL1.w = sigL1.w(:);
+% %     %
+% %     sigL1.averaged.u = sigL1.averaged.u(1, :);    sigL1.averaged.u = sigL1.averaged.u(:);
+% %     sigL1.averaged.v = sigL1.averaged.v(1, :);    sigL1.averaged.v = sigL1.averaged.v(:);
+% %     sigL1.averaged.w = sigL1.averaged.w(1, :);    sigL1.averaged.w = sigL1.averaged.w(:);
+% % 
+% %     %
+% %     disp('----- Saving level 1 data with scalars only -----')
+% %     str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN) '_scalars'];
+% %     %
+% %     save(fullfile(dir_output_L1, [str_filename '.mat']), 'sigL1', '-v7.3')
 
 
 

@@ -32,7 +32,7 @@ dir_data_raw = fullfile(dirparent_data, 'RAW', 'Signature1000');
 %% Output directory
 
 %
-dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Signature_Level1/data_segments/';
+dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Signature_Level1/';
 % dir_output_L1 = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/';
 
 % If multiple time segments are given

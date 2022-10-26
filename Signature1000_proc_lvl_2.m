@@ -26,7 +26,7 @@ close all
 
 %
 dirparent_data = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/';
-dir_dataL1 = fullfile(dirparent_data, 'Level1_Data', 'Signature_Level1', 'data_segments');
+dir_dataL1 = fullfile(dirparent_data, 'Level1_Data', 'Signature_Level1');
 
 
 %% Directory to output L2 data and figures

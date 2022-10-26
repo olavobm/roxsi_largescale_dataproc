@@ -595,8 +595,10 @@ for i1 = 1:Nsignatures
                                          listfiles_perseg(i3)));
 
             %
-            lin_proclims_beam4time_aux = (dataread_aux.Data.Burst_Time >= datenum(time_lims_proc(i2, 1))) & ...
-                                         (dataread_aux.Data.Burst_Time <  datenum(time_lims_proc(i2, 2)));
+            lin_proclims_beam4time_aux = (dataread_aux.Data.Burst_Time >= datenum(time_1)) & ...    % trimming for
+                                         (dataread_aux.Data.Burst_Time <= datenum(time_2)) & ...    % deployment 
+                                         (dataread_aux.Data.Burst_Time >= datenum(time_lims_proc(i2, 1))) & ...    % trimming for
+                                         (dataread_aux.Data.Burst_Time <  datenum(time_lims_proc(i2, 2)));         % processing
 
             % -------------------------------
             % First get all the scalars
@@ -634,9 +636,12 @@ for i1 = 1:Nsignatures
 
             %
             if sigL1.l5beams
+
                 %
-                lin_proclims_beam5time_aux = (dataread_aux.Data.IBurst_Time >= datenum(time_lims_proc(i2, 1))) & ...
-                                             (dataread_aux.Data.IBurst_Time <  datenum(time_lims_proc(i2, 2)));
+                lin_proclims_beam5time_aux = (dataread_aux.Data.IBurst_Time >= datenum(time_1)) & ...    % trimming for
+                                             (dataread_aux.Data.IBurst_Time <= datenum(time_2)) & ...    % deployment 
+                                             (dataread_aux.Data.IBurst_Time >= datenum(time_lims_proc(i2, 1))) & ...   % trimming for
+                                             (dataread_aux.Data.IBurst_Time <  datenum(time_lims_proc(i2, 2)));        % processing
                 %
                 sigL1.vel5{i3} = dataread_aux.Data.IBurst_VelBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
 % %                 sigL1.amp5{i3} = dataread_aux.Data.IBurst_AmpBeam5(lin_proclims_beam5time_aux, lin_verticalrange);
@@ -1028,7 +1033,7 @@ for i1 = 1:Nsignatures
         end
     
         %
-        disp('--- Done with trimming data ---')
+        disp('--- Done with trimming data in the vertical ---')
         toc
     
     

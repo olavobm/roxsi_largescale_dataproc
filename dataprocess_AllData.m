@@ -7,7 +7,7 @@ close all
 
 
 %% 
-% BUT BE CAREFUL BECAUSE IT MIGHT ERASE!!!
+% BUT BE CAREFUL BECAUSE IT MIGHT ERASE directory/data!!!
 
 run('create_data_emptydirtree.m')
 
@@ -19,13 +19,12 @@ run('Aquadopp_proc_lvl_1.m'), close all
 run('Aquadopp_proc_lvl_2.m'), close all
 
 
-%% Process  Smart Moorings
+%% Process Smart Moorings
 
-%
-run('SpottersSmart_proc_lvl_1.m'), close all
-run('SpottersSmart_timegrid_pressure.m'), close all
-run('SmartMooring_proc_lvl_2.m'), close all
-
+% % %
+% % run('SpottersSmart_proc_lvl_1.m'), close all
+% % run('SpottersSmart_timegrid_pressure.m'), close all
+% % run('SmartMooring_proc_lvl_2.m'), close all
 
 
 %% Process Spotters (note that the above is currently
@@ -40,5 +39,6 @@ run('Spotters_proc_lvl_2.m'), close all
 %% Signature1000
 
 %
+run('Signature1000_proc_lvl_1_scalars.m'), close all
 run('Signature1000_proc_lvl_1.m'), close all
-run('Signature1000_proc_grabbeamdata.m'), close all
+run('Signature1000_proc_lvl_2.m'), close all

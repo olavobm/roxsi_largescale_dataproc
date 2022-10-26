@@ -1011,6 +1011,7 @@ for i = 1:length(list_spotters)
     save(str_fullpath_file, 'spotterL1', '-v7.3')
 
 
+    %%
     % -----------------------------------
     %
     disp(['----------------- Done with level 1 data processing for Spotter ' list_spotters{i} ' -----------------'])
@@ -1020,8 +1021,11 @@ for i = 1:length(list_spotters)
 % %     close% close figures
 
     %
+    close all
+    %
     toc(totalRunTime)
-
+    
+    
 
 end
 

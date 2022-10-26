@@ -751,11 +751,19 @@ for i = 1:length(list_Spotters)
 
     %%
 
+
     %
     disp(['------------------ Done with directional spectra ' ...
           'for Spotter ' list_Spotters{i} ' ------------------'])
+
+    %
+    clear spotterL2
+    close all
+
     %
     toc(totalRunTime)
+
+
 
 end
 

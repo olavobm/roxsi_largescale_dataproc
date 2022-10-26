@@ -69,6 +69,9 @@ freq_lims = [0.045, 0.3];
 freqbands.SS = [0.045, 0.3];
 freqbands.IG = [0.005, 0.03];
 
+%
+frequencytrimTH = 0.35;
+
 %%
 
 list_copyvars = {'SN', 'mooringID', 'latitude', 'longitude', ...
@@ -139,9 +142,10 @@ for i1 = 1:Nsignatures
     % Loop over segments
     for i2 = 1:length(list_dirsegments)
         %
-        data_aux = load(fullfile(list_dirsegments(i2).folder, ...
+        sigL1 = load(fullfile(list_dirsegments(i2).folder, ...
                                  list_dirsegments(i2).name, ...
                                  ['roxsi_signature_L1_' list_Signature{i1} '.mat']));
+        sigL1 = sigL1.sigL1;
 
         %
         if i2==1
@@ -180,12 +184,12 @@ for i1 = 1:Nsignatures
             sigL2.ubin1 = sigL2.ubin1(:);
             sigL2.vbin1 = sigL2.vbin1(:);
             sigL2.wbin1 = sigL2.wbin1(:);
-keyboard
+
         %
         else
 
             % Find matching grid points to concatenate data
-            ind_match_aux = find(sigL1.dtime == sigL2.dtime(end));
+            ind_match_aux = find(sigL1.dtime == sigL2.dtimedata(end));
             ind_start_aux = ind_match_aux + 1;
 
             %
@@ -223,8 +227,6 @@ keyboard
     sigL2.vbin1mean = time_smooth_reg(sigL2.dtimedata, sigL2.vbin1, windowavg, timestatslims);
     sigL2.wbin1mean = time_smooth_reg(sigL2.dtimedata, sigL2.wbin1, windowavg, timestatslims);
     
-% !!!!! CHECK IF DIMENSIONS ARE CONSISTENT WITH TIME GRID!!!!!
-keyboard
 
     %% Compute spectra
     
@@ -246,7 +248,20 @@ keyboard
     toc
     
 
-    %% Compute elevation spectra from pressure (and velocity???)
+    %% Trim out unnecessary very high frequencies
+
+    %
+    lkeepfrequency = (sigL2.frequency <= frequencytrimTH);
+    %
+    sigL2.frequency = sigL2.frequency(lkeepfrequency);
+    sigL2.Suu = sigL2.Suu(lkeepfrequency, :);
+    sigL2.Svv = sigL2.Svv(lkeepfrequency, :);
+    sigL2.Sww = sigL2.Sww(lkeepfrequency, :);
+    %
+    sigL2.Spp = sigL2.Spp(lkeepfrequency, :);
+
+
+    %% Compute elevation spectra from pressure
     
     %
     g = 9.8;
@@ -254,7 +269,7 @@ keyboard
     
     % Computes bottom depth from average pressure (which is
     % hydrostatic over 1 hour)
-    bottomdepth_mean = 1e4*pressuremean ./ (rho0*g);
+    sigL2.bottomdepthmean = 1e4*pressuremean ./ (rho0*g);
     
     % Convert frequencies to wavenumbers using
     % linear wave theory
@@ -273,13 +288,13 @@ keyboard
     
         % Only do calculation if there is a valid
         % average bottom depth at time timespec(i2)
-        if ~isnan(bottomdepth_mean(i2))
+        if ~isnan(sigL2.bottomdepthmean(i2))
 
             % Loop over frequencies
             for i3 = 2:length(sigL2.frequency)
         
                 %
-                disp_rel_solver = @(k) disp_rel(k, bottomdepth_mean(i2), sigL2.frequency(i3));
+                disp_rel_solver = @(k) disp_rel(k, sigL2.bottomdepthmean(i2), sigL2.frequency(i3));
         
                 % In radians per meter
                 k_matrix(i3, i2) = fzero(disp_rel_solver, [(2*pi/(5000)), (2*pi/(1))]);
@@ -290,7 +305,7 @@ keyboard
     toc
     
     % Compute transfer function
-    h_matrix = repmat(bottomdepth_mean, length(sigL2.frequency), 1);
+    h_matrix = repmat(sigL2.bottomdepthmean, length(sigL2.frequency), 1);
     correction = cosh(k_matrix .* h_matrix) ./ ...
                  cosh(k_matrix * sigL2.transducerHAB);
     sigL2.See = sigL2.Spp .* correction.^2;
@@ -366,7 +381,7 @@ keyboard
     disp('----- Saving level 2 data -----')
     %
     str_filename = ['roxsi_signature_L2_' char(sigL2.mooringID) '_' char(sigL2.SN)];
-    save(fullfile(dir_dataL2, [str_filename '.mat']), 'aquadoppL2', '-v7.3')
+    save(fullfile(dir_dataL2, [str_filename '.mat']), 'sigL2', '-v7.3')
     %
     disp('----- Done saving data -----')
 

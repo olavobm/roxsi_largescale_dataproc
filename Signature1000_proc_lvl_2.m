@@ -269,7 +269,7 @@ for i1 = 1:Nsignatures
     
     % Computes bottom depth from average pressure (which is
     % hydrostatic over 1 hour)
-    sigL2.bottomdepthmean = 1e4*pressuremean ./ (rho0*g);
+    sigL2.bottomdepthmean = 1e4*sigL2.pressuremean ./ (rho0*g);
     
     % Convert frequencies to wavenumbers using
     % linear wave theory

@@ -107,7 +107,8 @@ freqbands.IG = [0.005, 0.03];
 
 list_copyvars = {'SN', 'mooringID', 'latitude', 'longitude', ...
                  'site', 'X', 'Y', ...
-                 'samplingtime', 'averagingtime', 'binsize', 'zhab'};
+                 'samplingtime', 'averagingtime', ...
+                 'transducerHAB', 'binsize', 'zhab'};
 
 
 %%
@@ -179,7 +180,7 @@ for i1 = 1:Naquadopps
     % First compute depth-averaged velocity from the data
     %
     aquadoppL2.dtimedata = aquadoppL1.dtime;
-    aquadoppL2.pressure = mean(aquadoppL1.pressure, 1, 'omitnan');
+    aquadoppL2.pressure = aquadoppL1.pressure;
     aquadoppL2.udepthavg = mean(aquadoppL1.u, 1, 'omitnan');
     aquadoppL2.vdepthavg = mean(aquadoppL1.v, 1, 'omitnan');
     aquadoppL2.wdepthavg = mean(aquadoppL1.w, 1, 'omitnan');
@@ -210,6 +211,7 @@ for i1 = 1:Naquadopps
     %
     aquadoppL2.dtime = timestatslims(1) : hours(windowavg/3600) : timestatslims(2);
 
+    aquadoppL2.pressuremean = time_smooth_reg(aquadoppL1.dtime, aquadoppL2.pressure, windowavg, timestatslims);
     %
     aquadoppL2.umean = time_smooth_reg(aquadoppL1.dtime, aquadoppL2.udepthavg, windowavg, timestatslims);
     aquadoppL2.vmean = time_smooth_reg(aquadoppL1.dtime, aquadoppL2.vdepthavg, windowavg, timestatslims);
@@ -248,19 +250,38 @@ for i1 = 1:Naquadopps
     % Compute spectra for DEPTH-AVERAGED u, v, and w if sampling is 1 Hz
     if aquadoppL1.samplingtime == 1
 
+        %%
         %
         disp(['--- Sampling rate of Aquadopp ' list_Aquadopp{i1} ' is ' num2str(aquadoppL1.samplingtime) ' second(s). Computing spectra from depth-averaged velocity ---'])
+
+        %%
+
+        %
+        aquadoppL2.ubin1 = aquadoppL1.u(1, :);
+        aquadoppL2.vbin1 = aquadoppL1.v(1, :);
+        aquadoppL2.wbin1 = aquadoppL1.w(1, :);
+        %
+        aquadoppL2.ubin1 = aquadoppL2.ubin1(:);
+        aquadoppL2.vbin1 = aquadoppL2.vbin1(:);
+        aquadoppL2.wbin1 = aquadoppL2.wbin1(:);
+        %
+        aquadoppL2.ubin1mean = time_smooth_reg(aquadoppL1.dtime, aquadoppL2.ubin1, windowavg, timestatslims);
+        aquadoppL2.vbin1mean = time_smooth_reg(aquadoppL1.dtime, aquadoppL2.vbin1, windowavg, timestatslims);
+        aquadoppL2.wbin1mean = time_smooth_reg(aquadoppL1.dtime, aquadoppL2.wbin1, windowavg, timestatslims);
+
+
+        %%
 
         tic
         %
         [Suu, ~, freqvec, dof_uvw] = ...
-                    spectra_scalar_reg(aquadoppL2.dtimedata, aquadoppL2.udepthavg, ...
+                    spectra_scalar_reg(aquadoppL2.dtimedata, aquadoppL2.ubin1, ...
                                        windowfft, windowavg, timestatslims);
         %
-        Svv = spectra_scalar_reg(aquadoppL2.dtimedata, aquadoppL2.vdepthavg, ...
+        Svv = spectra_scalar_reg(aquadoppL2.dtimedata, aquadoppL2.vbin1, ...
                                  windowfft, windowavg, timestatslims);
         %
-        Sww = spectra_scalar_reg(aquadoppL2.dtimedata, aquadoppL2.wdepthavg, ...
+        Sww = spectra_scalar_reg(aquadoppL2.dtimedata, aquadoppL2.wbin1, ...
                                  windowfft, windowavg, timestatslims);
 
         toc
@@ -275,7 +296,7 @@ for i1 = 1:Naquadopps
         toc
 
         % Add variables to L2 output data structure
-        aquadoppL2.frequency = freqvec;
+        aquadoppL2.frequency = freqvec(:);
         %
         aquadoppL2.Suu = Suu;
         aquadoppL2.Svv = Svv;
@@ -334,7 +355,7 @@ for i1 = 1:Naquadopps
         % Compute transfer function
         h_matrix = repmat(avgbottomdepth, length(freqvec), 1);
         correction = cosh(k_matrix .* h_matrix) ./ ...
-                     cosh(k_matrix * aquadoppL1.transducerHAB);
+                     cosh(k_matrix * aquadoppL2.transducerHAB);
         aquadoppL2.See = aquadoppL2.Spp .* correction.^2;
 
 
@@ -358,6 +379,8 @@ for i1 = 1:Naquadopps
             %
             linband_aux = (aquadoppL2.frequency >= freqlims_aux(1)) & ...
                           (aquadoppL2.frequency  < freqlims_aux(2));
+
+
             %
             aquadoppL2.(['uvar' list_freqbands{i2}]) = ...
                               trapz(aquadoppL2.frequency(linband_aux), ...
@@ -368,12 +391,22 @@ for i1 = 1:Naquadopps
             aquadoppL2.(['wvar' list_freqbands{i2}]) = ...
                               trapz(aquadoppL2.frequency(linband_aux), ...
                                     aquadoppL2.Sww(linband_aux, :), 1);
+
             %
-            aquadoppL2.(['Hsig' list_freqbands{i2}]) = ...
-                              trapz(aquadoppL2.frequency(linband_aux), ...
-                                    aquadoppL2.See(linband_aux, :), 1);
-            aquadoppL2.(['Hsig' list_freqbands{i2}]) = ...
-                          4*sqrt(aquadoppL2.(['Hsig' list_freqbands{i2}]));
+            m0_aux = trapz(aquadoppL2.frequency(linband_aux), aquadoppL2.See(linband_aux, :), 1);
+            m1_aux = trapz(aquadoppL2.frequency(linband_aux), ...
+                                        (aquadoppL2.See(linband_aux, :) .* ...
+                                         repmat(aquadoppL2.frequency(linband_aux), 1, length(aquadoppL2.dtime))), 1);
+            %
+            aquadoppL2.(['Tmean' list_freqbands{i2}]) = m0_aux./m1_aux;
+            aquadoppL2.(['Hsig' list_freqbands{i2}]) = 4.*sqrt(m0_aux);
+            
+% %             %
+% %             aquadoppL2.(['Hsig' list_freqbands{i2}]) = ...
+% %                               trapz(aquadoppL2.frequency(linband_aux), ...
+% %                                     aquadoppL2.See(linband_aux, :), 1);
+% %             aquadoppL2.(['Hsig' list_freqbands{i2}]) = ...
+% %                           4*sqrt(aquadoppL2.(['Hsig' list_freqbands{i2}]));
         end
         
 % %         %

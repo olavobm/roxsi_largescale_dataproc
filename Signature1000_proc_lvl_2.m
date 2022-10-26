@@ -26,7 +26,7 @@ close all
 
 %
 dirparent_data = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/';
-dir_dataL1 = fullfile(dirparent_data, 'Level1_Data', 'Signature_Level1');
+dir_dataL1 = fullfile(dirparent_data, 'Level1_Data', 'Signature_Level1', 'data_segments');
 
 
 %% Directory to output L2 data and figures
@@ -141,10 +141,21 @@ for i1 = 1:Nsignatures
     
     % Loop over segments
     for i2 = 1:length(list_dirsegments)
+
+        % Check if there is a file in the i2'th segment
+        % (it may not have if the data from different
+        % ADCPs are trimmed differently)
+        filedir_aux = dir(fullfile(list_dirsegments(i2).folder, ...
+                                   list_dirsegments(i2).name, ...
+                                   ['roxsi_signature_L1_' list_Signature{i1} '.mat']));
+
+        % If there is no file, skip/continue to the next loop iteration
+        if isempty(filedir_aux)
+            continue
+        end
+        
         %
-        sigL1 = load(fullfile(list_dirsegments(i2).folder, ...
-                                 list_dirsegments(i2).name, ...
-                                 ['roxsi_signature_L1_' list_Signature{i1} '.mat']));
+        sigL1 = load(fullfile(filedir_aux.folder, filedir_aux.name));
         sigL1 = sigL1.sigL1;
 
         %
@@ -247,6 +258,9 @@ for i1 = 1:Nsignatures
                                    windowfft, windowavg, timestatslims);
     toc
     
+    %
+    sigL2.frequency = sigL2.frequency(:);
+
 
     %% Trim out unnecessary very high frequencies
 
@@ -311,7 +325,7 @@ for i1 = 1:Nsignatures
     sigL2.See = sigL2.Spp .* correction.^2;
 
 
-    %% Compute variance in the sea-swell and infragravity bands
+    %% Compute statistics in the sea-swell and infragravity bands
 
     %
     disp('--- Integrating spectra to compute variance for each velocity component in the sea-swell band ---')
@@ -340,11 +354,14 @@ for i1 = 1:Nsignatures
 % % %                                 aquadoppL2.Sww(linband_aux, :), 1);
 
         %
-        sigL2.(['Hsig' list_freqbands{i2}]) = ...
-                          trapz(sigL2.frequency(linband_aux), ...
-                                sigL2.See(linband_aux, :), 1);
-        sigL2.(['Hsig' list_freqbands{i2}]) = ...
-                      4*sqrt(sigL2.(['Hsig' list_freqbands{i2}]));
+        m0_aux = trapz(sigL2.frequency(linband_aux), sigL2.See(linband_aux, :), 1);
+        m1_aux = trapz(sigL2.frequency(linband_aux), ...
+                                    (sigL2.See(linband_aux, :) .* ...
+                                     repmat(sigL2.frequency(linband_aux), 1, length(sigL2.dtime))), 1);
+        %
+        sigL2.(['Tmean' list_freqbands{i2}]) = m0_aux./m1_aux;
+        sigL2.(['Hsig' list_freqbands{i2}]) = 4.*sqrt(m0_aux);
+
     end
     
 % %         %
@@ -403,6 +420,9 @@ for i1 = 1:Nsignatures
 
     %
     toc(totalRunTime)
+
+    %
+    clear sigL2
 
 
 end

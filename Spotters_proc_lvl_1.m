@@ -438,7 +438,62 @@ for i = 1:length(list_spotters)
 
 
 
+    %% Interpolate variables on equally spaced time grids
+    % (it makes things simpler later, but it also assumes
+    % there is nothing very wrong with the data and/or
+    % there won't be analysis that will be affected by 
+    % the interpolation).
+    %
+    % Sofar giver displacement data at about 0.4 seconds,
+    % SST at about 60 seconds, and location at about 60.4 seconds.
+
+% % % For displacement
+% %     %
+% %     time_start_aux = data_trimmed.displacement.time(1);
+% %     time_start_aux = datetime(year(time_start_aux), month(time_start_aux), day(time_start_aux), ...
+% %                               hour(time_start_aux), minute(time_start_aux), ceil(second(time_start_aux)));
+% %     %
+% %     time_end_aux = data_trimmed.displacement.time(end);
+% %     time_end_aux = datetime(year(time_end_aux), month(time_end_aux), day(time_end_aux), ...
+% %                             hour(time_end_aux), minute(time_end_aux), floor(second(time_end_aux)));
+% % 
+% %     %
+% %     newtime_aux = time_start_aux : seconds(0.4) : time_end_aux;
+
+    %
+    disp('--- Interpolating location coordinates to equally spaced time grid ---')
+
+    % For location
+    time_start_aux = data_trimmed.location.time(1);
+    time_start_aux = datetime(year(time_start_aux), month(time_start_aux), day(time_start_aux), ...
+                              hour(time_start_aux), minute(time_start_aux) + 1, 0);
+    %
+    time_end_aux = data_trimmed.location.time(end);
+    time_end_aux = datetime(year(time_end_aux), month(time_end_aux), day(time_end_aux), ...
+                            hour(time_end_aux), minute(time_end_aux) - 1, 0);
+    %
+    newtime_aux = time_start_aux : seconds(60) : time_end_aux;
+
+    %
+    latitude_interp = interp1(data_trimmed.location.time, data_trimmed.location.("latitude (decimal degrees)"), newtime_aux);
+    longitude_interp = interp1(data_trimmed.location.time, data_trimmed.location.("longitude (decimal degrees)"), newtime_aux);
+
+    % Replace observed location table with interpolated location table
+    new_table_aux = array2table(newtime_aux(:), "VariableNames", "time");
+    %
+    new_table_aux.("latitude (decimal degrees)") = latitude_interp;
+    new_table_aux.("longitude (decimal degrees)") = longitude_interp;
+    %
+    data_trimmed.location = new_table_aux;
+
     
+
+% % % For SST
+% %     if 
+% %     data_trimmed.SST
+% %     emd
+    
+
     %% Define time grid to calculate bulk statistics for the
     % specific Spotter (the grid passes on whole hours for
     % simplicity)
@@ -525,6 +580,7 @@ for i = 1:length(list_spotters)
     %%
 
 % %     data_out = data_trimmed;
+
 
     %% Recalculate Fourier coefficients and bulk parameters
     % for specified time grid points -- here we neglect that

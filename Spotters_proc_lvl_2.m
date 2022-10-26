@@ -507,9 +507,6 @@ for i = 1:length(list_Spotters)
 
     end
 
-    
-
-    
     %% Compute bulk parameters from wave spectrum
 
     %
@@ -550,6 +547,15 @@ for i = 1:length(list_Spotters)
         
 
     end
+
+
+    %% Add hourly averaged bottom depth
+
+    %
+    spotterL2.bottomdepth = time_smooth_reg(spotterL1.location.dtime, ...
+                                            spotterL1.location.z_msl, ...
+                                            3600*analysis_period_hours, ...
+                                            spotterL2.dtime([1, end]));
 
 
     %% Save directional spectra

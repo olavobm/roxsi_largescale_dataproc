@@ -159,8 +159,7 @@ for i1 = 1:Nsignatures
         sigL1 = sigL1.sigL1;
 
         %
-        if i2==1
-            
+        if ~exist('sigL2', 'var')
 
             %
             for i3 = 1:length(list_copyvars)

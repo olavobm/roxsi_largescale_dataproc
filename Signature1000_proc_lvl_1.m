@@ -107,8 +107,8 @@ Nsignatures = length(list_Signature);
 % %                   datetime(2022, 07, 06, 23, 50, 00), datetime(2022, 07, 09, 00, 10, 00); ...
 % %                   datetime(2022, 07, 08, 23, 50, 00), datetime(2022, 07, 11, 00, 10, 00)];
 %
-time_beg_aux = datetime(2022, 06, 29, 23, 50, 00) : days(2) : datetime(2022, 07, 17, 23, 50, 00);
-time_end_aux = datetime(2022, 07, 02, 00, 10, 00) : days(2) : datetime(2022, 07, 20, 00, 10, 00);
+time_beg_aux = datetime(2022, 06, 19, 23, 50, 00) : days(2) : datetime(2022, 07, 23, 23, 50, 00);
+time_end_aux = datetime(2022, 06, 22, 00, 10, 00) : days(2) : datetime(2022, 07, 26, 00, 10, 00);
 time_lims_proc = [time_beg_aux(:), time_end_aux(:)];
 
 %
@@ -1344,7 +1344,7 @@ for i1 = 1:Nsignatures
             end
         end
         %
-        disp('----- Saving primary level 1 data structure -----')
+        disp('--- Saving primary level 1 data structure ---')
         str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN)];
         %
         save(fullfile(dir_output_L1, list_dirsegments{i2}, [str_filename '.mat']), 'sigL1', '-v7.3')
@@ -1375,12 +1375,11 @@ for i1 = 1:Nsignatures
         % data segment of the same Signature
 
         % ----------------------------------------------------
-        disp(' ')
-        disp(['--- done with processing Signature1000 ' ...
+        disp(['--- Done with processing Signature1000 ' ...
               list_Signature{i1} ' data segment ' num2str(i2) ...
               ' out of ' num2str(Ndatasegments) ' ---'])
         toc(totalRunTime)
-
+        disp(' ')
         %
         close all
         clear sigL1

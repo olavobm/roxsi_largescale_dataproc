@@ -336,7 +336,7 @@ for i1 = 1:Naquadopps
         
             % Only do calculation if there is a valid
             % average bottom depth at time timespec(i2)
-            if ~isnan(avgbottomdepth(i2))
+            if ~isnan(avgbottomdepth(i2)) && (avgbottomdepth(i2)>0.2)
     
                 % Loop over frequencies
                 for i3 = 2:length(freqvec)
@@ -466,9 +466,9 @@ for i1 = 1:Naquadopps
                 pcolor(haxs_1, aquadoppL2.dtime, aquadoppL2.frequency, log10(aquadoppL2.Suu))
                 pcolor(haxs_2, aquadoppL2.dtime, aquadoppL2.frequency, log10(aquadoppL2.Sww))
                 %
-                hp_u = plot(haxs_3, aquadoppL2.dtime, aquadoppL2.uvar, '-');
-                hp_v = plot(haxs_3, aquadoppL2.dtime, aquadoppL2.vvar, '-');
-                hp_w = plot(haxs_3, aquadoppL2.dtime, 10.*aquadoppL2.wvar, '-');
+                hp_u = plot(haxs_3, aquadoppL2.dtime, aquadoppL2.uvarSS, '-');
+                hp_v = plot(haxs_3, aquadoppL2.dtime, aquadoppL2.vvarSS, '-');
+                hp_w = plot(haxs_3, aquadoppL2.dtime, 10.*aquadoppL2.wvarSS, '-');
     
             %
             shading(haxs_1, 'flat')
@@ -510,8 +510,8 @@ for i1 = 1:Naquadopps
             %
             for indhaxs = [1, 2]
                 xlim_aux = xlim(haxs_all(indhaxs));
-                plot(haxs_all(indhaxs), xlim_aux, aquadoppL2.freqband(1).*[1, 1], '--k')
-                plot(haxs_all(indhaxs), xlim_aux, aquadoppL2.freqband(2).*[1, 1], '--k')
+                plot(haxs_all(indhaxs), xlim_aux, aquadoppL2.freqbandSS(1).*[1, 1], '--k')
+                plot(haxs_all(indhaxs), xlim_aux, aquadoppL2.freqbandSS(2).*[1, 1], '--k')
                 xlim(haxs_all(indhaxs), xlim_aux)
             end
 

@@ -481,8 +481,8 @@ for i = 1:length(list_spotters)
     % Replace observed location table with interpolated location table
     new_table_aux = array2table(newtime_aux(:), "VariableNames", "time");
     %
-    new_table_aux.("latitude (decimal degrees)") = latitude_interp;
-    new_table_aux.("longitude (decimal degrees)") = longitude_interp;
+    new_table_aux.("latitude (decimal degrees)") = latitude_interp(:);
+    new_table_aux.("longitude (decimal degrees)") = longitude_interp(:);
     %
     data_trimmed.location = new_table_aux;
 

@@ -1,5 +1,5 @@
-function mergedL1 = SmartMooring_merge_L1(dirbuoy, dirpressure, SN)
-%% mergedL1 = SmartMooring_merge_L1(dirbuoy, dirpressure, SN)
+function mergedL1 = SmartMooring_merge_L1(SN, dirbuoy, dirpressure)
+%% mergedL1 = SmartMooring_merge_L1(SN, dirbuoy, dirpressure)
 %
 %
 %
@@ -31,7 +31,7 @@ while lloop_aux && (ind_match_buoy < length(list_buoydata_files))
     %
     ind_match_buoy = ind_match_buoy + 1;
     %
-    indfind_aux = strfind(list_buoydata_files(ind_match_buoy).filename, SN);
+    indfind_aux = strfind(list_buoydata_files(ind_match_buoy).name, SN);
     
     %
     if ~isempty(indfind_aux)
@@ -46,7 +46,7 @@ while lloop_aux && (ind_match_pressure < length(list_pressure_files))
     %
     ind_match_pressure = ind_match_pressure + 1;
     %
-    indfind_aux = strfind(list_pressure_files(ind_match_pressure).filename, SN);
+    indfind_aux = strfind(list_pressure_files(ind_match_pressure).name, SN);
     
     %
     if ~isempty(indfind_aux)
@@ -59,8 +59,8 @@ end
 %%
 
 %
-filefullname_buoy = fullfile(list_buoydata_files(ind_match_buoy).folder, list_buoydata_files(ind_match_buoy).filename);
-filefullname_pres = fullfile(list_pressure_files(ind_match_pressure).folder, list_pressure_files(ind_match_pressure).filename);
+filefullname_buoy = fullfile(list_buoydata_files(ind_match_buoy).folder, list_buoydata_files(ind_match_buoy).name);
+filefullname_pres = fullfile(list_pressure_files(ind_match_pressure).folder, list_pressure_files(ind_match_pressure).name);
 
 %
 varBuoy = who('-file', filefullname_buoy);

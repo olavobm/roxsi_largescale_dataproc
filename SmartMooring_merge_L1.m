@@ -13,6 +13,17 @@ function mergedL1 = SmartMooring_merge_L1(SN, dirbuoy, dirpressure)
 
 %%
 
+if nargin==1
+    %
+    dirparent_data = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/';
+    %
+    dirbuoy = fullfile(dirparent_data, 'Spotter_Level1');
+    dirpressure = fullfile(dirparent_data, 'Spotter_Smart_Level1', 'gridded');
+end
+
+
+%%
+
 %
 list_buoydata_files = dir(fullfile(dirbuoy, '*.mat'));
 list_pressure_files = dir(fullfile(dirpressure, '*.mat'));

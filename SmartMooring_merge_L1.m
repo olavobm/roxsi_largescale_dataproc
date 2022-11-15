@@ -21,16 +21,39 @@ list_pressure_files = dir(fullfile(dirpressure, '*.mat'));
 %% Find the files that match with the SN in the input
 
 %
-ind_match_buoy = 1;
-ind_match_pressure = 1;
+ind_match_buoy = 0;
+ind_match_pressure = 0;
 
 %
-for i = 1:length(list_buoydata_files)
+lloop_aux = true;
+%
+while lloop_aux && (ind_match_buoy < length(list_buoydata_files))
+    %
+    ind_match_buoy = ind_match_buoy + 1;
+    %
+    indfind_aux = strfind(list_buoydata_files(ind_match_buoy).filename, SN);
+    
+    %
+    if ~isempty(indfind_aux)
+        lloop_aux = false;
+    end
 end
 
 %
-for i = 1:length(list_pressure_files)
+lloop_aux = true;
+%
+while lloop_aux && (ind_match_pressure < length(list_pressure_files))
+    %
+    ind_match_pressure = ind_match_pressure + 1;
+    %
+    indfind_aux = strfind(list_pressure_files(ind_match_pressure).filename, SN);
+    
+    %
+    if ~isempty(indfind_aux)
+        lloop_aux = false;
+    end
 end
+
 
 
 %%
@@ -47,16 +70,15 @@ varPres = who('-file', filefullname_pres);
 data_buoy_aux = load(filefullname_buoy);
 data_pres_aux = load(filefullname_pres);
 
+%
+data_buoy_aux = data_buoy_aux.(varBuoy{1});
+data_pres_aux = data_pres_aux.(varPres{1});
 
-
-% % %
-% % data_buoy_aux
-% % data_pres_aux
 
 %% Copy buoy data
 
 %
-mergedL1 = filefullname_pres;
+mergedL1 = data_buoy_aux;
 
 % Remove stuff???
 
@@ -64,16 +86,15 @@ mergedL1 = filefullname_pres;
 %% Copy pressure data
 
 %
-mergedL1.pressuredata.latitude = 
-mergedL1.pressuredata.longitude = 
+list_fields = {'latitude', 'longitude', 'zhab', 'dt', ...
+               'dtime', 'pressure'};
 
 %
-mergedL1.pressuredata.zhab = 
-mergedL1.pressuredata.dt = 
+for i = 1:length(list_fields)
+    mergedL1.pressuredata.(list_fields{i}) = data_pres_aux.(list_fields{i});
+end
 
-%
-mergedL1.pressuredata.dtime = 
-mergedL1.pressuredata.pressure = 
+
 
 
 %% Final stuff

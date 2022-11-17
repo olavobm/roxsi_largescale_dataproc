@@ -74,8 +74,8 @@ end
 
 %
 if ~exist('fracoverlap', 'var')
-    fracoverlap = 0;
-%     fracoverlap = 0.5;    % EITHER 0 OR 0.5. NO OTHER OPTION IMPLEMENTED
+%     fracoverlap = 0;
+    fracoverlap = 0.5;    % EITHER 0 OR 0.5. NO OTHER OPTION IMPLEMENTED
 end
 
 %
@@ -167,7 +167,7 @@ if mod(nfft, 2)~=0
 end
 
 %
-df = fs/(nfft-1);   % This is the frequency resolution (in Hz)
+df = fs/(nfft);   % This is the frequency resolution (in Hz)
 nnyq = nfft/2 + 1;
 
 % Positive frequency vector (in Hz)

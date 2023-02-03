@@ -257,12 +257,13 @@ for i1 = 1:length(adcpdirspec.dtime)
 end
 
 
-%%
-%
-adcpdirspec.See = S_f_temp;
+%% 
 
 %
+adcpdirspec.See = S_f_temp;
 adcpdirspec.bottomdepth = depth_avg(:);
+
+%%
 
 % Remove repeated direction bin (i.e. -pi and +pi)
 S_f_theta_temp = S_f_theta_temp(:, 1:end-1, :, :);
@@ -284,7 +285,7 @@ adcpdirspec.direction = (180/pi) * Sd.theta(1:end-1);
 % % D_f_theta_temp = D_f_theta_temp(:, ind, :, :);
 
 
-%%
+%% Add variables to output structure
 
 %
 adcpdirspec.list_methods_dirspec = dspecmethod;

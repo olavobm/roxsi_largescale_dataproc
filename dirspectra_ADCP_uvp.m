@@ -16,12 +16,15 @@ function adcpdirspec = dirspectra_ADCP_uvp(dtsegment, cutoff, dtimegrid, dtwindo
 %       - adcpdirspectra
 %
 %
-% DIRSPECTRA_ADCP_UVP.m computes directional spectra using WAFO's toolbox.
+% DIRSPECTRA_ADCP_UVP.m is a high-level function that calls WAFO's
+% toolbox to compute a directional spectrum from ADCP + pressure data.
 %
+% The direction vector in the output structure is in degrees,
+% rotating CCW, and wrapping at -180/+180 (i.e. the convention
+% of atan2). This direction coordinate is for where the waves
+% are GOING TO.
 %
-% This function collects a bunch of things to would go
-% in a script, but at least for Signature processing,
-% it's useful to have in a function.
+% Olavo Badaro Marques
 
 
 %%

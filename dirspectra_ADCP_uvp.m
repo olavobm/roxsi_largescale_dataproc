@@ -297,7 +297,7 @@ for i = 1 : length(dspecmethod)
     adcpdirspec.(dspecmethod(i)).D = D_f_theta_temp(:, :, :, i);
     
     % Average in time
-    adcpdirspec.(dspecmethod(i)).See_theta_avg = mean(adcpdirspec.(dspecmethod(i)).See, 3, 'omitnan');
+    adcpdirspec.(dspecmethod(i)).See_avg = mean(adcpdirspec.(dspecmethod(i)).See, 3, 'omitnan');
     
 end
 

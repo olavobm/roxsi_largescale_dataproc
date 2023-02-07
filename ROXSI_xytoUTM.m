@@ -30,7 +30,8 @@ function [easting, northing] = ROXSI_xytoUTM(strarray, x, y)
 %% Check strarray
 
 %
-if ~(strcmp(strarray, "Asilomar") || strcmp(strarray, "ChinaRock"))
+if ~(strcmp(strarray, "Asilomar") || strcmp(strarray, "ChinaRock") || ...
+     strcmp(strarray, "Garrapata") || strcmp(strarray, "Hopkins"))
     %
     error('Specified grid in input was not recognized!!!')
 end

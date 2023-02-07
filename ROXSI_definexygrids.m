@@ -41,10 +41,10 @@ roxsigrid.Garrapata.angleref = 270-20;
 % ------------
 % Hopkins
 %
-roxsigrid.Garrapata.latref = 36 +  (37/60) + (18.82/3600);
-roxsigrid.Garrapata.lonref = -121 -(54/60) - (14.34/3600);
+roxsigrid.Hopkins.latref = 36 +  (37/60) + (18.82/3600);
+roxsigrid.Hopkins.lonref = -121 -(54/60) - (14.34/3600);
 %
-roxsigrid.Garrapata.angleref = +20;
+roxsigrid.Hopkins.angleref = +20;
 
 
 %% Save roxsiGrid structure in the same folder as this script

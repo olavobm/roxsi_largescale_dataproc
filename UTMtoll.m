@@ -1,5 +1,5 @@
 function [Lat, Long] = UTMtoll(UTMEasting, UTMNorthing, ZoneNumber)
-%% [Lat, Long] = UTMTOLL(UTMNorthing, UTMEasting, ZoneNumber)
+%% [Lat, Long] = UTMTOLL(UTMEasting, UTMNorthing, ZoneNumber)
 %
 %   inputs
 %       - UTMEasting: UTM easting coordinate.

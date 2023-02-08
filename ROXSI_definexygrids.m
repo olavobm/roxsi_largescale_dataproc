@@ -36,7 +36,7 @@ roxsigrid.ChinaRock.angleref = 285;
 roxsigrid.Garrapata.latref = 36 +  (28/60) + (05.53/3600);
 roxsigrid.Garrapata.lonref = -121 -(56/60) - (04.20/3600);
 %
-roxsigrid.Garrapata.angleref = 270-20;
+roxsigrid.Garrapata.angleref = 270-40;
 
 % ------------
 % Hopkins

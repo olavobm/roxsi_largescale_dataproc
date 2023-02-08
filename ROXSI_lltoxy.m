@@ -37,6 +37,14 @@ boxlimits.ChinaRock.latitude = 36 + [(34/60), ((36/60) + (57/3600))];
 boxlimits.ChinaRock.longitude = -121 - [1, (55/60)];
 
 %
+boxlimits.Hopkins.latitude = 36 + [(34/60), ((36/60) + (57/3600))];
+boxlimits.Hopkins.longitude = -121 - [1, (55/60)];
+
+%
+boxlimits.Garrapata.latitude = 36 + [((26/60) + (30/3600)), ((30/60) + (15/3600))];
+boxlimits.Garrapata.longitude = -121 - [1, (55/60)];
+
+%
 list_arrays = fieldnames(boxlimits);
 
 

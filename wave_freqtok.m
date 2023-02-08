@@ -1,14 +1,15 @@
-function k = wave_freqtok(frequency, H, fbounds, Hbound)
-%% k = WAVE_FREQTOK(frequency, H, fbounds, Hbound)
+function k = wave_freqtok(frequency, H, wavelength_bounds, fbounds, Hbound)
+%% k = WAVE_FREQTOK(frequency, H, wavelength_bounds, fbounds, Hbound)
 %
 %   inputs
-%       -
-%       -
-%       -
-%       -
+%       - frequency: frequency, in Hz.
+%       - H: bottom depth, in meters.
+%       - wavelength_bounds (optional):
+%       - fbounds (optional):
+%       - Hbound (optional):
 %
 %   outputs
-%       -
+%       - k: wavenumber, in radians per meter.
 %
 %
 %
@@ -26,17 +27,26 @@ function k = wave_freqtok(frequency, H, fbounds, Hbound)
 % Acceleration of gravity
 g = 9.8;
 
-% From Hz to radians per second
-if ~exist('fbounds', 'var')
-    fbounds = [(1/5000), (1/0.5)];
+% Wavelengths (in m) to use for
+% wavenumber bounds in fzero
+if ~exist('wavelength_bounds', 'var') || isempty(wavelength_bounds)
+    wavelength_bounds = [0.1, 10000];
 end
-% % fbounds = 2*pi.*fbounds;   % recent change -- should remove, right?!
+
+% Frequency bounds (in Hz)
+if ~exist('fbounds', 'var')
+    fbounds = [(1/600), (1/0.5)];
+end
 
 % Bound at very shallow water
 if ~exist('Hbound', 'var')
     Hbound = 0;
 end
 
+
+%%
+
+kbounds_fzero = 2*pi .* 1./wavelength_bounds;
 
 %% Dispersion relationship
 % (PS: frequency in Hz and k in radians per meter)
@@ -54,7 +64,7 @@ Npts_freq = length(frequency);
 % for the calculation of wavenumber
 
 %
-lgoodfreq = ~isnan(frequency) & ...
+lgoodfreq = ~isnan(frequency) & ...    % this is weird to check...
             (frequency >= fbounds(1)) & ...
             (frequency <= fbounds(2));
 
@@ -71,7 +81,7 @@ for i1 = 1:Npts_H
     H_aux = H(i1);
 
     %
-    if (H_aux < Hbound)
+    if isnan(H_aux) || (H_aux < Hbound)
         continue
     end
 
@@ -85,11 +95,8 @@ for i1 = 1:Npts_H
             disp_rel_eval = @(k) disp_rel(k, frequency(i2), H_aux);
     
             %
-            try
-            k(i1, i2) = fzero(disp_rel_eval, fbounds);
-            catch
-                keyboard
-            end
+            k(i1, i2) = fzero(disp_rel_eval, kbounds_fzero);
+
         end
     end
 

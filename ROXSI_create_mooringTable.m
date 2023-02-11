@@ -54,14 +54,14 @@ clear data_aux
 % location is wrong. Thus, I will replace the "actual" coordinate
 % with the planned value.
 
-%
-indmatchC03 = find(strcmp(mooringID, "C03ap"));
-%
-if length(indmatchC03)~=1;    error('unexpected behavior');    end
-
-%
-latitude(indmatchC03) = planned_latitude(indmatchC03);
-longitude(indmatchC03) = planned_longitude(indmatchC03);
+% % %
+% % indmatchC03 = find(strcmp(mooringID, "C03ap"));
+% % %
+% % if length(indmatchC03)~=1;    error('unexpected behavior');    end
+% % 
+% % %
+% % latitude(indmatchC03) = planned_latitude(indmatchC03);
+% % longitude(indmatchC03) = planned_longitude(indmatchC03);
 
 
 %%

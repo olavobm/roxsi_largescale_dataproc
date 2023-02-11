@@ -47,6 +47,23 @@ instrument = convertCharsToStrings(data_aux{7});
 clear data_aux
 
 
+%% It turns out that the "actual"/GPS location of mooring
+% C03ap is awardly close to C02p. Based Olavo swimming next
+% to the floats with the DiveJet, and the procedute of
+% deploying an ADCP from the boat, Olavo thinks the GPS
+% location is wrong. Thus, I will replace the "actual" coordinate
+% with the planned value.
+
+%
+indmatchC03 = find(strcmp(mooringID, "C03ap"));
+%
+if length(indmatchC03)~=1;    error('unexpected behavior');    end
+
+%
+latitude(indmatchC03) = planned_latitude(indmatchC03);
+longitude(indmatchC03) = planned_longitude(indmatchC03);
+
+
 %%
 
 % Replace flag (999999) with NaN

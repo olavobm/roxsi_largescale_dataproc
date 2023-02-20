@@ -7,10 +7,28 @@ close all
 
 
 %% 
-% BUT BE CAREFUL BECAUSE IT MIGHT ERASE directory/data!!!
 
+%
 run('create_data_emptydirtree.m')
 
+% If a directory tree already exists, it will be
+% renamed and a new one will be created.
+
+
+%% Process Spotters (note that the above is currently
+% required for L2 processing of smart mooring data)
+
+%
+run('Spotters_proc_lvl_1.m'), close all
+run('bathymetry_around_Spotters.m'), close all
+% % run('Spotters_proc_lvl_2.m'), close all
+
+% Merge Spotter data from B01 and Smart Mooring E07 and E09.
+run('Spotter_merge_L1data.m')
+
+
+%%
+return
 
 %% Aquadopps
 
@@ -27,17 +45,7 @@ run('SpottersSmart_timegrid_pressure.m'), close all
 % % run('SmartMooring_proc_lvl_2.m'), close all
 
 % Merge Smart Mooring data
-
-
-%% Process Spotters (note that the above is currently
-% required for L2 processing of smart mooring data)
-
-%
-run('Spotters_proc_lvl_1.m'), close all
-run('bathymetry_around_Spotters.m'), close all
-% % run('Spotters_proc_lvl_2.m'), close all
-
-% Merge Spotter data
+run('SmartMooring_merge_L1data.m')
 
 
 %% Signature1000

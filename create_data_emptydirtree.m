@@ -60,6 +60,7 @@ mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Signature_Level1'))
 %
 mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Smart_Level1', 'not_gridded'))
 mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Smart_Level1', 'gridded'))
+mkdir(fullfile(dir_data_parent, 'Level1_Data', 'Spotter_Smart_Level1', 'merged'))
 
 % ---------
 

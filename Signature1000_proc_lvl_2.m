@@ -160,18 +160,17 @@ for i1 = 1:Nsignatures
 
         %
         if ~exist('sigL2', 'var')
-
             %
             for i3 = 1:length(list_copyvars)
                 sigL2.(list_copyvars{i3}) = sigL1.(list_copyvars{i3});
             end
-% % %             sigL2.SN = sigL1.SN;
-% % %             sigL2.mooringID = sigL1.mooringID;
-% % %             % ... others ...
-% % %             %
-% % %             sigL2.transducerHAB = sigL1.transducerHAB;
-% % %             %
-% % %             sigL2.zhab = sigL1.zhab;
+    % % %             sigL2.SN = sigL1.SN;
+    % % %             sigL2.mooringID = sigL1.mooringID;
+    % % %             % ... others ...
+    % % %             %
+    % % %             sigL2.transducerHAB = sigL1.transducerHAB;
+    % % %             %
+    % % %             sigL2.zhab = sigL1.zhab;
 
             %
             sigL2.dtimedata = sigL1.dtime;
@@ -185,7 +184,7 @@ for i1 = 1:Nsignatures
             sigL2.ubin1 = sigL1.u(1, :);
             sigL2.vbin1 = sigL1.v(1, :);
             sigL2.wbin1 = sigL1.w(1, :);
-    
+
             %
             sigL2.udepthavg = sigL2.udepthavg(:);
             sigL2.vdepthavg = sigL2.vdepthavg(:);
@@ -194,6 +193,11 @@ for i1 = 1:Nsignatures
             sigL2.ubin1 = sigL2.ubin1(:);
             sigL2.vbin1 = sigL2.vbin1(:);
             sigL2.wbin1 = sigL2.wbin1(:);
+        end
+        
+        %
+        if i2==1
+            
 
         %
         else

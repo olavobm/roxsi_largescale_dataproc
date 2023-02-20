@@ -1344,7 +1344,7 @@ for i1 = 1:Nsignatures
             end
         end
         %
-        disp('--- Saving primary level 1 data structure ---')
+        disp('----- Saving primary level 1 data structure -----')
         str_filename = ['roxsi_signature_L1_' char(sigL1.mooringID) '_' char(sigL1.SN)];
         %
         save(fullfile(dir_output_L1, list_dirsegments{i2}, [str_filename '.mat']), 'sigL1', '-v7.3')
@@ -1375,11 +1375,12 @@ for i1 = 1:Nsignatures
         % data segment of the same Signature
 
         % ----------------------------------------------------
+        disp(' ')
         disp(['--- Done with processing Signature1000 ' ...
               list_Signature{i1} ' data segment ' num2str(i2) ...
               ' out of ' num2str(Ndatasegments) ' ---'])
         toc(totalRunTime)
-        disp(' ')
+
         %
         close all
         clear sigL1

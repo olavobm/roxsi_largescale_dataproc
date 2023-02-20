@@ -18,7 +18,9 @@ close all
 %%
 
 %
-dir_data = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Smart_Level1/gridded/';
+% dir_data = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Smart_Level1/gridded/';
+dir_data = ['/home/omarques/Documents/obm_ROXSI/obm_DataLocal' ...
+            '/Level1_Data/Spotter_Smart_Level1/gridded/'];
 
 %
 moordID_merge = {'E07', 'E09'};

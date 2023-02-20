@@ -12,11 +12,14 @@ close all
 %%
 
 %
-dir_data = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+% dir_data = '/project/CSIDE/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
+dir_data = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Level1/';
+
 
 %
 % moordID_merge = {'B01'};
-moordID_merge = {'E09'};
+% moordID_merge = {'E09'};
+moordID_merge = {'B01', 'E07', 'E09'};
 
 %
 name_string_beginning = 'roxsi_spotter_L1_';
@@ -106,7 +109,6 @@ spotterL1.Y = dataAll(1).spotterL1.Y;
 list_parentfields = {'spectra', 'displacement', 'location', 'SST'};
 
 
-
 %% Loop over files and merge in data structure spotterL1
 
 %
@@ -115,7 +117,10 @@ for i1 = 1:Nfiles
     if i1==1
         %
         for i2 = 1:length(list_parentfields)
-            spotterL1.(list_parentfields{i2}) = dataAll(ind_sort(i1)).spotterL1.(list_parentfields{i2});
+            %
+            if isfield(dataAll(ind_sort(i1)).spotterL1, list_parentfields{i2})
+                spotterL1.(list_parentfields{i2}) = dataAll(ind_sort(i1)).spotterL1.(list_parentfields{i2});
+            end
         end
         
 	%
@@ -123,6 +128,11 @@ for i1 = 1:Nfiles
         
         %
         for i2 = 1:length(list_parentfields)
+
+            if ~isfield(dataAll(ind_sort(i1)).spotterL1, list_parentfields{i2})
+                continue
+            end
+
             %
             list_fields_aux = fieldnames(dataAll(ind_sort(i1)).spotterL1.(list_parentfields{i2}));
             

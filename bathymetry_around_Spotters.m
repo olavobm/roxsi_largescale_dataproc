@@ -31,7 +31,7 @@ dir_CSUMB = '/home/omarques/Documents/obm_ROXSI/bathymetry_roxsi/datasets/CSUMB/
 
 
 %
-bathyCSUMB.CyPt_PtPn = load(fullfile(dir_CSUMB, 'bathy_CyPt_PtPn2m_xyz.mat'));
+bathyCSUMB.CyPt_PtPn = load(fullfile(dir_CSUMB, 'bathy_CyPt_PtPn_2m_xyz.mat'));
 
 % Trim for both China Rock Asilomar
 northing_box_lims = [4051000, 4054500];

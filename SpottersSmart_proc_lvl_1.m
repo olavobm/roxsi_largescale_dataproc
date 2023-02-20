@@ -172,6 +172,12 @@ extraTrim = extraTrim.removeBadData;
 atmpres_NOAA = load(fullfile(dir_rawdata_parent, ...
                              'noaa_mry_barometric_pressure', 'atm_pressure.mat'));
 
+% Remove NaNs
+lok_data = ~isnan(atmpres_NOAA.atm_pres);
+%
+atmpres_NOAA.time_vec = atmpres_NOAA.time_vec(lok_data);
+atmpres_NOAA.atm_pres = atmpres_NOAA.atm_pres(lok_data);
+
 
 %% Datenum limits of the full deployment (from before the first
 % went into the water to after the last came out of the water)

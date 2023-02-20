@@ -16,15 +16,17 @@ run('create_data_emptydirtree.m')
 
 %
 run('Aquadopp_proc_lvl_1.m'), close all
-run('Aquadopp_proc_lvl_2.m'), close all
+% % run('Aquadopp_proc_lvl_2.m'), close all
 
 
 %% Process Smart Moorings
 
-% % %
-% % run('SpottersSmart_proc_lvl_1.m'), close all
-% % run('SpottersSmart_timegrid_pressure.m'), close all
+%
+run('SpottersSmart_proc_lvl_1.m'), close all
+run('SpottersSmart_timegrid_pressure.m'), close all
 % % run('SmartMooring_proc_lvl_2.m'), close all
+
+% Merge Smart Mooring data
 
 
 %% Process Spotters (note that the above is currently
@@ -33,7 +35,9 @@ run('Aquadopp_proc_lvl_2.m'), close all
 %
 run('Spotters_proc_lvl_1.m'), close all
 run('bathymetry_around_Spotters.m'), close all
-run('Spotters_proc_lvl_2.m'), close all
+% % run('Spotters_proc_lvl_2.m'), close all
+
+% Merge Spotter data
 
 
 %% Signature1000
@@ -41,4 +45,4 @@ run('Spotters_proc_lvl_2.m'), close all
 %
 run('Signature1000_proc_lvl_1_scalars.m'), close all
 run('Signature1000_proc_lvl_1.m'), close all
-run('Signature1000_proc_lvl_2.m'), close all
+% % run('Signature1000_proc_lvl_2.m'), close all

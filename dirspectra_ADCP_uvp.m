@@ -174,12 +174,18 @@ for i1 = 1:length(adcpdirspec.dtime)
     ind_match_time = find(dtimedata == adcpdirspec.dtime(i1));
     
     %
+    if isempty(ind_match_time)
+        continue
+    end
+    
+    %
     inds_getdata_aux = (-Nptswindow/2 : 1 : Nptswindow/2) + ind_match_time;
     inds_getdata_aux = inds_getdata_aux(1:end-1);    % such that we have the correct number of points
     
-% %     %
-% %     dataADCP.dtime(inds_getdata_aux([1, end-1]))
-    
+    %
+    if any(inds_getdata_aux < 1) || any(inds_getdata_aux > length(udata))
+        continue
+    end
 
 %     %
 %     linsample_aux = dataADCP.dtime >= 
@@ -191,6 +197,13 @@ for i1 = 1:length(adcpdirspec.dtime)
     v = vdata(inds_getdata_aux);
     %
     p = pdata(inds_getdata_aux);     % p = detrend(p, 2);
+    
+    % -----------
+    if any(isnan(u))
+        warning('NaN found in data')
+        continue
+    end
+    % -----------
     
     %
     u = u(:);

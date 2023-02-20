@@ -19,7 +19,7 @@ dir_output = fullfile(dir_data, 'figs_QC');
 
 %
 % % dir_CSUMB = '/Users/olavobm/Library/CloudStorage/Box-Box/olavo_jamie/ROXSI_experiments/';
-dir_CSUMB = '/home/omarques/Documents/obm_ROXSI/bathymetry_roxsi/';
+dir_CSUMB = '/home/omarques/Documents/obm_ROXSI/bathymetry_roxsi/datasets/CSUMB/';
 
 
 %%

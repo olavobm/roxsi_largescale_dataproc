@@ -1,5 +1,5 @@
-function [indsub, reshapeNdims] = reshapeintoWindows(dtime, dtimegrid, windowlen)
-%% [indsub, reshapeNdims] = reshapeintoWindows(dtime, dtimegrid, windowlen)
+function [indsub, reshapeNdims] = reshapeintoWindows(tdata, tgrid, windowlen)
+%% [indsub, reshapeNdims] = reshapeintoWindows(tdata, tgrid, windowlen)
 %
 %   inputs
 %       -
@@ -24,10 +24,10 @@ function [indsub, reshapeNdims] = reshapeintoWindows(dtime, dtimegrid, windowlen
 %% Check dtime is gridded
 
 %
-dt = diff(dtime(1:2));
+dt = diff(tdata(1:2));
 
 %
-if any(diff(dtime) ~= dt)
+if any(diff(tdata) ~= dt)
     error('Data grid is not an equally spaced grid.')
 end
 
@@ -35,7 +35,7 @@ end
 %%
 
 %
-if isdatetime(dtime)
+if isdatetime(tdata)
     %
     npts_window = (1/seconds(dt)) * seconds(windowlen);
 %
@@ -48,20 +48,20 @@ end
 %%
 
 %
-time_bounds = [(dtimegrid(:) - (windowlen/2)).'; ...
-               (dtimegrid(:) + (windowlen/2)).'];
+time_bounds = [(tgrid(:) - (windowlen/2)).'; ...
+               (tgrid(:) + (windowlen/2)).'];
 
 %
-ind_first_wholeinterval = find(time_bounds(1, :) >= dtime(1), 1, 'first');
-ind_last_wholeinterval = find(time_bounds(2, :) < dtime(end), 1, 'last');
+ind_first_wholeinterval = find(time_bounds(1, :) >= tdata(1), 1, 'first');
+ind_last_wholeinterval = find(time_bounds(2, :) < tdata(end), 1, 'last');
 
 
 %%
 
 %
-ind_data_start_firstwindow = find(dtime == time_bounds(1, ind_first_wholeinterval));
+ind_data_start_firstwindow = find(tdata == time_bounds(1, ind_first_wholeinterval));
 %
-ind_data_end_lastwindow = find(dtime == time_bounds(2, ind_last_wholeinterval));
+ind_data_end_lastwindow = find(tdata == time_bounds(2, ind_last_wholeinterval));
 ind_data_end_lastwindow = ind_data_end_lastwindow - 1;
 
 %

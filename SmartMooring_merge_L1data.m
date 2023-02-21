@@ -26,7 +26,7 @@ dir_data = ['/home/omarques/Documents/obm_ROXSI/obm_DataLocal' ...
 moordID_merge = {'E07', 'E09'};
 
 %
-name_string_beginning = 'smart_mooring_';
+name_string_beginning = 'roxsi_smartmooring_L1_';
 
 %
 % % dir_output = dir_data;
@@ -159,7 +159,31 @@ for i1 = 1:length(moordID_merge)
 end
 
 
+%% Copy Smart Mooring files that don't need to be merged
+% from the gridded to the merged folder
 
+
+%
+copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E01sp_1851_gridded.mat'), ...
+         fullfile(dir_output, 'roxsi_smartmooring_L1_E01.mat'))
+%
+copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E02sp_1859_gridded.mat'), ...
+         fullfile(dir_output, 'roxsi_smartmooring_L1_E02.mat'))
+%
+copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E05sp_1853_gridded.mat'), ...
+         fullfile(dir_output, 'roxsi_smartmooring_L1_E05.mat'))
+%
+copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E08sp_1852_gridded.mat'), ...
+         fullfile(dir_output, 'roxsi_smartmooring_L1_E08.mat'))
+%
+copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E10sp_1848_gridded.mat'), ...
+         fullfile(dir_output, 'roxsi_smartmooring_L1_E10.mat'))
+%
+copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E11sp_1860_gridded.mat'), ...
+         fullfile(dir_output, 'roxsi_smartmooring_L1_E11.mat'))
+%
+copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E13sp_1848_gridded.mat'), ...
+         fullfile(dir_output, 'roxsi_smartmooring_L1_E13.mat'))
 
 
 

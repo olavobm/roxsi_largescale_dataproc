@@ -562,6 +562,8 @@ diary('off');
 
 
 %%
+
+% % 
 % % return
 
 %%
@@ -585,8 +587,17 @@ diary('off');
 % % dir_SmartMoorings_pressure = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Smart_Level1/gridded/';
 % % dir_SmartMoorings_buoy = '/Volumes/LaCie/ROXSI/LargeScale_Data_2022/Level1_Data/Spotter_Level1/';
 dir_SmartMoorings_buoy = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/';
+% % %
+% % dir_SmartMoorings_pressure = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/gridded/';
+% % 
+% % %
+% % list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
+% %                       'E05_spot1853', 'E07_spot1855', 'E07_spot1857', ...
+% %                       'E08_spot1852', 'E09_spot1850', 'E09_spot1856', ...
+% %                       'E10_spot1848', 'E11_spot1860', 'E13_spot1849'};
+
 %
-dir_SmartMoorings_pressure = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/gridded/';
+dir_SmartMoorings_pressure = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level1_Data/Spotter_Smart_Level1/merged/';
 
 %
 list_SmartMoorings = {'E01_spot1851', 'E02_spot1859', ...
@@ -662,7 +673,8 @@ for i = 1:length(list_SmartMoorings)
 
 
     % Pressure data
-    data_Smart_PRES = load(fullfile(dir_SmartMoorings_pressure, ['roxsi_smartmooring_L1_' list_SmartMoorings{i}(1:3) '_' list_SmartMoorings{i}(9:12) '_gridded.mat']));
+%     data_Smart_PRES = load(fullfile(dir_SmartMoorings_pressure, ['roxsi_smartmooring_L1_' list_SmartMoorings{i}(1:3) '_' list_SmartMoorings{i}(9:12) '_gridded.mat']));
+    data_Smart_PRES = load(fullfile(dir_SmartMoorings_pressure, ['roxsi_smartmooring_L1_' list_SmartMoorings{i}(1:3) '.mat']));
     data_Smart_PRES = data_Smart_PRES.spotsmart;
 
     
@@ -707,7 +719,7 @@ for i = 1:length(list_SmartMoorings)
     data_Smart_BUOY.location.tidal_elevation = ...
                                         interp1(tidal_elevation.dtime, ...
                                                 tidal_elevation.zMSL, ...
-                                                data_Smart_BUOY.location.dtime)
+                                                data_Smart_BUOY.location.dtime);
 
     % Save depth to Smart moorings (without taking the bathymetry into account)
     data_Smart_BUOY.location.z_msl(ltrimedges) = -mean(data_Smart_PRES.pressure, 'omitnan') - data_Smart_BUOY.location.tidal_elevation;

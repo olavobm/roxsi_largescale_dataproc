@@ -50,21 +50,21 @@ load(fullfile(dir_coderepo, 'deploymentInfo_ROXSI2022.mat'), 'deploymentInfo_ROX
 
 %% List of Aquadopps that will be processed
 
-% % % All Aquadopps
-% % list_Aquadopp = {'A03_5380', ...
-% %                  'B02_12507', 'B04_2147', 'B07_2141', 'B08_13288', 'B11_12280', ...
-% %                  'C03_0709', ...
-% %                  'D01_12346', 'D02_0653', ...
-% %                  'E03_13300', 'E04_13172', 'E06_9736', 'E12_11150', ...
-% %                  'F01_9995', 'F02_5838', 'F03_5384', 'F04_5401', 'F05_14032', ...
-% %                  'X06_13290', 'X13_9945'};
+% All Aquadopps
+list_Aquadopp = {'A03_5380', ...
+                 'B02_12507', 'B04_2147', 'B07_2141', 'B08_13288', 'B11_12280', ...
+                 'C03_0709', ...
+                 'D01_12346', 'D02_0653', ...
+                 'E03_13300', 'E04_13172', 'E06_9736', 'E12_11150', ...
+                 'F01_9995', 'F02_5838', 'F03_5384', 'F04_5401', 'F05_14032', ...
+                 'X06_13290', 'X13_9945'};
 
 % All Aquadopps
 % % list_Aquadopp = {'B08_13288', 'B11_12280'};
 % % list_Aquadopp = {'B11_13288', 'B11_12280'};
 
-list_Aquadopp = {'X13_9945', ...    % 2 MHz
-                 'E03_13300', 'E04_13172', 'E06_9736', 'E12_11150', 'X06_13290'};     % 1 MHz
+% % list_Aquadopp = {'X13_9945', ...    % 2 MHz
+% %                  'E03_13300', 'E04_13172', 'E06_9736', 'E12_11150', 'X06_13290'};     % 1 MHz
 
 % Just a test
 % list_Aquadopp = {'B02_12507', 'X13_9945'};
@@ -347,8 +347,9 @@ for i = 1:Naquadopps
 % %     aquadoppL1.ptrimTH = max(aquadoppL1.pressure) + (2 * aquadoppL1.binsize);
 
     % Compute depth from hydrostatic pressure 
-    aquadoppL1.bottomdepthfrompres = 1e4*aquadoppL1.pressure ./ (1030*9.8);
-
+    aquadoppL1.bottomdepthfrompres = 1e4*aquadoppL1.pressure ./ (1025*9.8);
+    aquadoppL1.bottomdepthfrompres = aquadoppL1.bottomdepthfrompres + aquadoppL1.transducerHAB;
+    
     % Find all bins that are below the maximum bottom depth
     lin_verticalrange = ((aquadoppL1.zhab + (aquadoppL1.binsize/2)) < ...
                          max(aquadoppL1.bottomdepthfrompres));

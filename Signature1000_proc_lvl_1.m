@@ -954,10 +954,11 @@ for i1 = 1:Nsignatures
         %% Compute bottom depth from pressure
     
         % Simplest estimate: assume pressure is hydrostatic
-        rho0 = 1030;
+        rho0 = 1025;
         g = 9.8;
         sigL1.bottomdepthfrompres = 1e4*sigL1.pressure ./ (rho0*g);
-    
+        sigL1.bottomdepthfrompres = sigL1.bottomdepthfrompres + sigL1.transducerHAB;
+        
     
         %%
         % ------------------------------------------
@@ -1199,7 +1200,8 @@ for i1 = 1:Nsignatures
         sigL1.averaged.pressure = time_smooth_reg(sigL1.dtime, sigL1.pressure, ...
                                                   sigL1.averaged.dt, ...
                                                   sigL1.averaged.dtime([1, end]));
-        sigL1.averaged.bottomdepthfrompres = (1e4 * sigL1.averaged.pressure) ./ (1030*9.8);
+        sigL1.averaged.bottomdepthfrompres = (1e4 * sigL1.averaged.pressure) ./ (rho0*g);
+        sigL1.averaged.bottomdepthfrompres = sigL1.averaged.bottomdepthfrompres + sigL1.transducerHAB;
         
     
         %

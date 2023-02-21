@@ -15,26 +15,24 @@ run('create_data_emptydirtree.m')
 % renamed and a new one will be created.
 
 
-%% Process Spotters (note that the above is currently
-% required for L2 processing of smart mooring data)
-
-%
-run('Spotters_proc_lvl_1.m'), close all
-run('bathymetry_around_Spotters.m'), close all
-% % run('Spotters_proc_lvl_2.m'), close all
-
-% Merge Spotter data from B01 and Smart Mooring E07 and E09.
-run('Spotter_merge_L1data.m')
-
-
-%%
-return
-
 %% Aquadopps
 
 %
 run('Aquadopp_proc_lvl_1.m'), close all
 % % run('Aquadopp_proc_lvl_2.m'), close all
+
+
+%% Signature1000
+
+%
+run('Signature1000_proc_lvl_1_scalars.m'), close all
+run('Signature1000_proc_lvl_1.m'), close all
+% % run('Signature1000_proc_lvl_2.m'), close all
+
+%%
+% ------------------------------------------------------------------------
+% ------------------------------------------------------------------------
+% ------------------------------------------------------------------------
 
 
 %% Process Smart Moorings
@@ -48,9 +46,24 @@ run('SpottersSmart_timegrid_pressure.m'), close all
 run('SmartMooring_merge_L1data.m')
 
 
-%% Signature1000
+%% Process Spotters (note that the above is currently
+% required for L2 processing of smart mooring data)
 
 %
-run('Signature1000_proc_lvl_1_scalars.m'), close all
-run('Signature1000_proc_lvl_1.m'), close all
-% % run('Signature1000_proc_lvl_2.m'), close all
+run('Spotters_proc_lvl_1.m'), close all
+
+%
+run('bathymetry_around_Spotters.m'), close all
+
+% Merge Spotter data from B01 and Smart Mooring E07 and E09.
+run('Spotter_merge_L1data.m')
+
+%
+% % run('Spotters_proc_lvl_2.m'), close all
+
+
+%%
+
+disp(' '), disp(' '), disp(' ')
+disp('----- DONE WITH PROCESSING ALL THE DATA -----')
+

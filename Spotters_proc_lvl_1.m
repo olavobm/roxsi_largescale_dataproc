@@ -1014,8 +1014,8 @@ for i = 1:length(list_spotters)
     %
     disp(['----------------- Done with level 1 data processing for Spotter ' list_spotters{i} ' -----------------'])
 
-    %
-    clear spotterL1
+    % Erase a couple of variables
+    clear data_out spotterL1 
 % %     close% close figures
 
     %

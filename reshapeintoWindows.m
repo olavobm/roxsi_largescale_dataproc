@@ -1,18 +1,17 @@
-function [indsub, reshapeNdims] = reshapeintoWindows(tdata, tgrid, windowlen)
-%% [indsub, reshapeNdims] = reshapeintoWindows(tdata, tgrid, windowlen)
+function [indsub, reshapeNdims] = reshapeintoWindows(tdata, tgrid)
+%% [indsub, reshapeNdims] = RESHAPEINTOWINDOWS(tdata, tgrid)
 %
 %   inputs
-%       -
-%       -
-%       -
-%       -
+%       - tdata: independent variable of the gridded data.
+%       - tgrid: equally spaced grid for windowed calculations (where the
+%                window length is diff(tgrid)).
 %
 %   outputs
 %       - indsub:
 %       - reshapeNdims:
 %
 %
-%
+% RESHAPEINTOWINDOWS.m
 %
 %
 %
@@ -33,6 +32,9 @@ end
 
 
 %%
+
+%
+windowlen = diff(tgrid(1:2));
 
 %
 if isdatetime(tdata)

@@ -145,6 +145,14 @@ for i1 = 1:length(mooringID)
         pressure_aux = data_aux.Pwater;
         
         %
+%         dataL1.SN
+        dataL1.latitude = data_aux.latitude;
+        dataL1.longitude = data_aux.longitude;
+        dataL1.X = data_aux.X;
+        dataL1.Y = data_aux.Y;
+        dataL1.site = data_aux.site;
+
+        %
         dataL1.(mooringID{i1}).zhab = 0.09;
         
         %
@@ -155,6 +163,9 @@ for i1 = 1:length(mooringID)
         dataL1.(mooringID{i1}).dtime = time_aux(:);
         dataL1.(mooringID{i1}).pressure = pressure_aux(:);
         
+        % INTERPOLATE IN DATETIME!!!!
+        keyboard
+
 	%
     else
         

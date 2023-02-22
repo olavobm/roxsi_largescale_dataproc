@@ -1,5 +1,5 @@
-function [indsub, reshapeNdims] = reshapeintoWindows(tdata, tgrid)
-%% [indsub, reshapeNdims] = RESHAPEINTOWINDOWS(tdata, tgrid)
+function [indsub, reshapeNdims, indgridlims] = reshapeintoWindows(tdata, tgrid)
+%% [indsub, reshapeNdims, indgridlims] = RESHAPEINTOWINDOWS(tdata, tgrid)
 %
 %   inputs
 %       - tdata: independent variable of the gridded data.
@@ -9,6 +9,7 @@ function [indsub, reshapeNdims] = reshapeintoWindows(tdata, tgrid)
 %   outputs
 %       - indsub:
 %       - reshapeNdims:
+%       - indgridlims:
 %
 %
 % RESHAPEINTOWINDOWS.m
@@ -56,6 +57,9 @@ time_bounds = [(tgrid(:) - (windowlen/2)).'; ...
 %
 ind_first_wholeinterval = find(time_bounds(1, :) >= tdata(1), 1, 'first');
 ind_last_wholeinterval = find(time_bounds(2, :) < tdata(end), 1, 'last');
+
+%
+indgridlims = [ind_first_wholeinterval, ind_last_wholeinterval];
 
 
 %%

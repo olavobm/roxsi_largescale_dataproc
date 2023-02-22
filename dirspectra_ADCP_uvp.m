@@ -227,8 +227,6 @@ for i1 = 1:reshapeNdims(2)
     %       
     S_f_temp(:, indfilloutput(i1)) = Sw.S.*(2*pi);    
     
-    
-
 end
 
  

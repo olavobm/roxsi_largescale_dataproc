@@ -145,7 +145,7 @@ for i1 = 1:length(mooringID)
         pressure_aux = data_aux.Pwater;
         
         %
-% %         dataL1.(mooringID{i1}).zhab = 
+        dataL1.(mooringID{i1}).zhab = 0.09;
         
         %
         time_aux = datetime(time_aux, 'ConvertFrom', 'datenum');

@@ -233,11 +233,23 @@ for i1 = 1:length(list_moorings)
 
 
     %% --------------------------------------
-    % Compute mean frequency, peak frequency, and integrate
+    % Compute significant wave height, mean
+    % frequency, peak frequency, and integrate
     % flux at different frequency bands
 
     %
     for i2 = 1:length(bulkbands)
+
+        %
+        linlims_aux = (solodL2.frequency >= bulkbands(i2).freqlims) & ...
+                      (solodL2.frequency <= bulkbands(i2).freqlims);
+
+        %
+        See_int_aux = trapz(solodL2.frequency(linlims_aux), solodL2.See(:, linlims_aux), 2);
+
+        %
+        solodL2.(bulkbands(i2).ID).Hs = 4*sqrt(See_int_aux);
+
         %
         [meanfreq_aux, peakfreq_aux] = wave_bulk_frequency(solodL2.frequency, ...
                                                            solodL2.See, ...
@@ -245,10 +257,6 @@ for i1 = 1:length(list_moorings)
         %
         solodL2.(bulkbands(i2).ID).meanfreq = meanfreq_aux;
         solodL2.(bulkbands(i2).ID).peakfreq = peakfreq_aux(:);
-
-        %
-        linlims_aux = (solodL2.frequency >= bulkbands(i2).freqlims) & ...
-                      (solodL2.frequency <= bulkbands(i2).freqlims);
 
         %
         solodL2.(bulkbands(i2).ID).Flux = trapz(solodL2.frequency(linlims_aux), ...

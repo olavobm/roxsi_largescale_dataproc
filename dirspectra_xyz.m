@@ -114,58 +114,43 @@ D_f_theta_temp = S_f_theta_temp;
 
 %
 S_f_temp = NaN(length(f), length(dirspec.dtime));
-depth_avg = NaN(1, length(dirspec.dtime));
+% % depth_avg = NaN(1, length(dirspec.dtime));
 
 
-%%
+%% Break the data apart in columns do the calculation more efficiently
+% (this way doesn't allow for overlaps and the window is the same
+% as the grid spacing)
 
 %
-for i1 = 1:length(dirspec.dtime)
+[indsub, reshapeNdims, indgridlims] = reshapeintoWindows(dtimedata, dtimegrid);
 
 
-    %% Select data
-    
-    %
-    ind_match_time = find(dtimedata == dirspec.dtime(i1));
-    
-    %
-    if isempty(ind_match_time)
-        continue
-    end
-    
-    %
-    inds_getdata_aux = (-Nptswindow/2 : 1 : Nptswindow/2) + ind_match_time;
-    inds_getdata_aux = inds_getdata_aux(1:end-1);    % such that we have the correct number of points
-    
-    %
-    if any(inds_getdata_aux < 1) || any(inds_getdata_aux > length(xdata))
-        continue
-    end
-    
-    % Get data
-    x = xdata(inds_getdata_aux);
-    y = ydata(inds_getdata_aux);
-    z = zdata(inds_getdata_aux);
-    
-    % ---------------------
-    if any(isnan(x))
-        %
-        warning('NaN found in data. Skipping the corresponding timestamp for directional spectrum.')
-        %
-        continue
-    end
-    % ---------------------
-    
-    %
-    x = x(:);
-    y = y(:);
-    z = z(:);
-    
-    %
-    depth_avg(i1) = mean(bottomdepth(inds_getdata_aux));
-    h = depth_avg(i1);    % h should be a POSITIVE number 
+% Get data
+x_array = reshape(xdata(indsub), reshapeNdims);
+y_array = reshape(ydata(indsub), reshapeNdims);
+z_array = reshape(zdata(indsub), reshapeNdims);
 
+%
+depth_avg = mean(reshape(bottomdepth(indsub), reshapeNdims), 1, 'omitnan');
+h = depth_avg;     % h must be a POSITIVE 
+
+%
+lgoodcolumns = ~any(isnan(x_array), 1);
+
+%
+indfilloutput = indgridlims(1) : 1 : indgridlims(2);
+
+
+%% Loop over the windows and compute directional spectra
+
+% Loop over columns of the data arrays (i.e. the windows)
+for i1 = 1:reshapeNdims(2)
     
+    % Skip calculation if there is a NaN
+    if ~lgoodcolumns(i1)
+        continue
+    end
+
     %%
     
     % the z coordinate for pos is set by the 'igam' option sent to
@@ -175,9 +160,9 @@ for i1 = 1:length(dirspec.dtime)
            0,  0,  0;
            1, 16, 17;
            1,  0,  0].';
-       
+
     %
-    Data = [t(:), z(:), x(:), y(:)];
+    Data = [t(:), z_array(:, i1), x_array(:, i1), y_array(:, i1)];
     
 
     %% Call Pat's high-level function, that calls WAFO's function
@@ -196,26 +181,126 @@ for i1 = 1:length(dirspec.dtime)
         
         %
         if i2 == 1
-            [Sd, D, Sw] = dat2dspec_frequency_cut(Data, pos, h, ...
+            [Sd, D, Sw] = dat2dspec_frequency_cut(Data, pos, h(i1), ...
                                                   nfft, Nangbins, ...
                                                   dspecmethod(i2), options, cutoff);
-
         else
-            [Sd, D] = dat2dspec_frequency_cut(Data, pos, h, ...
+            [Sd, D] = dat2dspec_frequency_cut(Data, pos, h(i1), ...
                                               nfft, Nangbins, ...
                                               dspecmethod(i2), options, cutoff);
         end
         
         %
-        S_f_theta_temp(:, :, i1, i2) = Sd.S.' .*(2*pi);   % dimension: direction x frequency
-        D_f_theta_temp(:, :, i1, i2) = D.S.';
+        S_f_theta_temp(:, :, indfilloutput(i1), i2) = Sd.S.' .*(2*pi);   % dimension: direction x frequency
+        D_f_theta_temp(:, :, indfilloutput(i1), i2) = D.S.';
         
     end
     
     %       
-    S_f_temp(:, i1) = Sw.S.*(2*pi);    
+    S_f_temp(:, indfilloutput(i1)) = Sw.S.*(2*pi);    
     
 end
+
+
+%%  Get the data in a way that's not very efficient
+
+% % % %
+% % % for i1 = 1:length(dirspec.dtime)
+% % % 
+% % % 
+% % %     %% Select data
+% % %     
+% % %     %
+% % %     ind_match_time = find(dtimedata == dirspec.dtime(i1));
+% % %     
+% % %     %
+% % %     if isempty(ind_match_time)
+% % %         continue
+% % %     end
+% % %     
+% % %     %
+% % %     inds_getdata_aux = (-Nptswindow/2 : 1 : Nptswindow/2) + ind_match_time;
+% % %     inds_getdata_aux = inds_getdata_aux(1:end-1);    % such that we have the correct number of points
+% % %     
+% % %     %
+% % %     if any(inds_getdata_aux < 1) || any(inds_getdata_aux > length(xdata))
+% % %         continue
+% % %     end
+% % %     
+% % %     % Get data
+% % %     x = xdata(inds_getdata_aux);
+% % %     y = ydata(inds_getdata_aux);
+% % %     z = zdata(inds_getdata_aux);
+% % %     
+% % %     % ---------------------
+% % %     if any(isnan(x))
+% % %         %
+% % %         warning('NaN found in data. Skipping the corresponding timestamp for directional spectrum.')
+% % %         %
+% % %         continue
+% % %     end
+% % %     % ---------------------
+% % %     
+% % %     %
+% % %     x = x(:);
+% % %     y = y(:);
+% % %     z = z(:);
+% % %     
+% % %     %
+% % %     depth_avg(i1) = mean(bottomdepth(inds_getdata_aux));
+% % %     h = depth_avg(i1);    % h should be a POSITIVE number 
+% % % 
+% % %     
+% % %     %%
+% % %     
+% % %     % the z coordinate for pos is set by the 'igam' option sent to
+% % %     % dat2dspec, igam = 1 is z=0 at surface, positive z up
+% % %     pos = [0,  0,  0;
+% % %            0,  0,  0;
+% % %            0,  0,  0;
+% % %            1, 16, 17;
+% % %            1,  0,  0].';
+% % %        
+% % %     %
+% % %     Data = [t(:), z(:), x(:), y(:)];
+% % %     
+% % % 
+% % %     %% Call Pat's high-level function, that calls WAFO's function
+% % %     % that computes directional spectra
+% % %     
+% % %     %
+% % %     warning('off', 'WAFO:W2K')    % turn warning message off. It's a
+% % %                                   % warning because the wavenumber computed
+% % %                                   % from frequency doesn't converge. But
+% % %                                   % the result I get looks Ok, and it's
+% % %                                   % likely some silly problem with the WAFO
+% % %                                   % code
+% % %     
+% % %     % Loop over methods
+% % %     for i2 = 1 : length(dspecmethod)
+% % %         
+% % %         %
+% % %         if i2 == 1
+% % %             [Sd, D, Sw] = dat2dspec_frequency_cut(Data, pos, h, ...
+% % %                                                   nfft, Nangbins, ...
+% % %                                                   dspecmethod(i2), options, cutoff);
+% % % 
+% % %         else
+% % %             [Sd, D] = dat2dspec_frequency_cut(Data, pos, h, ...
+% % %                                               nfft, Nangbins, ...
+% % %                                               dspecmethod(i2), options, cutoff);
+% % %         end
+% % %         
+% % %         %
+% % %         S_f_theta_temp(:, :, i1, i2) = Sd.S.' .*(2*pi);   % dimension: direction x frequency
+% % %         D_f_theta_temp(:, :, i1, i2) = D.S.';
+% % %         
+% % %     end
+% % %     
+% % %     %       
+% % %     S_f_temp(:, i1) = Sw.S.*(2*pi);    
+% % %     
+% % % end
 
 
 %% Add variables to output structure

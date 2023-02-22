@@ -137,83 +137,43 @@ D_f_theta_temp = S_f_theta_temp;
 
 %
 S_f_temp = NaN(length(f), length(adcpdirspec.dtime));
-depth_avg = NaN(1, length(adcpdirspec.dtime));
+% % depth_avg = NaN(1, length(adcpdirspec.dtime));
 
 
-%%
+%% Break the data apart in columns do the calculation more efficiently
+% (this way doesn't allow for overlaps and the window is the same
+% as the grid spacing)
 
 %
-for i1 = 1:length(adcpdirspec.dtime)
+[indsub, reshapeNdims, indgridlims] = reshapeintoWindows(dtimedata, dtimegrid);
 
-% %             % 
-% %         linanalysis_disp = (spotterL1.displacement.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
-% %                            (spotterL1.displacement.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
-% %         % This is slower than the index approach, but shouldn't
-% %         % make much of a difference because the directional 
-% %         % spectra takes a lot more time
-% %         %
-% %         xt = spotterL1.displacement.x(linanalysis_disp);
-% %         yt = spotterL1.displacement.y(linanalysis_disp);
-% %         zt = spotterL1.displacement.z(linanalysis_disp);
-% %         dtime_sample = spotterL1.displacement.dtime(linanalysis_disp); 
-% %      
-% % 
-% %         % the index of the depth record with the same dtime as the displacement 
-% %         linanalysis_location = (spotterL1.location.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
-% %                                (spotterL1.location.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
-% %         %
-% %         lat(sample) = mean(spotterL1.location.latitude(linanalysis_location), 'omitnan');
-% %         lon(sample) = mean(spotterL1.location.longitude(linanalysis_location), 'omitnan');
-% %         depth(sample) = mean(spotterL1.location.z_msl(linanalysis_location), 'omitnan');
-% %         %
-% %         h = abs(depth(sample));
+
+% Get data
+u_array = reshape(udata(indsub), reshapeNdims);
+v_array = reshape(vdata(indsub), reshapeNdims);
+%
+p_array = reshape(pdata(indsub), reshapeNdims);
+
+%
+depth_avg = mean(reshape(bottomdepth(indsub), reshapeNdims), 1, 'omitnan');
+h = depth_avg;     % h must be a POSITIVE 
+
+%
+lgoodcolumns = ~any(isnan(u_array), 1) & ~any(isnan(p_array), 1);
+
+%
+indfilloutput = indgridlims(1) : 1 : indgridlims(2);
+
+
+%% Loop over the windows and compute directional spectra
+
+% Loop over columns of the data arrays (i.e. the windows)
+for i1 = 1:reshapeNdims(2)
     
-    %% Select data
-    
-    %
-    ind_match_time = find(dtimedata == adcpdirspec.dtime(i1));
-    
-    %
-    if isempty(ind_match_time)
+    % Skip calculation if there is a NaN
+    if ~lgoodcolumns(i1)
         continue
     end
-    
-    %
-    inds_getdata_aux = (-Nptswindow/2 : 1 : Nptswindow/2) + ind_match_time;
-    inds_getdata_aux = inds_getdata_aux(1:end-1);    % such that we have the correct number of points
-    
-    %
-    if any(inds_getdata_aux < 1) || any(inds_getdata_aux > length(udata))
-        continue
-    end
-
-%     %
-%     linsample_aux = dataADCP.dtime >= 
-%     good = adcp.dtime>= dtime(sample) & ...
-%            adcp.dtime < dtime(sample) + hours(analysis_period_hours);
-      
-    % Get data
-    u = udata(inds_getdata_aux);
-    v = vdata(inds_getdata_aux);
-    %
-    p = pdata(inds_getdata_aux);     % p = detrend(p, 2);
-    
-    % -----------
-    if any(isnan(u))
-        warning('NaN found in data')
-        continue
-    end
-    % -----------
-    
-    %
-    u = u(:);
-    v = v(:);
-    p = p(:);
-    
-    %
-    depth_avg(i1) = mean(bottomdepth(inds_getdata_aux));
-    h = depth_avg(i1);    % h should be a POSITIVE number 
-
     
     %%
     
@@ -221,18 +181,18 @@ for i1 = 1:length(adcpdirspec.dtime)
     % dat2dspec, igam = 1 is z=0 at surface, positive z up
     pos = [0 0 0;
            0 0 0;
-           1.*[(-h + zhab(1)), (-h + zhab(1)), (-h + zhab(2))];
+           1.*[(-h(i1) + zhab(1)), (-h(i1) + zhab(1)), (-h(i1) + zhab(2))];
            10 11 9;
            0 0 1]';     % line 4, 10 = U, 11 = V, 9 = p 12 = W
-    
-% %     t = 0:dt:(dt*(length(u)-1));    % the way this was defined, the
+
+    % %     t = 0:dt:(dt*(length(u)-1));    % the way this was defined, the
                                         % data is assumed to be trimmed /
                                         % or you can get different DOF
-    
-    %
-    Data = [t(:), u(:), v(:), (1e4.*p(:))];    % convert pressure to Pa from dbar 
-    
 
+    %
+    Data = [t(:), u_array(:, i1), v_array(:, i1), (1e4.*p_array(:, i1))];    % convert pressure to Pa from dbar 
+   
+    
     %% Call Pat's high-level function, that calls WAFO's function
     % that computes directional spectra
     
@@ -249,25 +209,158 @@ for i1 = 1:length(adcpdirspec.dtime)
         
         %
         if i2 == 1
-            [Sd, D, Sw] = dat2dspec_frequency_cut(Data, pos, h, ...
+            [Sd, D, Sw] = dat2dspec_frequency_cut(Data, pos, h(i1), ...
                                                   nfft, Nangbins, ...
                                                   dspecmethod(i2), options, cutoff);
         else
-            [Sd, D] = dat2dspec_frequency_cut(Data, pos, h, ...
+            [Sd, D] = dat2dspec_frequency_cut(Data, pos, h(i1), ...
                                               nfft, Nangbins, ...
                                               dspecmethod(i2), options, cutoff);
         end
         
         %
-        S_f_theta_temp(:, :, i1, i2) = Sd.S.' .*(2*pi);   % dimension: direction x frequency
-        D_f_theta_temp(:, :, i1, i2) = D.S.';
+        S_f_theta_temp(:, :, indfilloutput(i1), i2) = Sd.S.' .*(2*pi);   % dimension: direction x frequency
+        D_f_theta_temp(:, :, indfilloutput(i1), i2) = D.S.';
         
     end
     
     %       
-    S_f_temp(:, i1) = Sw.S.*(2*pi);    
+    S_f_temp(:, indfilloutput(i1)) = Sw.S.*(2*pi);    
     
+    
+
 end
+
+ 
+
+%% Get the data in a way that's not very efficient
+
+% % %
+% % for i1 = 1:length(adcpdirspec.dtime)
+% % 
+% % % %             % 
+% % % %         linanalysis_disp = (spotterL1.displacement.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
+% % % %                            (spotterL1.displacement.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
+% % % %         % This is slower than the index approach, but shouldn't
+% % % %         % make much of a difference because the directional 
+% % % %         % spectra takes a lot more time
+% % % %         %
+% % % %         xt = spotterL1.displacement.x(linanalysis_disp);
+% % % %         yt = spotterL1.displacement.y(linanalysis_disp);
+% % % %         zt = spotterL1.displacement.z(linanalysis_disp);
+% % % %         dtime_sample = spotterL1.displacement.dtime(linanalysis_disp); 
+% % % %      
+% % % % 
+% % % %         % the index of the depth record with the same dtime as the displacement 
+% % % %         linanalysis_location = (spotterL1.location.dtime >= (dtime_proc_aux(sample) - (hours(analysis_period_hours)/2))) & ...
+% % % %                                (spotterL1.location.dtime  < (dtime_proc_aux(sample) + (hours(analysis_period_hours)/2)));
+% % % %         %
+% % % %         lat(sample) = mean(spotterL1.location.latitude(linanalysis_location), 'omitnan');
+% % % %         lon(sample) = mean(spotterL1.location.longitude(linanalysis_location), 'omitnan');
+% % % %         depth(sample) = mean(spotterL1.location.z_msl(linanalysis_location), 'omitnan');
+% % % %         %
+% % % %         h = abs(depth(sample));
+% %     
+% %     %% Select data
+% %     
+% %     %
+% %     ind_match_time = find(dtimedata == adcpdirspec.dtime(i1));
+% %     
+% %     %
+% %     if isempty(ind_match_time)
+% %         continue
+% %     end
+% %     
+% %     %
+% %     inds_getdata_aux = (-Nptswindow/2 : 1 : Nptswindow/2) + ind_match_time;
+% %     inds_getdata_aux = inds_getdata_aux(1:end-1);    % such that we have the correct number of points
+% %     
+% %     %
+% %     if any(inds_getdata_aux < 1) || any(inds_getdata_aux > length(udata))
+% %         continue
+% %     end
+% % 
+% % %     %
+% % %     linsample_aux = dataADCP.dtime >= 
+% % %     good = adcp.dtime>= dtime(sample) & ...
+% % %            adcp.dtime < dtime(sample) + hours(analysis_period_hours);
+% %       
+% %     % Get data
+% %     u = udata(inds_getdata_aux);
+% %     v = vdata(inds_getdata_aux);
+% %     %
+% %     p = pdata(inds_getdata_aux);     % p = detrend(p, 2);
+% %     
+% %     % -----------
+% %     if any(isnan(u))
+% %         warning('NaN found in data')
+% %         continue
+% %     end
+% %     % -----------
+% %     
+% %     %
+% %     u = u(:);
+% %     v = v(:);
+% %     p = p(:);
+% %     
+% %     %
+% %     depth_avg(i1) = mean(bottomdepth(inds_getdata_aux));
+% %     h = depth_avg(i1);    % h should be a POSITIVE number 
+% % 
+% %     
+% %     %%
+% %     
+% %     % the z coordinate for pos is set by the 'igam' option sent to
+% %     % dat2dspec, igam = 1 is z=0 at surface, positive z up
+% %     pos = [0 0 0;
+% %            0 0 0;
+% %            1.*[(-h + zhab(1)), (-h + zhab(1)), (-h + zhab(2))];
+% %            10 11 9;
+% %            0 0 1]';     % line 4, 10 = U, 11 = V, 9 = p 12 = W
+% %     
+% % % %     t = 0:dt:(dt*(length(u)-1));    % the way this was defined, the
+% %                                         % data is assumed to be trimmed /
+% %                                         % or you can get different DOF
+% %     
+% %     %
+% %     Data = [t(:), u(:), v(:), (1e4.*p(:))];    % convert pressure to Pa from dbar 
+% %     
+% % 
+% %     %% Call Pat's high-level function, that calls WAFO's function
+% %     % that computes directional spectra
+% %     
+% %     %
+% %     warning('off', 'WAFO:W2K')    % turn warning message off. It's a
+% %                                   % warning because the wavenumber computed
+% %                                   % from frequency doesn't converge. But
+% %                                   % the result I get looks Ok, and it's
+% %                                   % likely some silly problem with the WAFO
+% %                                   % code
+% %     
+% %     % Loop over methods
+% %     for i2 = 1 : length(dspecmethod)
+% %         
+% %         %
+% %         if i2 == 1
+% %             [Sd, D, Sw] = dat2dspec_frequency_cut(Data, pos, h, ...
+% %                                                   nfft, Nangbins, ...
+% %                                                   dspecmethod(i2), options, cutoff);
+% %         else
+% %             [Sd, D] = dat2dspec_frequency_cut(Data, pos, h, ...
+% %                                               nfft, Nangbins, ...
+% %                                               dspecmethod(i2), options, cutoff);
+% %         end
+% %         
+% %         %
+% %         S_f_theta_temp(:, :, i1, i2) = Sd.S.' .*(2*pi);   % dimension: direction x frequency
+% %         D_f_theta_temp(:, :, i1, i2) = D.S.';
+% %         
+% %     end
+% %     
+% %     %       
+% %     S_f_temp(:, i1) = Sw.S.*(2*pi);    
+% %     
+% % end
 
 
 %% 

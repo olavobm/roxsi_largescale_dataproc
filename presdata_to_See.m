@@ -42,19 +42,44 @@ Spp = Spp.';
 
 %% Compute average bottom depth on dtimespec grid
 
-% using inefficient code...
+% % % % using inefficient code...
+% % % 
+% % % %
+% % % bottomdepthavg = NaN(length(dtimespec), 1);
+% % % 
+% % % 
+% % % 
+% % % %
+% % % for i = 1:length(dtimespec)
+% % %     %
+% % %     linlims_aux = (dtime >= (dtimespec(i) - seconds(windowavgfft/2))) & ...
+% % %                   (dtime < (dtimespec(i) + seconds(windowavgfft/2)));
+% % %     %
+% % %     bottomdepthavg(i) = mean(bottomdepth(linlims_aux), 'omitnan');
+% % % 
+% % % end
+
+
+%% Compute average bottom depth on dtimespec grid
 
 %
-bottomdepthavg = NaN(length(dtimespec), 1);
+[indsub, reshapeNdims, ingridlims] = reshapeintoWindows(dtime, dtimespec);
 
 %
-for i = 1:length(dtimespec)
-    %
-    linlims_aux = (dtime >= (dtimespec(i) - seconds(windowavgfft/2))) & ...
-                  (dtime < (dtimespec(i) + seconds(windowavgfft/2)));
-    %
-    bottomdepthavg(i) = mean(bottomdepth(linlims_aux), 'omitnan');
+bottomdepthavg_aux = mean(reshape(bottomdepth(indsub), reshapeNdims), 1, 'omitnan');
+bottomdepthavg_aux = bottomdepthavg_aux(:);    % turn into column vector
 
+% Check (time) dimensions. If they don't agree, then
+% it should be because the time grid extends before/after
+% when there are data
+if length(bottomdepthavg_aux)~=size(Spp, 1)
+    %
+    bottomdepthavg = NaN(size(Spp, 1), 1);
+    %
+    bottomdepthavg(ingridlims(1):ingridlims(2)) = bottomdepthavg_aux;
+else
+    %
+    bottomdepthavg = bottomdepthavg_aux;
 end
 
 

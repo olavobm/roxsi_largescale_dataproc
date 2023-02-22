@@ -29,6 +29,7 @@ run('Signature1000_proc_lvl_1_scalars.m'), close all
 run('Signature1000_proc_lvl_1.m'), close all
 % % run('Signature1000_proc_lvl_2.m'), close all
 
+
 %%
 % ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
@@ -53,9 +54,11 @@ run('SmartMooring_merge_L1data.m')
 run('Spotters_proc_lvl_1.m'), close all
 
 %
-run('bathymetry_around_Spotters.m'), close all
+run('bathymetry_around_Spotters.m'), close all    % currently, only for
+                                                  % Spotters, not Smart Moorings
 
-% Merge Spotter data from B01 and Smart Mooring E07 and E09.
+% Time grid data for all spotters and merge Spotter
+% data from B01, E07, and E09.
 run('Spotter_merge_L1data.m')
 
 %

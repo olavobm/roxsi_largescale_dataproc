@@ -14,6 +14,9 @@ close all
 dir_data =['/home/omarques/Documents/obm_ROXSI/Analyses' ...
            '/dirspectra_product/new_results_3/data_with_dirspectra/'];
 
+%
+dir_output = '/home/omarques/Documents/obm_ROXSI/obm_DataLocal/Level3_Data/';
+
 
 %%
 
@@ -140,7 +143,7 @@ dataSS.dtime = dataAll.B01.dtime;
 dataSS.frequency = dataAll.B01.frequency;
 
 
-%%
+%% Add metadata and bottom depth
 
 %
 Nt = length(dataSS.dtime);
@@ -182,7 +185,7 @@ for i = 1:dataSS.Nmoorings
 end
 
 
-%%
+%% Add data from all moorings
 
 %
 prealloc_aux = NaN(Nt, dataSS.Nmoorings);
@@ -194,6 +197,7 @@ for i1 = 1:length(list_freqbands)
 
     %
     dataSS.(list_freqbands{i1}).Hs = prealloc_aux;
+    dataSS.(list_freqbands{i1}).Flux = prealloc_aux;
     dataSS.(list_freqbands{i1}).meanfreq = prealloc_aux;
     dataSS.(list_freqbands{i1}).peakfreq = prealloc_aux;
     %
@@ -201,16 +205,6 @@ for i1 = 1:length(list_freqbands)
     %
     dataSS.(list_freqbands{i1}).cp = prealloc_aux;
     dataSS.(list_freqbands{i1}).cg = prealloc_aux;
-    %
-    dataSS.(list_freqbands{i1}).a1 = prealloc_aux;
-    dataSS.(list_freqbands{i1}).b1 = prealloc_aux;
-    dataSS.(list_freqbands{i1}).a2 = prealloc_aux;
-    dataSS.(list_freqbands{i1}).b2 = prealloc_aux;
-    %
-    dataSS.(list_freqbands{i1}).meandir = prealloc_aux;
-    dataSS.(list_freqbands{i1}).dirspread = prealloc_aux;
-    dataSS.(list_freqbands{i1}).Fx = prealloc_aux;
-    dataSS.(list_freqbands{i1}).Fy = prealloc_aux;
 
     %
     for i2 = 1:dataSS.Nmoorings
@@ -226,15 +220,75 @@ for i1 = 1:length(list_freqbands)
             indsfill = indsget;
         end
         
-        %
-        dataSS.(list_freqbands{i1}).Hs(indsfill, i2) = dataAll.(list_allmoorings{i2}).EMEM.(list_freqbands{i1}).Hs(indsget, 1);
-        dataSS.(list_freqbands{i1}).meanfreq(indsfill, i2) = dataAll.(list_allmoorings{i2}).moments.(list_freqbands{i1}).meanfreq(indsget);
-        dataSS.(list_freqbands{i1}).peakfreq(indsfill, i2) = dataAll.(list_allmoorings{i2}).moments.(list_freqbands{i1}).peakfreq(indsget);
+
+        % Add variables to output data structure
+        if ~isfield(dataAll.(list_allmoorings{i2}), 'moments')
+            % For SoloDs
+            dataSS.(list_freqbands{i1}).Hs(indsfill, i2) = dataAll.(list_allmoorings{i2}).(list_freqbands{i1}).Hs(indsget, 1);
+            dataSS.(list_freqbands{i1}).Flux(indsfill, i2) = dataAll.(list_allmoorings{i2}).(list_freqbands{i1}).Flux(indsget, 1);
+            %
+            dataSS.(list_freqbands{i1}).meanfreq(indsfill, i2) = dataAll.(list_allmoorings{i2}).(list_freqbands{i1}).meanfreq(indsget);
+            dataSS.(list_freqbands{i1}).peakfreq(indsfill, i2) = dataAll.(list_allmoorings{i2}).(list_freqbands{i1}).peakfreq(indsget);
+        else
+            % For the others
+            %
+            dataSS.(list_freqbands{i1}).Hs(indsfill, i2) = dataAll.(list_allmoorings{i2}).EMEM.(list_freqbands{i1}).Hs(indsget, 1);
+            dataSS.(list_freqbands{i1}).Hs(indsfill, i2) = dataAll.(list_allmoorings{i2}).nodirection.(list_freqbands{i1}).Flux(indsget, 1);
+            %
+            dataSS.(list_freqbands{i1}).meanfreq(indsfill, i2) = dataAll.(list_allmoorings{i2}).moments.(list_freqbands{i1}).meanfreq(indsget);
+            dataSS.(list_freqbands{i1}).peakfreq(indsfill, i2) = dataAll.(list_allmoorings{i2}).moments.(list_freqbands{i1}).peakfreq(indsget);
+        end
+
         %
         dataSS.(list_freqbands{i1}).meank = prealloc_aux;
         %
         dataSS.(list_freqbands{i1}).cp = prealloc_aux;
         dataSS.(list_freqbands{i1}).cg = prealloc_aux;
+
+    end
+end
+
+
+%% Add directional quantities
+
+%
+prealloc_aux = NaN(Nt, dataSS.Nmoorings);
+
+%
+for i1 = 1:length(list_freqbands)
+    %
+    dataSS.(list_freqbands{i1}).freqlims = dataAll.B01.moments.(list_freqbands{i1}).freqlims;
+
+    %
+    dataSS.(list_freqbands{i1}).a1 = prealloc_aux;
+    dataSS.(list_freqbands{i1}).b1 = prealloc_aux;
+    dataSS.(list_freqbands{i1}).a2 = prealloc_aux;
+    dataSS.(list_freqbands{i1}).b2 = prealloc_aux;
+    %
+    dataSS.(list_freqbands{i1}).meandir = prealloc_aux;
+    dataSS.(list_freqbands{i1}).dirspread = prealloc_aux;
+    dataSS.(list_freqbands{i1}).Fx = prealloc_aux;
+    dataSS.(list_freqbands{i1}).Fy = prealloc_aux;
+
+    %
+    for i2 = 1:dataSS.Nmoorings
+
+        % Skip for SoloD
+        if ~isfield(dataAll.(list_allmoorings{i2}), 'moments')
+            continue
+        end
+
+        %
+        if any(strcmp(list_ADCPs, list_allmoorings{i2}))
+            indsget = 1:length(dataAll.(list_allmoorings{i2}).dtime);
+            %
+            ind_match = find(dataSS.dtime == dataAll.(list_allmoorings{i2}).dtime(1));
+            indsfill = indsget + ind_match - 1;
+        else
+            indsget = 1:Nt;
+            indsfill = indsget;
+        end
+        
         %
         dataSS.(list_freqbands{i1}).a1(indsfill, i2) = dataAll.(list_allmoorings{i2}).moments.(list_freqbands{i1}).a1(indsget);
         dataSS.(list_freqbands{i1}).b1(indsfill, i2) = dataAll.(list_allmoorings{i2}).moments.(list_freqbands{i1}).b1(indsget);
@@ -246,29 +300,18 @@ for i1 = 1:length(list_freqbands)
         dataSS.(list_freqbands{i1}).Fx(indsfill, i2) = dataAll.(list_allmoorings{i2}).moments.(list_freqbands{i1}).Fx(indsget);
         dataSS.(list_freqbands{i1}).Fy(indsfill, i2) = dataAll.(list_allmoorings{i2}).moments.(list_freqbands{i1}).Fy(indsget);
 
+
     end
 end
 
 
-
-
 %%
 
-% % % ????????????????????????????
-% % 
-% % %
-% % list_vars_aux = {'mooringID', 'instrument', 'latitude', 'longitude', 'X', 'Y', 'site'};
-% % 
-% % %
-% % for i = 1:length(list_vars_aux)
-% %     dataSS.(list_vars_aux{i}) = dataSS.(list_vars_aux{i})(:);
-% % end
+%
+save(fullfile(dir_output, 'largescale_seaswell_ROXSI2022.mat'), 'dataSS', '-v7.3')
 
-
-%%
-% -------------------------------------------------------
-% -------------------------------------------------------
-% -------------------------------------------------------
+%
+disp('--- DONE GROUPING ALL OF THE L2 DATA ---')
 
 
 %%
@@ -277,56 +320,66 @@ return
 
 
 %%
-
-%
-% % % % list_moorings = ["B01", "B03", "B05", "E08", "B08", "B10", "B11", "B13", "B15"];
-% % list_moorings = ["B01", "B03", "B05", "E08", "B10", "B13", "B15"];    % no Aquadopps
-
-%
-% list_moorings = ["B01", "B03", "B05", "E05", "E08", "B10", "B13", "B15", "A01", "C01"];
-list_moorings = ["B01", "B03", "B05", ...
-                 "E01", "E02", "E05", "E07", "E08", "E09", "E10", "E11", "E13", ...
-                 "B10", "B13", "B15", "A01", "C01"];
-
-list_moorings = ["B01", "B03", "B05", ...
-                 "E01", "E02", "E05", "E07", "E08", "E09", "E10", "E11", "E13", ...
-                 "B10", "B11", "B13", "B15", "A01", "C01"];
-
-% % % Asilomar only
-% % list_moorings = ["X01", "X03", "X04", "X05", "X06", "X11", "X13"];
-% % list_moorings = ["X01", "X03", "X04", "X05"];
-% % list_moorings = ["X04", "X05"];
+% -------------------------------------------------------
+% -------------------------------------------------------
+% -------------------------------------------------------
 
 
-%
-% listband_pick = 'swell';
-listband_pick = 'sea';
-% listband_pick = 'seaswell';
 
-% -----------
-%
-lpick = strcmp(dataSS.mooringID, "X05");
-%
-dataSS.(listband_pick).meandir(:, lpick) = dataSS.(listband_pick).meandir(:, lpick) - (58*pi/180);
-% -----------
+%%
 
+% % INCORPORTATE SOMETHING ABOUT SELECTING ONLY THE CONVIENT DATA???
 
-%
-lgetmoor = false(dataSS.Nmoorings, 1);
-%
-for i = 1:dataSS.Nmoorings
-    %
-    if any(strcmp(list_moorings, dataSS.mooringID(i)))
-        lgetmoor(i) = true;
-    end
-end
-
-%
-Hs_TH = 0.5;
-
-%
-lcommondata = ~isnan(mean(dataSS.(listband_pick).Hs(:, lgetmoor), 2));
-ltimeavg = dataSS.(listband_pick).Hs(:, strcmp(dataSS.mooringID, "B01")) > Hs_TH;
-%
-lplot = lcommondata & ltimeavg;
+% % 
+% % %
+% % % % % % list_moorings = ["B01", "B03", "B05", "E08", "B08", "B10", "B11", "B13", "B15"];
+% % % % list_moorings = ["B01", "B03", "B05", "E08", "B10", "B13", "B15"];    % no Aquadopps
+% % 
+% % %
+% % % list_moorings = ["B01", "B03", "B05", "E05", "E08", "B10", "B13", "B15", "A01", "C01"];
+% % list_moorings = ["B01", "B03", "B05", ...
+% %                  "E01", "E02", "E05", "E07", "E08", "E09", "E10", "E11", "E13", ...
+% %                  "B10", "B13", "B15", "A01", "C01"];
+% % 
+% % list_moorings = ["B01", "B03", "B05", ...
+% %                  "E01", "E02", "E05", "E07", "E08", "E09", "E10", "E11", "E13", ...
+% %                  "B10", "B11", "B13", "B15", "A01", "C01"];
+% % 
+% % % % % Asilomar only
+% % % % list_moorings = ["X01", "X03", "X04", "X05", "X06", "X11", "X13"];
+% % % % list_moorings = ["X01", "X03", "X04", "X05"];
+% % % % list_moorings = ["X04", "X05"];
+% % 
+% % 
+% % %
+% % % listband_pick = 'swell';
+% % listband_pick = 'sea';
+% % % listband_pick = 'seaswell';
+% % 
+% % % -----------
+% % %
+% % lpick = strcmp(dataSS.mooringID, "X05");
+% % %
+% % dataSS.(listband_pick).meandir(:, lpick) = dataSS.(listband_pick).meandir(:, lpick) - (58*pi/180);
+% % % -----------
+% % 
+% % 
+% % %
+% % lgetmoor = false(dataSS.Nmoorings, 1);
+% % %
+% % for i = 1:dataSS.Nmoorings
+% %     %
+% %     if any(strcmp(list_moorings, dataSS.mooringID(i)))
+% %         lgetmoor(i) = true;
+% %     end
+% % end
+% % 
+% % %
+% % Hs_TH = 0.5;
+% % 
+% % %
+% % lcommondata = ~isnan(mean(dataSS.(listband_pick).Hs(:, lgetmoor), 2));
+% % ltimeavg = dataSS.(listband_pick).Hs(:, strcmp(dataSS.mooringID, "B01")) > Hs_TH;
+% % %
+% % lplot = lcommondata & ltimeavg;
 

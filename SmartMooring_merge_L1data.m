@@ -72,14 +72,14 @@ for i1 = 1:length(moordID_merge)
 
         %
         if i2==1
-            time_edges.TimeZone = dataAll(i2).spotsmart.dtime.TimeZone;
+            time_edges.TimeZone = dataAll(i2).spotsmartL1.dtime.TimeZone;
         end
 
         %
-        ind_edges_aux = [find(~isnan(dataAll(i2).spotsmart.pressure), 1, 'first'), ...
-                         find(~isnan(dataAll(i2).spotsmart.pressure), 1, 'last')];
+        ind_edges_aux = [find(~isnan(dataAll(i2).spotsmartL1.pressure), 1, 'first'), ...
+                         find(~isnan(dataAll(i2).spotsmartL1.pressure), 1, 'last')];
         %
-        time_edges(i2, :) = dataAll(i2).spotsmart.dtime(ind_edges_aux);
+        time_edges(i2, :) = dataAll(i2).spotsmartL1.dtime(ind_edges_aux);
 
     end
 
@@ -97,24 +97,24 @@ for i1 = 1:length(moordID_merge)
     for i2 = 1:Nfiles
         %
         if i2~=Nfiles
-            spotsmartL1.SN = [spotsmartL1.SN, dataAll(ind_sort(i2)).spotsmart.SN ' + '];
+            spotsmartL1.SN = [spotsmartL1.SN, dataAll(ind_sort(i2)).spotsmartL1.SN ' + '];
         else 
-            spotsmartL1.SN = [spotsmartL1.SN, dataAll(ind_sort(i2)).spotsmart.SN];
+            spotsmartL1.SN = [spotsmartL1.SN, dataAll(ind_sort(i2)).spotsmartL1.SN];
         end
     end
 
     %
     % spotsmartL1.site = dataAll(1).spotterL1.site;
     spotsmartL1.site = "ChinaRock";
-    spotsmartL1.latitude = dataAll(1).spotsmart.latitude;
-    spotsmartL1.longitude = dataAll(1).spotsmart.longitude;
+    spotsmartL1.latitude = dataAll(1).spotsmartL1.latitude;
+    spotsmartL1.longitude = dataAll(1).spotsmartL1.longitude;
     % % spotsmartL1.X = dataAll(1).spotterL1.X;
     % % spotsmartL1.Y = dataAll(1).spotterL1.Y;
 
     %
-    spotsmartL1.zhab = dataAll(1).spotsmart.zhab;
-    spotsmartL1.dt = dataAll(1).spotsmart.dt;
-    spotsmartL1.gapTH = dataAll(1).spotsmart.gapTH;
+    spotsmartL1.zhab = dataAll(1).spotsmartL1.zhab;
+    spotsmartL1.dt = dataAll(1).spotsmartL1.dt;
+    spotsmartL1.gapTH = dataAll(1).spotsmartL1.gapTH;
 
 
     %%
@@ -131,17 +131,17 @@ for i1 = 1:length(moordID_merge)
         if i2==1
             %
             for i3 = 1:length(list_fields_cat)
-                spotsmartL1.(list_fields_cat{i3}) = dataAll(ind_sort(i2)).spotsmart.(list_fields_cat{i3})(:);
+                spotsmartL1.(list_fields_cat{i3}) = dataAll(ind_sort(i2)).spotsmartL1.(list_fields_cat{i3})(:);
             end
 
         %
         else
 
             %
-            ladddata_aux = ~isnan(dataAll(ind_sort(i2)).spotsmart.pressure);
+            ladddata_aux = ~isnan(dataAll(ind_sort(i2)).spotsmartL1.pressure);
 
             %
-            spotsmartL1.pressure(ladddata_aux) = dataAll(ind_sort(i2)).spotsmart.pressure(ladddata_aux);
+            spotsmartL1.pressure(ladddata_aux) = dataAll(ind_sort(i2)).spotsmartL1.pressure(ladddata_aux);
 
         end
 
@@ -160,7 +160,8 @@ end
 
 
 %% Copy Smart Mooring files that don't need to be merged
-% from the gridded to the merged folder
+% from the gridded to the merged folder -- just so there
+% is a data file for each mooring (for consistency).
 
 
 %
@@ -182,7 +183,7 @@ copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E10sp_1848_gridded.mat'), ...
 copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E11sp_1860_gridded.mat'), ...
          fullfile(dir_output, 'roxsi_smartmooring_L1_E11.mat'))
 %
-copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E13sp_1848_gridded.mat'), ...
+copyfile(fullfile(dir_data, 'roxsi_smartmooring_L1_E13sp_1849_gridded.mat'), ...
          fullfile(dir_output, 'roxsi_smartmooring_L1_E13.mat'))
 
 

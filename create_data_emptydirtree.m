@@ -45,6 +45,7 @@ mkdir(dir_data_parent)
 %
 mkdir(fullfile(dir_data_parent, 'Level1_Data'))
 mkdir(fullfile(dir_data_parent, 'Level2_Data'))
+mkdir(fullfile(dir_data_parent, 'Level3_Data'))
 
 % --------------------------------------------------------
 % Level 1 subdirectories

@@ -238,7 +238,7 @@ for i1 = 1:length(list_freqbands)
             % For the others
             %
             dataSS.(list_freqbands{i1}).Hs(indsfill, i2) = dataAll.(list_allmoorings{i2}).EMEM.(list_freqbands{i1}).Hs(indsget, 1);
-            dataSS.(list_freqbands{i1}).Hs(indsfill, i2) = dataAll.(list_allmoorings{i2}).nodirection.(list_freqbands{i1}).Flux(indsget, 1);
+            dataSS.(list_freqbands{i1}).Flux(indsfill, i2) = dataAll.(list_allmoorings{i2}).nodirection.(list_freqbands{i1}).Flux(indsget, 1);
             %
             dataSS.(list_freqbands{i1}).meanfreq(indsfill, i2) = dataAll.(list_allmoorings{i2}).moments.(list_freqbands{i1}).meanfreq(indsget);
             dataSS.(list_freqbands{i1}).peakfreq(indsfill, i2) = dataAll.(list_allmoorings{i2}).moments.(list_freqbands{i1}).peakfreq(indsget);

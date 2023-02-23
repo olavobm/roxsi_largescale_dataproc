@@ -146,11 +146,11 @@ for i1 = 1:length(mooringID)
         
         %
 %         dataL1.SN
-        dataL1.latitude = data_aux.latitude;
-        dataL1.longitude = data_aux.longitude;
-        dataL1.X = data_aux.X;
-        dataL1.Y = data_aux.Y;
-        dataL1.site = data_aux.site;
+        dataL1.(mooringID{i1}).latitude = data_aux.latitude;
+        dataL1.(mooringID{i1}).longitude = data_aux.longitude;
+        dataL1.(mooringID{i1}).X = data_aux.X;
+        dataL1.(mooringID{i1}).Y = data_aux.Y;
+        dataL1.(mooringID{i1}).site = data_aux.site;
 
         %
         dataL1.(mooringID{i1}).zhab = 0.09;
@@ -161,10 +161,41 @@ for i1 = 1:length(mooringID)
         
         %
         dataL1.(mooringID{i1}).dtime = time_aux(:);
-        dataL1.(mooringID{i1}).pressure = pressure_aux(:);
+        dataL1.(mooringID{i1}).pressure = (1025*9.8)*pressure_aux(:)./1e4;    % Falk saves pressure in meters. Convert to dbar
         
-        % INTERPOLATE IN DATETIME!!!!
-        keyboard
+        % --------------------------------------------------
+        % --------------------------------------------------
+        % Interpolate pressure in datetime
+        
+        % In seconds
+        gapTH = seconds(4);
+        dt_grid = seconds(0.5);
+        
+        % ------------------------------
+        % Start and end time grid on the whole second
+        dtime_start = datetime(year(dataL1.(mooringID{i1}).dtime(1)), month(dataL1.(mooringID{i1}).dtime(1)), day(dataL1.(mooringID{i1}).dtime(1)), ...
+                               hour(dataL1.(mooringID{i1}).dtime(1)), minute(dataL1.(mooringID{i1}).dtime(1)), 1 + second(dataL1.(mooringID{i1}).dtime(1)));
+        %
+        dtime_end = datetime(year(dataL1.(mooringID{i1}).dtime(end)), month(dataL1.(mooringID{i1}).dtime(end)), day(dataL1.(mooringID{i1}).dtime(end)), ...
+                             hour(dataL1.(mooringID{i1}).dtime(end)), minute(dataL1.(mooringID{i1}).dtime(end)), -1 + second(dataL1.(mooringID{i1}).dtime(end)));
+        
+        %
+        dtime_start.TimeZone = time_aux.TimeZone;
+        dtime_end.TimeZone = time_aux.TimeZone;
+        
+        %
+        dtime_grid = dtime_start : dt_grid : dtime_end;
+        dtime_grid = dtime_grid(:);
+        
+        % ------------------------------
+        %
+        pinterp_aux = interp1_skipgaps(dataL1.(mooringID{i1}).dtime, ...
+                                       dataL1.(mooringID{i1}).pressure, ...
+                                       gapTH, dtime_grid);
+        %
+        dataL1.(mooringID{i1}).dtime = dtime_grid(:);
+        dataL1.(mooringID{i1}).pressure = pinterp_aux(:);
+        
 
 	%
     else
@@ -180,8 +211,8 @@ for i1 = 1:length(mooringID)
     
     if ltimesub
         %
-        lintime_aux = (dataL1.(mooringID{i1}).dtime >= dtimelimes(1)) & ...
-                      (dataL1.(mooringID{i1}).dtime <= dtimelimes(2));
+        lintime_aux = (dataL1.(mooringID{i1}).dtime >= dtimelims(1)) & ...
+                      (dataL1.(mooringID{i1}).dtime <= dtimelims(2));
         %
         dataL1.(mooringID{i1}).dtime = dataL1.(mooringID{i1}).dtime(lintime_aux);
         dataL1.(mooringID{i1}).pressure = dataL1.(mooringID{i1}).pressure(lintime_aux);

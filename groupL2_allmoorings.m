@@ -150,6 +150,8 @@ Nt = length(dataSS.dtime);
 
 %
 dataSS.bottomdepth = NaN(Nt, dataSS.Nmoorings);
+% % dataSS.cp = NaN(Nt, dataSS.Nmoorings);
+% % dataSS.cg = NaN(Nt, dataSS.Nmoorings);
 
 %
 for i = 1:dataSS.Nmoorings
@@ -182,6 +184,9 @@ for i = 1:dataSS.Nmoorings
     end
     %
     dataSS.bottomdepth(indsfill, i) = dataAll.(list_allmoorings{i}).bottomdepth(:);
+    %
+% %     dataSS.cp(indsfill, i) = dataAll.(list_allmoorings{i}).cp;
+% %     dataSS.cg(indsfill, i) = dataAll.(list_allmoorings{i}).cg;
 end
 
 
@@ -202,9 +207,9 @@ for i1 = 1:length(list_freqbands)
     dataSS.(list_freqbands{i1}).peakfreq = prealloc_aux;
     %
     dataSS.(list_freqbands{i1}).meank = prealloc_aux;
-    %
-    dataSS.(list_freqbands{i1}).cp = prealloc_aux;
-    dataSS.(list_freqbands{i1}).cg = prealloc_aux;
+% %     %
+% %     dataSS.(list_freqbands{i1}).cp = prealloc_aux;
+% %     dataSS.(list_freqbands{i1}).cg = prealloc_aux;
 
     %
     for i2 = 1:dataSS.Nmoorings
@@ -240,11 +245,7 @@ for i1 = 1:length(list_freqbands)
         end
 
         %
-        dataSS.(list_freqbands{i1}).meank = prealloc_aux;
-        %
-        dataSS.(list_freqbands{i1}).cp = prealloc_aux;
-        dataSS.(list_freqbands{i1}).cg = prealloc_aux;
-
+% %         dataSS.(list_freqbands{i1}).meank = prealloc_aux;
     end
 end
 
@@ -313,9 +314,6 @@ save(fullfile(dir_output, 'largescale_seaswell_ROXSI2022.mat'), 'dataSS', '-v7.3
 %
 disp('--- DONE GROUPING ALL OF THE L2 DATA ---')
 
-
-%%
-return
 
 
 

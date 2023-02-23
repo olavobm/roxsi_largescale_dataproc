@@ -42,15 +42,14 @@ list_moorings = {'A02', 'A04', 'A05', 'A06', 'A07', 'A09', ...
 %
 dt_spec = hours(1);
 
-% % % Full timeseries (excluding remaining data after
-% % % recovery started, and a bit on the first day)
-% % dtimegridlims = [datetime(2022, 06, 15, 20, 00, 00), ...
-% %                  datetime(2022, 07, 20, 05, 00, 00)];
-% %              
+% Full timeseries (excluding remaining data after
+% recovery started, and a bit on the first day)
+dtimegridlims = [datetime(2022, 06, 15, 20, 00, 00), ...
+                 datetime(2022, 07, 20, 05, 00, 00)];
              
-% A sample
-dtimegridlims = [datetime(2022, 06, 28, 12, 00, 00), ...
-                 datetime(2022, 06, 30, 12, 00, 00)];
+% % % A sample
+% % dtimegridlims = [datetime(2022, 06, 28, 12, 00, 00), ...
+% %                  datetime(2022, 06, 30, 12, 00, 00)];
              
 
 %
@@ -130,7 +129,9 @@ for i1 = 1:length(list_moorings)
 
     %
     dataL1 = ROXSI_load_pressureL1(list_moorings{i1}, dtimelims_load);
+    dataL1 = dataL1.(list_moorings{i1});
 
+    
     %% --------------------------------------
     % Compute bottom depth from hydrostatic pressure
 
@@ -241,8 +242,8 @@ for i1 = 1:length(list_moorings)
     for i2 = 1:length(bulkbands)
 
         %
-        linlims_aux = (solodL2.frequency >= bulkbands(i2).freqlims) & ...
-                      (solodL2.frequency <= bulkbands(i2).freqlims);
+        linlims_aux = (solodL2.frequency >= bulkbands(i2).freqlims(1)) & ...
+                      (solodL2.frequency <= bulkbands(i2).freqlims(2));
 
         %
         See_int_aux = trapz(solodL2.frequency(linlims_aux), solodL2.See(:, linlims_aux), 2);
@@ -263,6 +264,10 @@ for i1 = 1:length(list_moorings)
                                                 solodL2.Flux(:, linlims_aux), 2);
     end
 
+    
+    %
+    disp(['--- Done with L2 calculations for SoloD at ' list_moorings{i1} ' ---'])
+    toc(totalRunTime)
 
     %% --------------------------------------
     % Save data
@@ -279,4 +284,9 @@ for i1 = 1:length(list_moorings)
 
 
 end
+
+%
+disp('--- DONE WITH CALCULATION FOR ALL SOLODs ---')
+toc(totalRunTime)
+
 

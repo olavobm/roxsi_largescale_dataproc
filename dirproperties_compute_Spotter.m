@@ -4,8 +4,7 @@ clear
 close all
 
 %
-% % addpath(genpath(['/Users/olavobm/Documents/ROXSI_Postdoc' ...
-% %                  '/MyResearch/ROXSI/Common_Code/LargeScale_Data_2022/']))
+addpath(genpath(['/home/omarques/Documents/MATLAB/wafo/']))
 
 %%
 
@@ -287,8 +286,8 @@ for i1 = 1:length(list_moorings)
     %
     for i2 = 1:length(dtimespec)
         %
-        linlims_aux = (spotterL1.location.dtime >= (dtimespec(i2) - (spotterL2.fftavgwindow/2))) & ...
-                      (spotterL1.location.dtime < (dtimespec(i2) + (spotterL2.fftavgwindow/2)));
+        linlims_aux = (spotterL1.location.dtime >= (dtimespec(i2) - seconds(spotterL2.fftavgwindow/2))) & ...
+                      (spotterL1.location.dtime < (dtimespec(i2) + seconds(spotterL2.fftavgwindow/2)));
         %
         bottomdepthavg(i2) = mean(spotterL1.location.z_msl(linlims_aux), 'omitnan');
 

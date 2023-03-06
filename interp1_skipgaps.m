@@ -2,13 +2,13 @@ function xinterp = interp1_skipgaps(t, x, gapTH, tgrid)
 %% xinterp = INTERP1_SKIPGAPS(t, x, gapTH, tgrid)
 %
 %   inputs
-%       -
-%       -
-%       -
-%       -
+%       - t: independent variable.
+%       - x: dependent variable to interpolate
+%       - gapTH: threshold of the gap
+%       - tgrid:
 %
 %   outputs
-%       -
+%       - xinterp: interpolated variable.
 %
 %
 %
